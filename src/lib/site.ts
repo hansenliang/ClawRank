@@ -17,8 +17,8 @@ export function getDetailPath(detailSlug: string) {
   return `/a/${detailSlug}`;
 }
 
-export function getOgImagePath(detailSlug: string) {
-  return `/api/og/${detailSlug}`;
+export function getOgImagePath(detailSlug: string, mode: 'baked' | 'live' = 'live') {
+  return mode === 'baked' ? `/api/og/mock/${detailSlug}` : `/api/og/${detailSlug}`;
 }
 
 export function getRequestOrigin(headers?: HeaderReader) {
