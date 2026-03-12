@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { formatCompact, formatStandard } from '@/src/lib/data';
-import type { LeaderboardRow } from '@/src/lib/types';
+import type { LeaderboardRow } from '@/src/contracts/clawrank';
 
 function Avatar({ name }: { name: string }) {
  return <div className="avatar">{name.slice(0, 2).toUpperCase()}</div>;

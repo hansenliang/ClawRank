@@ -1,4 +1,4 @@
-import type { ShareStat } from '@/src/lib/types';
+import type { ShareStat } from '@/src/contracts/clawrank';
 import { formatCompact, formatStandard } from '@/src/lib/data';
 
 function badgeClass(status: ShareStat['status']) {
