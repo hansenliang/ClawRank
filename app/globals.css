@@ -455,6 +455,80 @@ h1, h2, h3, p { margin: 0; }
  }
 }
 
+/* ─── Mobile Leaderboard Cards ─── */
+.mobile-only { display: none; }
+.desktop-only { display: block; }
+
+@media (max-width: 640px) {
+ .desktop-only { display: none !important; }
+ .mobile-only { display: block !important; }
+}
+
+.mobile-card-list {
+ display: flex;
+ flex-direction: column;
+ gap: 16px;
+}
+
+.mobile-card {
+ padding: 16px;
+ background: var(--bg-surface);
+ border: 1px solid var(--border);
+ border-radius: 8px;
+ display: flex;
+ flex-direction: column;
+ gap: 12px;
+}
+
+.mobile-card-header {
+ display: flex;
+ align-items: center;
+ gap: 12px;
+ border-bottom: 1px solid var(--border);
+ padding-bottom: 12px;
+}
+
+.mobile-card-header .identity {
+ gap: 8px;
+}
+
+.mobile-card-metrics {
+ display: flex;
+ justify-content: space-between;
+ padding: 4px 0;
+}
+
+.mobile-metric {
+ display: flex;
+ flex-direction: column;
+ gap: 2px;
+}
+
+.mobile-metric-label {
+ font-size: 11px;
+ color: var(--text-4);
+ text-transform: uppercase;
+ letter-spacing: 0.04em;
+}
+
+.mobile-metric-value {
+ font-size: 14px;
+ font-weight: 600;
+ color: var(--text);
+}
+
+.mobile-card-git {
+ font-size: 12px;
+ padding-bottom: 8px;
+ border-bottom: 1px dashed var(--border);
+}
+
+.mobile-card-tools {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 6px;
+}
+
 /* ══════════════════════════════════════════════
  CLI 2.0 — restrained motion pass
  Small pulses, cursor cues, softer atmosphere.
