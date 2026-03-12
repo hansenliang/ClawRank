@@ -1,28 +1,49 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { WindowChrome } from '@/app/components/chrome';
+import { ShareLinkButton } from '@/app/components/share-link-button';
 import { StatGrid } from '@/app/components/stat-grid';
 import { formatCompact, formatPeriodLabel, getShareDetail } from '@/src/lib/data';
+import { getAbsoluteUrl, getDetailPath, getOgImagePath, getRequestOrigin } from '@/src/lib/site';
 
 export async function generateMetadata({ params }: { params: Promise<{ detailSlug: string }> }): Promise<Metadata> {
   const { detailSlug } = await params;
   const detail = await getShareDetail(detailSlug);
   if (!detail) return {};
 
+  const requestHeaders = await headers();
+  const origin = getRequestOrigin(requestHeaders);
+  const pageUrl = getAbsoluteUrl(getDetailPath(detailSlug), origin);
+  const imageUrl = getAbsoluteUrl(getOgImagePath(detailSlug), origin);
+
   return {
+    metadataBase: new URL(origin),
     title: detail.displayName,
     description: detail.shareText,
+    alternates: {
+      canonical: pageUrl,
+    },
     openGraph: {
       title: detail.title,
       description: detail.subtitle,
-      images: [`/api/og/${detailSlug}`],
+      type: 'website',
+      url: pageUrl,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${detail.displayName} share image`,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: detail.title,
       description: detail.subtitle,
-      images: [`/api/og/${detailSlug}`],
+      images: [imageUrl],
     },
   };
 }
@@ -31,6 +52,10 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
   const { detailSlug } = await params;
   const detail = await getShareDetail(detailSlug);
   if (!detail) notFound();
+
+  const origin = getRequestOrigin(await headers());
+  const shareUrl = getAbsoluteUrl(getDetailPath(detailSlug), origin);
+  const imageUrl = getAbsoluteUrl(getOgImagePath(detailSlug), origin);
 
   return (
     <main className="shell">
@@ -54,9 +79,10 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
           <div className="hero-card">
             <div className="eyebrow">Share payload</div>
             <div className="codeblock" style={{ marginTop: 16 }}>{detail.shareText}</div>
-            <div className="actions" style={{ marginTop: 16 }}>
-              <a className="action" href={detail.canonicalUrl}>Canonical URL</a>
-              <a className="action" href={`/api/og/${detail.detailSlug}`}>OG image</a>
+            <div className="actions actions-spaced">
+              <a className="action" href={shareUrl}>Share URL</a>
+              <a className="action" href={imageUrl}>OG image</a>
+              <ShareLinkButton path={getDetailPath(detail.detailSlug)} label={detail.displayName} />
               <Link className="action" href="/">Back to leaderboard</Link>
             </div>
           </div>

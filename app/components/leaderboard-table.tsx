@@ -1,6 +1,8 @@
 import Link from 'next/link';
+import { ShareLinkButton } from './share-link-button';
 import { formatCompact, formatStandard } from '@/src/lib/data';
 import type { LeaderboardRow } from '@/src/contracts/clawrank';
+import { getDetailPath } from '@/src/lib/site';
 
 function Avatar({ name }: { name: string }) {
   return <div className="avatar">{name.slice(0, 2).toUpperCase()}</div>;
@@ -28,13 +30,16 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                 <span className="rank-badge">#{row.rank}</span>
               </td>
               <td>
-                <Link href={row.shareUrl} className="identity">
-                  <Avatar name={row.agentName} />
-                  <div>
-                    <div>{row.displayName}</div>
-                    <div className="muted">{row.detailSlug}</div>
-                  </div>
-                </Link>
+                <div className="identity-row">
+                  <Link href={getDetailPath(row.detailSlug)} className="identity">
+                    <Avatar name={row.agentName} />
+                    <div>
+                      <div>{row.displayName}</div>
+                      <div className="muted">{row.detailSlug}</div>
+                    </div>
+                  </Link>
+                  <ShareLinkButton path={getDetailPath(row.detailSlug)} label={row.displayName} />
+                </div>
               </td>
               <td>{formatCompact(row.tokenUsage.value)}</td>
               <td>{formatStandard(row.toolCalls.value)}</td>
