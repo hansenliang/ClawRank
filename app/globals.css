@@ -41,7 +41,9 @@ html { background: var(--bg); }
 body {
  min-height: 100vh;
  color: var(--text);
- background: var(--bg);
+ background:
+ radial-gradient(circle at top, rgba(216, 119, 86, 0.045), transparent 42%),
+ var(--bg);
  font-family: var(--font-mono, 'JetBrains Mono'), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
  font-size: 14px;
  line-height: 1.7;
@@ -70,6 +72,7 @@ button { font: inherit; }
  display: flex;
  align-items: center;
  justify-content: space-between;
+ gap: 16px;
  padding: 10px 16px;
  border-bottom: 1px solid var(--border);
  color: var(--text-3);
@@ -79,11 +82,22 @@ button { font: inherit; }
 
 .window-dots { display: flex; gap: 6px; }
 .window-dots span {
- width: 10px; height: 10px; border-radius: 999px; display: block;
+ position: relative;
+ width: 10px;
+ height: 10px;
+ border-radius: 999px;
+ display: block;
 }
 .window-dots span:nth-child(1) { background: var(--red); }
 .window-dots span:nth-child(2) { background: var(--yellow); }
 .window-dots span:nth-child(3) { background: var(--green); }
+
+.window-title {
+ display: inline-flex;
+ align-items: center;
+ margin-left: auto;
+ white-space: nowrap;
+}
 
 /* ─── Hero — CLI output style ─── */
 .hero {
@@ -126,6 +140,24 @@ h1, h2, h3, p { margin: 0; }
  font-weight: 700;
  letter-spacing: -0.02em;
  color: var(--text);
+}
+
+.brand-heading {
+ display: inline-flex;
+ align-items: flex-end;
+ gap: 0.22em;
+}
+
+.brand-heading::after {
+ content: '';
+ display: inline-block;
+ width: 0.42em;
+ height: 0.08em;
+ margin-bottom: 0.14em;
+ border-radius: 999px;
+ background: rgba(216, 119, 86, 0.82);
+ box-shadow: 0 0 10px rgba(216, 119, 86, 0.18);
+ animation: terminalCursor 1.1s steps(1, end) infinite;
 }
 
 .muted { color: var(--text-3); }
@@ -344,8 +376,7 @@ h1, h2, h3, p { margin: 0; }
  display: inline-block;
  width: 0;
  overflow: hidden;
- border-right: 2px solid var(--accent);
- animation: typing 1.1s steps(30, end) forwards, cursor 0.9s step-end infinite;
+ animation: typing 1.1s steps(30, end) forwards;
 }
 
 .boot-line:nth-child(2) .boot-text { animation-delay: 0.35s; }
@@ -353,6 +384,9 @@ h1, h2, h3, p { margin: 0; }
 .boot-line:nth-child(4) .boot-text { animation-delay: 1.05s; }
 
 .boot-dim {
+ display: inline-flex;
+ align-items: center;
+ gap: 6px;
  color: var(--text-4);
  margin-top: 18px;
  font-size: 12px;
@@ -360,14 +394,24 @@ h1, h2, h3, p { margin: 0; }
  text-transform: uppercase;
 }
 
+.boot-caret {
+ display: inline-block;
+ width: 7px;
+ height: 1.05em;
+ translate: 0 1px;
+ background: rgba(216, 119, 86, 0.85);
+ box-shadow: 0 0 10px rgba(216, 119, 86, 0.22);
+ animation: terminalCursor 1.1s steps(1, end) infinite;
+}
+
 @keyframes typing {
  from { width: 0; }
  to { width: 100%; }
 }
 
-@keyframes cursor {
- 0%, 49% { border-color: var(--accent); }
- 50%, 100% { border-color: transparent; }
+@keyframes terminalCursor {
+ 0%, 49% { opacity: 1; }
+ 50%, 100% { opacity: 0; }
 }
 
 /* ─── Responsive ─── */
@@ -386,83 +430,47 @@ h1, h2, h3, p { margin: 0; }
 }
 
 /* ══════════════════════════════════════════════
- CLI 2.0 — Cinematic Layer
- Phosphor glow, scanlines, CRT vignette, bloom.
+ CLI 2.0 — restrained motion pass
+ Small pulses, cursor cues, softer atmosphere.
  ══════════════════════════════════════════════ */
 
-/* ─── Glow on accent text ─── */
 .kicker, .eyebrow, .rank-badge, a:not(.action) {
- text-shadow: 0 0 8px rgba(216, 119, 86, 0.3);
+ text-shadow: 0 0 6px rgba(216, 119, 86, 0.18);
 }
 
-/* ─── Hero stat bloom — the big numbers glow ─── */
 .hero h1 {
  text-shadow:
- 0 0 20px rgba(250, 249, 245, 0.08),
- 0 0 60px rgba(216, 119, 86, 0.06);
+ 0 0 14px rgba(250, 249, 245, 0.05),
+ 0 0 28px rgba(216, 119, 86, 0.04);
 }
 
 .stat-value, .metric-value {
- text-shadow: 0 0 12px rgba(250, 249, 245, 0.06);
+ text-shadow: 0 0 10px rgba(250, 249, 245, 0.04);
 }
 
-/* ─── Scanline overlay ─── */
-body::after {
- content: '';
- position: fixed;
- inset: 0;
- pointer-events: none;
- z-index: 9999;
- background: repeating-linear-gradient(
- 0deg,
- transparent,
- transparent 2px,
- rgba(0, 0, 0, 0.03) 2px,
- rgba(0, 0, 0, 0.03) 4px
- );
-}
-
-/* ─── CRT vignette — darkened edges ─── */
-body::before {
- content: '';
- position: fixed;
- inset: 0;
- pointer-events: none;
- z-index: 9998;
- background: radial-gradient(
- ellipse at 50% 50%,
- transparent 55%,
- rgba(0, 0, 0, 0.35) 100%
- );
-}
-
-/* ─── Window border glow ─── */
 .window {
+ position: relative;
  box-shadow:
- 0 0 1px rgba(216, 119, 86, 0.15),
- 0 0 30px rgba(216, 119, 86, 0.03);
+ 0 0 0 1px rgba(216, 119, 86, 0.04),
+ 0 16px 48px rgba(0, 0, 0, 0.2);
 }
 
-/* ─── Accent elements: subtle warm glow ─── */
-.window-dots span:nth-child(1) { box-shadow: 0 0 6px rgba(199, 80, 80, 0.4); }
-.window-dots span:nth-child(2) { box-shadow: 0 0 6px rgba(212, 168, 75, 0.4); }
-.window-dots span:nth-child(3) { box-shadow: 0 0 6px rgba(95, 184, 122, 0.4); }
-
-/* ─── Subtle flicker on accent — like phosphor persistence ─── */
-@keyframes phosphor {
- 0%, 100% { opacity: 1; }
- 50% { opacity: 0.97; }
+.window::after {
+ content: '';
+ position: absolute;
+ inset: 0;
+ pointer-events: none;
+ background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 24%);
 }
 
-.kicker, .eyebrow {
- animation: phosphor 4s ease-in-out infinite;
-}
+.window-dots span:nth-child(1) { box-shadow: 0 0 4px rgba(199, 80, 80, 0.18); }
+.window-dots span:nth-child(2) { box-shadow: 0 0 4px rgba(212, 168, 75, 0.18); }
+.window-dots span:nth-child(3) { box-shadow: 0 0 4px rgba(95, 184, 122, 0.18); }
 
-/* ─── Page load fade-in ─── */
 @keyframes fadeInUp {
  from {
  opacity: 0;
- transform: translateY(6px);
+ transform: translateY(4px);
  }
  to {
  opacity: 1;
@@ -471,33 +479,35 @@ body::before {
 }
 
 .shell {
- animation: fadeInUp 0.4s ease-out;
+ animation: fadeInUp 0.28s ease-out;
 }
 
-/* ─── Row hover: warm glow instead of flat color ─── */
 .table tbody tr:hover {
  background: var(--bg-hover);
  box-shadow: inset 2px 0 0 var(--accent);
 }
 
-/* ─── Border glow on hover for interactive elements ─── */
 .action:hover {
- text-shadow: 0 0 10px rgba(216, 119, 86, 0.4);
+ text-shadow: 0 0 8px rgba(216, 119, 86, 0.25);
 }
 
 .pill:hover, .status-badge:hover {
  border-color: var(--border-accent);
- box-shadow: 0 0 8px rgba(216, 119, 86, 0.08);
+ box-shadow: 0 0 6px rgba(216, 119, 86, 0.06);
 }
 
 /* ─── Reduce motion for accessibility ─── */
 @media (prefers-reduced-motion: reduce) {
- .kicker, .eyebrow { animation: none; }
- .shell { animation: none; }
- .table tbody tr { transition: none; }
+ .shell,
+ .brand-heading::after,
+ .boot-caret,
+ .table tbody tr {
+ animation: none;
+ transition: none;
+ }
+
  .boot-text {
  width: auto;
- border-right: none;
  animation: none;
  }
 }
