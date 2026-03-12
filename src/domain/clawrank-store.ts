@@ -426,7 +426,7 @@ export function getAgentDetail(store: ClawRankStore, slug: string, period: Leade
     ],
     dailyFacts: facts.slice(0, 30),
     methodologyNote:
-      'Pilot path only: OpenClaw transcript data is translated into ClawRank-native daily agent facts, then queried from persisted ClawRank records. Tokscale-style reuse is fenced to adapter and validation patterns only.',
+      'OpenClaw transcript data is translated into ClawRank-native daily agent facts, then queried from persisted ClawRank records.',
     generatedAt: now.toISOString(),
   };
 }
