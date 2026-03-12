@@ -5,10 +5,12 @@ import * as path from 'path';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 let serverModule: { buildLeaderboardResponse: Function; buildShareDetailResponse: Function } | null = null;
-try {
+if (process.env.CLAWRANK_LIVE_DATA === 'true') {
+ try {
  serverModule = require('../server/clawrank-data');
-} catch {
- // Server module may fail in environments without OpenClaw logs — fall back to baked data
+ } catch (err) {
+ console.error('ClawRank: CLAWRANK_LIVE_DATA=true but server module failed to load:', err);
+ }
 }
 
 const BAKED_DIR = path.join(process.cwd(), 'data');
@@ -23,7 +25,12 @@ function tryBakedLeaderboard(): LeaderboardResponse | null {
  return null;
 }
 
+function isValidSlug(slug: string): boolean {
+ return /^[a-z0-9][a-z0-9-]{0,128}$/.test(slug);
+}
+
 function tryBakedDetail(detailSlug: string): ShareDetail | null {
+ if (!isValidSlug(detailSlug)) return null;
  try {
  const fp = path.join(BAKED_DIR, 'agents', `${detailSlug}.json`);
  if (fs.existsSync(fp)) {
