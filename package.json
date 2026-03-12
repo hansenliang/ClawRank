@@ -1,11 +1,28 @@
 {
   "name": "clawrank",
   "private": true,
-  "version": "0.0.0",
-  "description": "Temporary codename for the AI Agent Leaderboard overnight build.",
+  "version": "0.1.0",
+  "description": "Demo-first AI agent leaderboard with a terminal aesthetic.",
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=20.11.0"
+  },
   "scripts": {
-    "dev": "echo 'Bootstrap only — app coming next.'",
-    "build": "echo 'Bootstrap only — app coming next.'",
-    "start": "echo 'Bootstrap only — app coming next.'"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "sample": "node scripts/generate-sample.js",
+    "check:data": "node scripts/check-data.js"
+  },
+  "dependencies": {
+    "next": "15.2.2",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "25.4.0",
+    "@types/react": "19.2.14",
+    "typescript": "5.9.3"
   }
 }
