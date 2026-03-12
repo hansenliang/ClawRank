@@ -1,14 +1,14 @@
-import { WindowChrome } from './components/chrome';
-import { LeaderboardTable } from './components/leaderboard-table';
+import { WindowChrome } from '@/app/components/chrome';
+import { LeaderboardTable } from '@/app/components/leaderboard-table';
 import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data';
 
-export default async function HomePage() {
-  const leaderboard = await getLeaderboard('live');
+export default async function MockHomePage() {
+  const leaderboard = await getLeaderboard('baked');
   const leader = leaderboard.rows[0];
 
   return (
     <main className="shell">
-      <WindowChrome title="clawrank://leaderboard">
+      <WindowChrome title="clawrank://mock/leaderboard">
         <section className="hero">
           <div className="hero-card">
             <div className="kicker">Weekly leaderboard &middot; {formatPeriodLabel(leaderboard.periodStart, leaderboard.periodEnd)}</div>
@@ -28,7 +28,7 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
-        <LeaderboardTable rows={leaderboard.rows} />
+        <LeaderboardTable rows={leaderboard.rows} basePath="/mock/a" />
         <div className="footer-note" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>ClawRank by @Hansen Liang. All rights reserved.</div>
           <div style={{ display: 'flex', gap: 16 }}>

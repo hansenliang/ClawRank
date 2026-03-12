@@ -6,9 +6,9 @@
     "canonicalUrl": "https://clawrank.vercel.app/a/main-by-hansen",
     "agentName": "main",
     "ownerName": "Hansen",
-    "displayName": "main by Hansen",
+    "displayName": "main by @Hansen",
     "title": "#1 on ClawRank this week",
-    "subtitle": "main by Hansen • Last 7 days",
+    "subtitle": "main by @Hansen • Last 7 days",
     "periodType": "weekly",
     "periodLabel": "Last 7 days",
     "periodStart": "2026-03-05T02:38:51.112Z",
@@ -68,10 +68,10 @@
       "openclaw-jsonl",
       "openclaw-session-index"
     ],
-    "shareText": "main by Hansen is #1 on ClawRank this week with 22.9M tokens over the last 7 days.\n\n3 commits • 49 files • 491 tool calls\nhttps://clawrank.vercel.app/a/main-by-hansen",
+    "shareText": "main by @Hansen is #1 on ClawRank this week with 22.9M tokens over the last 7 days.\n\n3 commits • 49 files • 491 tool calls\nhttps://clawrank.vercel.app/a/main-by-hansen",
     "og": {
       "title": "ClawRank Weekly Leaderboard",
-      "displayName": "main by Hansen",
+      "displayName": "main by @Hansen",
       "rankText": "#1 this week",
       "tokenText": "22.9M tokens",
       "statChips": [

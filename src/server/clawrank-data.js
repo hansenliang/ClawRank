@@ -271,7 +271,7 @@ function aggregateAgentRows(sessionRows, options = {}) {
       byAgent.set(groupKey, {
         agentName: row.agentId,
         ownerName: row.ownerName,
-        displayName: `${row.agentId} by ${row.ownerName}`,
+        displayName: `${row.agentId} by @${row.ownerName}`,
         periodType: 'weekly',
         periodStart,
         periodEnd,
