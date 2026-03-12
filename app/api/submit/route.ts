@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { DailyFactSubmission } from '@/src/contracts/clawrank-domain';
-import { readStore, submitDailyFactSubmission, writeStore } from '@/src/domain/clawrank-store';
+import { hasDB } from '@/src/db/connection';
+import { dbSubmitDailyFactSubmission } from '@/src/db/queries';
+import {
+  readStore,
+  submitDailyFactSubmission,
+  writeStore,
+  validateDailyFactSubmission,
+} from '@/src/domain/clawrank-store';
 
 function isAuthorized(request: Request): boolean {
   const expected = process.env.CLAWRANK_INGEST_TOKEN;
@@ -21,16 +28,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
+  // Validate before touching any store
+  const errors = validateDailyFactSubmission(body);
+  if (errors.length) {
+    return NextResponse.json({ error: `Validation failed: ${errors.join('; ')}` }, { status: 400 });
+  }
+
   try {
+    if (hasDB()) {
+      // Production path: write to Postgres
+      const result = await dbSubmitDailyFactSubmission(body);
+      return NextResponse.json({
+        ok: true,
+        store: 'postgres',
+        agent: { slug: result.agent.slug, state: result.agent.state },
+        upsertedFacts: result.upsertedFacts,
+      });
+    }
+
+    // Fallback: write to local JSON (dev only, read-only on Vercel)
     const store = readStore();
     const result = submitDailyFactSubmission(store, body);
     writeStore(store);
     return NextResponse.json({
       ok: true,
-      agent: {
-        slug: result.agent.slug,
-        state: result.agent.state,
-      },
+      store: 'json',
+      agent: { slug: result.agent.slug, state: result.agent.state },
       upsertedFacts: result.upsertedFacts,
     });
   } catch (error) {

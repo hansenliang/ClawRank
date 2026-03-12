@@ -35,7 +35,7 @@ Read this before writing any code. Violations get reverted.
 
 ## UI Preservation — CRITICAL
 
-- **Backend-only work must not touch UI files.** If your task is about APIs, ingestion, domain logic, or data pipelines, you should have ZERO modifications to files in `app/` (except new API routes), `src/lib/data.ts`, `src/lib/clawrank-data.ts`, `src/lib/site.ts`, `src/contracts/clawrank.ts`, or `app/globals.css`. If your diff includes changes to those files, you've scope-crept.
+- **Backend-only work must not touch UI files.** If your task is about APIs, ingestion, domain logic, or data pipelines, you should have ZERO modifications to pages (`app/**/page.tsx`), components (`app/components/`), CSS (`app/globals.css`), layout files (`app/layout.tsx`), `src/lib/site.ts`, or `src/contracts/clawrank.ts`. New API routes in `app/api/` are fine. `src/lib/clawrank-data.ts` and `src/lib/data.ts` are the data integration seam between backend and frontend — modifying them for DB wiring is expected and allowed.
 - **Never replace the contracts file.** `src/contracts/clawrank.ts` defines the UI's type surface. If you need new types for domain/backend work, create a separate file (e.g. `src/contracts/clawrank-domain.ts`). Do not delete or rewrite existing types that the frontend imports.
 - **Don't rewrite static copy.** Headlines, descriptions, footer text, and marketing language on the frontend are product decisions. Don't change them as a side effect of backend work. If copy says "Raw metrics only. No fake composite score." — leave it alone.
 - **Don't remove existing UI features.** OG metadata, share buttons, mobile layouts, mock routes — if they exist on main, your branch must preserve them. Check your diff before committing.
