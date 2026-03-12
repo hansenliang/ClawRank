@@ -63,71 +63,94 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
  style: {
  display: 'flex',
  alignItems: 'center',
- padding: '8px 16px',
+ padding: '24px 42px',
  borderBottom: `1px solid ${C.border}`,
  color: C.text4,
- fontSize: 10,
+ fontSize: 24,
  },
  },
- h('div', { style: { display: 'flex', gap: 5, marginRight: 10 } },
- h('span', { style: { width: 7, height: 7, borderRadius: 999, background: '#c75050', display: 'flex' } }),
- h('span', { style: { width: 7, height: 7, borderRadius: 999, background: '#d4a84b', display: 'flex' } }),
- h('span', { style: { width: 7, height: 7, borderRadius: 999, background: '#5fb87a', display: 'flex' } }),
+ h('div', { style: { display: 'flex', gap: 12, marginRight: 24 } },
+ h('span', { style: { width: 18, height: 18, borderRadius: 999, background: '#c75050', display: 'flex' } }),
+ h('span', { style: { width: 18, height: 18, borderRadius: 999, background: '#d4a84b', display: 'flex' } }),
+ h('span', { style: { width: 18, height: 18, borderRadius: 999, background: '#5fb87a', display: 'flex' } }),
  ),
  h('span', null, `$ clawrank show ${detail.detailSlug}`),
  ),
- // Content — single column, vertically centered
+ // Content — designed for a 400 × 210pt card at 3× density
  h(
  'div',
  {
  style: {
  display: 'flex',
  flexDirection: 'column',
- alignItems: 'center',
  justifyContent: 'center',
  flex: 1,
- padding: '0 16px',
+ padding: '42px 48px 34px',
  },
  },
- // Agent name
  h(
  'div',
  {
  style: {
  display: 'flex',
- fontSize: 36,
+ color: C.text4,
+ fontSize: 20,
+ letterSpacing: 3,
+ textTransform: 'uppercase',
+ marginBottom: 18,
+ },
+ },
+ `#${detail.rank} this week`,
+ ),
+ h(
+ 'div',
+ {
+ style: {
+ display: 'flex',
+ alignItems: 'baseline',
+ gap: 18,
+ flexWrap: 'wrap',
+ marginBottom: 34,
+ },
+ },
+ h(
+ 'div',
+ {
+ style: {
+ display: 'flex',
+ fontSize: 72,
  fontWeight: 700,
- letterSpacing: -1,
+ letterSpacing: -2,
  lineHeight: 1,
+ color: C.text,
  },
  },
  detail.agentName,
  ),
- // Owner
  h(
  'div',
  {
  style: {
  display: 'flex',
  color: C.text3,
- fontSize: 13,
- marginTop: 6,
- marginBottom: 18,
+ fontSize: 34,
+ lineHeight: 1,
  },
  },
  `by ${detail.ownerName}`,
  ),
- // Token count — the star
+ ),
  h(
  'div',
  {
  style: {
  display: 'flex',
- fontSize: 64,
+ fontSize: 112,
  fontWeight: 700,
  color: C.accent,
- lineHeight: 1,
- letterSpacing: -2,
+ lineHeight: 0.9,
+ letterSpacing: -4,
+ marginBottom: 14,
  },
  },
  tokenText,
@@ -138,10 +161,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
  style: {
  display: 'flex',
  color: C.text4,
- fontSize: 11,
- letterSpacing: 4,
+ fontSize: 24,
+ letterSpacing: 8,
  textTransform: 'uppercase',
- marginTop: 4,
  },
  },
  'tokens',
@@ -154,19 +176,19 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
  style: {
  display: 'flex',
  justifyContent: 'space-between',
- padding: '8px 16px',
+ padding: '24px 42px',
  borderTop: `1px solid ${C.border}`,
  color: C.text4,
- fontSize: 10,
+ fontSize: 24,
  },
  },
- h('span', { style: { display: 'flex' } }, `▸ #${detail.rank} · ${periodText}`),
+ h('span', { style: { display: 'flex' } }, `▸ ${periodText}`),
  h('span', { style: { display: 'flex', color: C.accent } }, 'clawrank.dev'),
  ),
  ),
  {
- width: 390,
- height: 205,
+ width: 1200,
+ height: 630,
  fonts: [
  { name: 'JetBrains Mono', data: fontData!, weight: 400, style: 'normal' as const },
  { name: 'JetBrains Mono', data: fontBoldData!, weight: 700, style: 'normal' as const },
