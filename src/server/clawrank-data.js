@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const DEFAULT_INDEX_PATH = '~/.openclaw/agents/main/sessions/sessions.json';
+const DEFAULT_INDEX_PATH = process.env.OPENCLAW_SESSIONS_INDEX || '';
 const DEFAULT_BASE_URL = 'https://clawrank.local';
 const PERIOD_LABEL = 'Last 7 days';
 const STAT_LABELS = [
@@ -188,6 +188,9 @@ function getSessionSummary(sessionKey, meta, options = {}) {
 }
 
 function loadOpenClawSessions(indexPath = DEFAULT_INDEX_PATH, options = {}) {
+  if (!indexPath || !fs.existsSync(indexPath)) {
+    return [];
+  }
   const index = readJson(indexPath);
   return Object.entries(index)
     .map(([sessionKey, meta]) => getSessionSummary(sessionKey, meta, options))
