@@ -33,8 +33,18 @@ Read this before writing any code. Violations get reverted.
 - **Mobile-first.** Tables with 5+ columns need a responsive/card fallback. Test at 375px width.
 - **No inline styles for layout.** Use CSS classes. Inline styles are acceptable only for one-off cosmetic tweaks.
 
+## UI Preservation — CRITICAL
+
+- **Backend-only work must not touch UI files.** If your task is about APIs, ingestion, domain logic, or data pipelines, you should have ZERO modifications to files in `app/` (except new API routes), `src/lib/data.ts`, `src/lib/clawrank-data.ts`, `src/lib/site.ts`, `src/contracts/clawrank.ts`, or `app/globals.css`. If your diff includes changes to those files, you've scope-crept.
+- **Never replace the contracts file.** `src/contracts/clawrank.ts` defines the UI's type surface. If you need new types for domain/backend work, create a separate file (e.g. `src/contracts/clawrank-domain.ts`). Do not delete or rewrite existing types that the frontend imports.
+- **Don't rewrite static copy.** Headlines, descriptions, footer text, and marketing language on the frontend are product decisions. Don't change them as a side effect of backend work. If copy says "Raw metrics only. No fake composite score." — leave it alone.
+- **Don't remove existing UI features.** OG metadata, share buttons, mobile layouts, mock routes — if they exist on main, your branch must preserve them. Check your diff before committing.
+
 ## Git
 
+- **Always `git fetch origin` before branching or restoring files.** Local `main` can be stale. If you run `git checkout main -- <file>`, you may revert recent work that only exists on `origin/main`. Use `git checkout origin/main -- <file>` when restoring files to match production state.
+- **Rebase onto `origin/main`, not local `main`.** When creating feature branches or cleaning up, always use `git rebase origin/main` to ensure you're building on top of the latest pushed state.
+- **Verify your diff against `origin/main` before pushing.** Run `git diff origin/main --stat` and review what changed. If you see modifications to files you didn't intend to touch, something went wrong. The diff should only contain files relevant to your task.
 - **Never push directly to main.** Create a feature branch, push there, open a PR. The orchestrator or QA reviews before merging. This is non-negotiable for multi-agent work.
 - **Atomic commits.** One logical change per commit. Don't lump "fixed bug + added feature + cleaned up" into one commit.
 - **No secrets in commits.** No API keys, tokens, paths with usernames, or PII. Use `.env.local` (gitignored).
