@@ -4,5 +4,5 @@ export const runtime = 'nodejs';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ detailSlug: string }> }) {
  const { detailSlug } = await params;
- return renderOgImage(detailSlug, 'live');
+ return renderOgImage(detailSlug, 'baked');
 }

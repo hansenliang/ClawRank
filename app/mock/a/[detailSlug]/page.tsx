@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ detailSlu
  const requestHeaders = await headers();
  const origin = getRequestOrigin(requestHeaders);
  const pageUrl = getAbsoluteUrl(`/mock${getDetailPath(detailSlug)}`, origin);
- const imageUrl = getAbsoluteUrl(getOgImagePath(detailSlug), origin);
+ const imageUrl = getAbsoluteUrl(getOgImagePath(detailSlug, 'baked'), origin);
 
  return {
  metadataBase: new URL(origin),
@@ -55,7 +55,7 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
 
  const origin = getRequestOrigin(await headers());
  const shareUrl = getAbsoluteUrl(`/mock${getDetailPath(detailSlug)}`, origin);
- const imageUrl = getAbsoluteUrl(getOgImagePath(detailSlug), origin);
+ const imageUrl = getAbsoluteUrl(getOgImagePath(detailSlug, 'baked'), origin);
 
  return (
  <main className="shell">
