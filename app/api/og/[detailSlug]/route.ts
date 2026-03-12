@@ -40,6 +40,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
 
   const tokenText = formatCompact(detail.tokenUsage);
   const periodText = formatPeriodLabel(detail.periodStart, detail.periodEnd);
+  const toolCalls = detail.stats.find((stat) => stat.label === 'Tool calls');
+  const messages = detail.stats.find((stat) => stat.label === 'Messages');
+  const sessions = detail.stats.find((stat) => stat.label === 'Sessions');
+  const railStats = [
+    { label: 'Tool calls', value: toolCalls ? formatCompact(toolCalls.value) : '—' },
+    { label: 'Messages', value: messages ? formatCompact(messages.value) : '—' },
+    { label: 'Sessions', value: sessions ? formatCompact(sessions.value) : '—' },
+  ];
 
   return new ImageResponse(
     h(
@@ -82,10 +90,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
         {
           style: {
             display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
+            alignItems: 'stretch',
             flex: 1,
             padding: '42px 48px 34px',
+            gap: 40,
           },
         },
         h(
@@ -93,24 +101,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
           {
             style: {
               display: 'flex',
-              color: C.text4,
-              fontSize: 20,
-              letterSpacing: 3,
-              textTransform: 'uppercase',
-              marginBottom: 18,
-            },
-          },
-          `#${detail.rank} this week`,
-        ),
-        h(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              alignItems: 'baseline',
-              gap: 18,
-              flexWrap: 'wrap',
-              marginBottom: 34,
+              flexDirection: 'column',
+              justifyContent: 'center',
+              flex: 1,
+              minWidth: 0,
             },
           },
           h(
@@ -118,55 +112,147 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
             {
               style: {
                 display: 'flex',
-                fontSize: 72,
-                fontWeight: 700,
-                letterSpacing: -2,
-                lineHeight: 1,
-                color: C.text,
+                color: C.text4,
+                fontSize: 20,
+                letterSpacing: 3,
+                textTransform: 'uppercase',
+                marginBottom: 18,
               },
             },
-            detail.agentName,
+            `#${detail.rank} this week`,
           ),
           h(
             'div',
             {
               style: {
                 display: 'flex',
-                color: C.text3,
-                fontSize: 34,
-                lineHeight: 1,
+                alignItems: 'baseline',
+                gap: 18,
+                flexWrap: 'wrap',
+                marginBottom: 34,
               },
             },
-            `by ${detail.ownerName}`,
+            h(
+              'div',
+              {
+                style: {
+                  display: 'flex',
+                  fontSize: 72,
+                  fontWeight: 700,
+                  letterSpacing: -2,
+                  lineHeight: 1,
+                  color: C.text,
+                },
+              },
+              detail.agentName,
+            ),
+            h(
+              'div',
+              {
+                style: {
+                  display: 'flex',
+                  color: C.text3,
+                  fontSize: 34,
+                  lineHeight: 1,
+                },
+              },
+              `by ${detail.ownerName}`,
+            ),
+          ),
+          h(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: 18,
+                flexWrap: 'wrap',
+                marginBottom: 14,
+              },
+            },
+            h(
+              'div',
+              {
+                style: {
+                  display: 'flex',
+                  fontSize: 112,
+                  fontWeight: 700,
+                  color: C.accent,
+                  lineHeight: 0.9,
+                  letterSpacing: -4,
+                },
+              },
+              tokenText,
+            ),
+            h(
+              'div',
+              {
+                style: {
+                  display: 'flex',
+                  color: C.text3,
+                  fontSize: 40,
+                  fontWeight: 400,
+                  lineHeight: 1,
+                  letterSpacing: -1,
+                },
+              },
+              'tokens',
+            ),
           ),
         ),
         h(
           'div',
           {
             style: {
+              width: 250,
               display: 'flex',
-              fontSize: 112,
-              fontWeight: 700,
-              color: C.accent,
-              lineHeight: 0.9,
-              letterSpacing: -4,
-              marginBottom: 14,
+              flexDirection: 'column',
+              justifyContent: 'center',
+              borderLeft: `1px solid ${C.border}`,
+              paddingLeft: 28,
+              gap: 22,
             },
           },
-          tokenText,
-        ),
-        h(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              color: C.text4,
-              fontSize: 24,
-              letterSpacing: 8,
-              textTransform: 'uppercase',
-            },
-          },
-          'tokens',
+          ...railStats.map((stat) =>
+            h(
+              'div',
+              {
+                key: stat.label,
+                style: {
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                },
+              },
+              h(
+                'div',
+                {
+                  style: {
+                    display: 'flex',
+                    color: C.text4,
+                    fontSize: 18,
+                    textTransform: 'uppercase',
+                    letterSpacing: 2.5,
+                  },
+                },
+                stat.label,
+              ),
+              h(
+                'div',
+                {
+                  style: {
+                    display: 'flex',
+                    color: C.text,
+                    fontSize: 42,
+                    fontWeight: 700,
+                    letterSpacing: -1.5,
+                    lineHeight: 1,
+                  },
+                },
+                stat.value,
+              ),
+            ),
+          ),
         ),
       ),
       // Bottom bar
