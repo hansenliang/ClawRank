@@ -8,7 +8,6 @@ export function WindowChrome({ title, children }: { title: string; children: Rea
  <span />
  </div>
  <div>{title}</div>
- <div>terminal view</div>
  </div>
  {children}
  </div>
