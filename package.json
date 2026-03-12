@@ -11,10 +11,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --ext .ts,.tsx,.js",
     "sample": "node scripts/generate-sample.js",
     "check:data": "node scripts/check-data.js",
-    "bake": "node scripts/bake-data.js"
+    "bake": "node scripts/bake-data.js",
+    "typecheck": "tsc --noEmit",
+    "ci": "next build && tsc --noEmit",
+    "prepare": "husky"
   },
   "dependencies": {
     "next": "15.2.2",
@@ -22,8 +25,23 @@
     "react-dom": "19.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "25.4.0",
     "@types/react": "19.2.14",
-    "typescript": "5.9.3"
+    "eslint": "^10.0.3",
+    "eslint-config-next": "^16.1.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.3",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.57.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "bash -c \"tsc --noEmit\""
+    ],
+    "*.{js,jsx}": [
+      "eslint --fix"
+    ]
   }
 }

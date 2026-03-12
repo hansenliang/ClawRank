@@ -31,5 +31,14 @@ Read this before writing any code. Violations get reverted.
 
 ## Git
 
+- **Never push directly to main.** Create a feature branch, push there, open a PR. The orchestrator or QA reviews before merging. This is non-negotiable for multi-agent work.
 - **Atomic commits.** One logical change per commit. Don't lump "fixed bug + added feature + cleaned up" into one commit.
 - **No secrets in commits.** No API keys, tokens, paths with usernames, or PII. Use `.env.local` (gitignored).
+- **CI must pass.** GitHub Actions runs build + typecheck + lint on every push/PR. Don't merge red CI.
+
+## Pre-commit
+
+Pre-commit hooks run automatically via husky + lint-staged:
+- ESLint fix on staged `.ts/.tsx/.js` files
+- TypeScript type check on staged `.ts/.tsx` files
+- If the hook fails, the commit is rejected. Fix the issue, don't skip the hook.
