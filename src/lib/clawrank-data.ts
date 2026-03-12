@@ -68,21 +68,30 @@ function commonOptions(): CommonOptions {
   };
 }
 
-export function getLeaderboardData(): LeaderboardResponse {
-  const baked = tryBakedLeaderboard();
-  if (baked) return baked;
+export function getLeaderboardData(forceMode?: 'baked' | 'live'): LeaderboardResponse {
+  if (forceMode === 'baked') {
+    const baked = tryBakedLeaderboard();
+    if (baked) return baked;
+    // Fallback to empty if explicitly asked for baked but none exists
+    return { periodType: 'weekly', periodLabel: 'Last 7 days', periodStart: '', periodEnd: '', generatedAt: '', rows: [] } as LeaderboardResponse;
+  }
 
+  // Live or default
   if (!serverModule) {
     return { periodType: 'weekly', periodLabel: 'Last 7 days', periodStart: '', periodEnd: '', generatedAt: '', rows: [] } as LeaderboardResponse;
   }
   return serverModule.buildLeaderboardResponse(commonOptions());
 }
 
-export function getShareDetail(detailSlug: string): ShareDetail | null {
-  const baked = tryBakedDetail(detailSlug);
-  if (baked) return baked;
+export function getShareDetail(detailSlug: string, forceMode?: 'baked' | 'live'): ShareDetail | null {
+  if (forceMode === 'baked') {
+    return tryBakedDetail(detailSlug);
+  }
 
-  if (!serverModule) return null;
+  // Live or default
+  if (!serverModule) {
+    return null;
+  }
   const payload = serverModule.buildShareDetailResponse(detailSlug, commonOptions());
   return payload?.detail || null;
 }

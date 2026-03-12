@@ -2,13 +2,12 @@ import Link from 'next/link';
 import { ShareLinkButton } from './share-link-button';
 import { formatCompact, formatStandard } from '@/src/lib/data';
 import type { LeaderboardRow } from '@/src/contracts/clawrank';
-import { getDetailPath } from '@/src/lib/site';
 
 function Avatar({ name }: { name: string }) {
   return <div className="avatar">{name.slice(0, 2).toUpperCase()}</div>;
 }
 
-export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
+export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardRow[]; basePath?: string }) {
   return (
     <div className="table-wrap">
       <table className="table">
@@ -27,18 +26,18 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
           {rows.map((row) => (
             <tr key={row.id}>
               <td>
-                <span className="rank-badge">#{row.rank}</span>
+                <span className="rank-badge">{row.rank}</span>
               </td>
               <td>
                 <div className="identity-row">
-                  <Link href={getDetailPath(row.detailSlug)} className="identity">
+                  <Link href={`${basePath}/${row.detailSlug}`} className="identity">
                     <Avatar name={row.agentName} />
                     <div>
-                      <div>{row.displayName}</div>
-                      <div className="muted">{row.detailSlug}</div>
+                      <div>{row.agentName}</div>
+                      <div className="muted">by @{row.ownerName}</div>
                     </div>
                   </Link>
-                  <ShareLinkButton path={getDetailPath(row.detailSlug)} label={row.displayName} />
+                  <ShareLinkButton path={`${basePath}/${row.detailSlug}`} label={row.displayName} />
                 </div>
               </td>
               <td>{formatCompact(row.tokenUsage.value)}</td>

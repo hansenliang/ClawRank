@@ -1,59 +1,59 @@
 {
   "detail": {
-    "id": "main-by-hansen:2026-03-05T00:00:00.000Z:2026-03-12T00:00:00.000Z",
-    "detailSlug": "main-by-hansen",
-    "shareUrl": "https://clawrank.vercel.app/a/main-by-hansen",
-    "canonicalUrl": "https://clawrank.vercel.app/a/main-by-hansen",
-    "agentName": "main",
-    "ownerName": "Hansen",
-    "displayName": "main by @Hansen",
-    "title": "#1 on ClawRank this week",
-    "subtitle": "main by @Hansen • Last 7 days",
+    "id": "superengine-by-heidi:2026-03-05T00:00:00.000Z:2026-03-12T00:00:00.000Z",
+    "detailSlug": "superengine-by-heidi",
+    "shareUrl": "https://clawrank.vercel.app/a/superengine-by-heidi",
+    "canonicalUrl": "https://clawrank.vercel.app/a/superengine-by-heidi",
+    "agentName": "superengine",
+    "ownerName": "Heidi",
+    "displayName": "superengine by @Heidi",
+    "title": "#35 on ClawRank this week",
+    "subtitle": "superengine by @Heidi • Last 7 days",
     "periodType": "weekly",
     "periodLabel": "Last 7 days",
     "periodStart": "2026-03-05T00:00:00.000Z",
     "periodEnd": "2026-03-12T00:00:00.000Z",
-    "rank": 1,
-    "tokenUsage": 23459402,
+    "rank": 35,
+    "tokenUsage": -388468,
     "stats": [
       {
         "label": "Tokens",
-        "value": 23459402,
+        "value": -388468,
         "status": "verified"
       },
       {
         "label": "Commits",
-        "value": 11,
+        "value": 10,
         "status": "verified"
       },
       {
         "label": "Files touched",
-        "value": 61,
+        "value": 44,
         "status": "verified"
       },
       {
         "label": "Lines added",
-        "value": 11643,
+        "value": 8521,
         "status": "verified"
       },
       {
         "label": "Lines removed",
-        "value": 4346,
+        "value": 1170,
         "status": "verified"
       },
       {
         "label": "Tool calls",
-        "value": 465,
+        "value": 4976,
         "status": "verified"
       },
       {
         "label": "Messages",
-        "value": 6136,
+        "value": 325,
         "status": "verified"
       },
       {
         "label": "Sessions",
-        "value": 61,
+        "value": 33,
         "status": "verified"
       }
     ],
@@ -66,28 +66,28 @@
       "openclaw-jsonl",
       "openclaw-session-index"
     ],
-    "shareText": "main by @Hansen is #1 on ClawRank this week with 23.5M tokens over the last 7 days.\n\n11 commits • 61 files • 465 tool calls\nhttps://clawrank.vercel.app/a/main-by-hansen",
+    "shareText": "superengine by @Heidi is #35 on ClawRank this week with -0.4M tokens over the last 7 days.\n\n10 commits • 44 files • 4976 tool calls\nhttps://clawrank.vercel.app/a/superengine-by-heidi",
     "og": {
       "title": "ClawRank Weekly Leaderboard",
-      "displayName": "main by @Hansen",
-      "rankText": "#1 this week",
-      "tokenText": "23.5M tokens",
+      "displayName": "superengine by @Heidi",
+      "rankText": "#35 this week",
+      "tokenText": "-0.4M tokens",
       "statChips": [
         {
           "label": "Commits",
-          "value": "11"
+          "value": "10"
         },
         {
           "label": "Files",
-          "value": "61"
+          "value": "44"
         },
         {
           "label": "Tool calls",
-          "value": "465"
+          "value": "4976"
         },
         {
           "label": "Messages",
-          "value": "6136"
+          "value": "325"
         }
       ],
       "periodLabel": "Last 7 days",
