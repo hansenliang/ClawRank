@@ -55,8 +55,82 @@ def get_token() -> str | None:
     return os.environ.get("CLAWRANK_API_TOKEN")
 
 
-def get_owner_name() -> str:
-    return os.environ.get("CLAWRANK_OWNER_NAME", platform.node() or "Unknown Owner")
+def get_owner_name_override() -> str | None:
+    """Return explicit owner name if set, otherwise None (triggers auto-resolve)."""
+    return os.environ.get("CLAWRANK_OWNER_NAME") or None
+
+
+def get_agent_name_override() -> str | None:
+    """Return explicit agent name if set, otherwise None (triggers auto-resolve)."""
+    return os.environ.get("CLAWRANK_AGENT_NAME") or None
+
+
+def resolve_owner_name() -> str:
+    """
+    Auto-resolve owner display name. Priority:
+    1. CLAWRANK_OWNER_NAME env (explicit opt-in)
+    2. GitHub username from `gh auth status`
+    3. First name from `git config user.name`
+    4. Hostname (last resort)
+    Never uses email or full name — PII protection.
+    """
+    explicit = get_owner_name_override()
+    if explicit:
+        return explicit
+
+    # Try gh CLI username
+    gh_user = _get_gh_username()
+    if gh_user:
+        return gh_user
+
+    # Try git config — first name only
+    git_name = _get_git_first_name()
+    if git_name:
+        return git_name
+
+    # Hostname fallback
+    hostname = platform.node() or ""
+    # Strip common suffixes like .local, .lan
+    hostname = re.sub(r"\.(local|lan|home|internal)$", "", hostname, flags=re.IGNORECASE)
+    return hostname or "Anonymous"
+
+
+def _get_gh_username() -> str | None:
+    """Extract GitHub username from `gh auth status` output."""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["gh", "auth", "status"],
+            capture_output=True, text=True, timeout=5,
+        )
+        # Parse "Logged in to github.com account USERNAME" from stderr
+        output = result.stderr + result.stdout
+        m = re.search(r"account\s+(\S+)", output)
+        if m:
+            return m.group(1).strip()
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        pass
+    return None
+
+
+def _get_git_first_name() -> str | None:
+    """Get first name from git config. Returns None if not set or looks like an email."""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["git", "config", "--global", "user.name"],
+            capture_output=True, text=True, timeout=5,
+        )
+        name = result.stdout.strip()
+        if not name or "@" in name:
+            return None
+        # First name only — don't leak full name
+        first = name.split()[0]
+        if first and len(first) > 1:
+            return first
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        pass
+    return None
 
 
 # ── Session Index Parsing ───────────────────────────────────────────────────
@@ -264,6 +338,7 @@ def aggregate_to_daily_facts(
     agent_key: str,
     owner_name: str,
     agent_name: str,
+    gh_username: str | None = None,
 ) -> dict | None:
     """
     Aggregate usage messages for one agent into a DailyFactSubmission.
@@ -341,14 +416,18 @@ def aggregate_to_daily_facts(
             "sourceAdapter": "openclaw",
         })
 
+    agent_data = {
+        "slug": agent_slug,
+        "agentName": agent_name,
+        "ownerName": owner_name,
+        "state": "live",
+        "sourceOfTruth": "skill",
+    }
+    if gh_username:
+        agent_data["primaryGithubUsername"] = gh_username
+
     return {
-        "agent": {
-            "slug": agent_slug,
-            "agentName": agent_name,
-            "ownerName": owner_name,
-            "state": "live",
-            "sourceOfTruth": "skill",
-        },
+        "agent": agent_data,
         "facts": facts,
     }
 
@@ -394,7 +473,9 @@ def main():
 
     endpoint = get_endpoint(args.endpoint)
     token = get_token()
-    owner_name = get_owner_name()
+    owner_name = resolve_owner_name()
+    agent_name_override = get_agent_name_override()
+    gh_username = _get_gh_username()
     agents_dir = get_agents_dir(args.agents_dir)
 
     if not args.dry_run and not token:
@@ -436,8 +517,8 @@ def main():
                 print(f"  [{agent_key}] No usage data found")
             continue
 
-        agent_name = display_name or title_case(agent_key)
-        submission = aggregate_to_daily_facts(all_messages, agent_key, owner_name, agent_name)
+        agent_name = agent_name_override or display_name or title_case(agent_key)
+        submission = aggregate_to_daily_facts(all_messages, agent_key, owner_name, agent_name, gh_username)
         if not submission:
             continue
 
