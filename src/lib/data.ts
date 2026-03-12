@@ -22,6 +22,6 @@ export function formatPeriodLabel(periodStart: string, periodEnd: string) {
   
   const start = new Date(periodStart);
   const end = new Date(periodEnd);
-  const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
-  return `${fmt.format(start)}–${fmt.format(end)}, ${end.getFullYear()}`;
+  const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  return `${fmt.format(start)}–${fmt.format(end)}, ${end.getUTCFullYear()}`;
 }
