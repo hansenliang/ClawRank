@@ -7,4 +7,6 @@ node_modules
 dist
 build
 coverage
+.artifacts
+tsconfig.tsbuildinfo
 .DS_Store
