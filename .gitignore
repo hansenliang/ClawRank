@@ -10,3 +10,4 @@ coverage
 .artifacts
 tsconfig.tsbuildinfo
 .DS_Store
+.env*.local
