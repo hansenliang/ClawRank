@@ -50,13 +50,6 @@ function parseSessionKey(sessionKey: string): { agentKey: string } {
  };
 }
 
-/**
- * Provenance note:
- * The relative/absolute session-file resolution pattern here is intentionally adapted from
- * OpenClaw adapter (`crates/core/src/sessions/openclaw.rs`, commit
- * d438a7d9514a3af4ff2a4e1ae20ce6b370720e5b). We kept the compatibility idea but rewrote the
- * implementation in TypeScript for ClawRank's adapter boundary.
- */
 function resolveSessionPath(indexPath: string, entry: SessionIndexEntry): string {
  const indexDir = path.dirname(indexPath);
  const rawSessionFile = expandHomePath(String(entry.sessionFile || '').trim());
@@ -87,13 +80,6 @@ function safeReadJsonLines(filePath: string): RawOpenClawEntry[] {
  return parsed;
 }
 
-/**
- * Provenance note:
- * The assistant-only message parsing and model-change tracking were inspired by
- * OpenClaw transcript parser (`crates/core/src/sessions/openclaw.rs`, commit
- * d438a7d9514a3af4ff2a4e1ae20ce6b370720e5b). ClawRank keeps the same adapter-only boundary,
- * but translates into daily agent facts instead of unified message model.
- */
 function parseTranscript(sessionPath: string, sessionKey: string, sessionId: string): OpenClawUsageMessage[] {
  const { agentKey } = parseSessionKey(sessionKey);
  const entries = safeReadJsonLines(sessionPath);

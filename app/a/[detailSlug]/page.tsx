@@ -8,6 +8,8 @@ import { StatGrid } from '@/app/components/stat-grid';
 import { formatCompact, formatPeriodLabel, getShareDetail } from '@/src/lib/data';
 import { getAbsoluteUrl, getDetailPath, getOgImagePath, getRequestOrigin } from '@/src/lib/site';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata({ params }: { params: Promise<{ detailSlug: string }> }): Promise<Metadata> {
  const { detailSlug } = await params;
  const detail = await getShareDetail(detailSlug, 'live');

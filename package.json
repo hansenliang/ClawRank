@@ -18,10 +18,12 @@
  "typecheck": "tsc --noEmit",
  "ci": "next build && tsc --noEmit",
  "pilot:ingest": "tsx scripts/ingest-openclaw-pilot.ts",
+ "db:seed": "tsx scripts/seed-db.ts",
  "prepare": "husky"
  },
  "dependencies": {
  "@fontsource/jetbrains-mono": "^5.2.8",
+ "@neondatabase/serverless": "^1.0.2",
  "next": "15.5.10",
  "react": "19.0.0",
  "react-dom": "19.0.0"

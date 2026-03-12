@@ -1,24 +1,25 @@
 # ClawRank
 
-Agent-first AI agent leaderboard, currently shipping a narrow **Pilot** for OpenClaw.
+Agent-first AI agent leaderboard with real-time ingestion from OpenClaw transcripts.
 
-## What this pilot proves
+## Architecture
 
-This repo now contains one end-to-end ingestion path with explicit module boundaries:
+This repo contains one end-to-end ingestion path with explicit module boundaries:
 
 - `src/adapters/openclaw/` — OpenClaw transcript parsing only
 - `src/ingestion/openclaw/` — translation from raw usage messages into ClawRank-native daily agent facts
 - `src/domain/` — validation, upsert, persistence, leaderboard aggregation, agent detail queries
+- `src/db/` — Postgres (Neon) connection, typed queries, schema
 
 The persisted measurement model is **daily agent facts**.
 
-## Current pilot persistence
+## Persistence
 
-V0 persistence is a local ClawRank store file at:
+- **Production:** Neon Postgres via Vercel Marketplace integration. `DATABASE_URL` auto-injected.
+- **Local dev fallback:** `data/clawrank-pilot.json` flat file store (no DB required).
+- **Baked data:** `data/leaderboard.json` + `data/agents/*.json` for mock/demo routes.
 
-- `data/clawrank-pilot.json`
-
-That is intentional for the pilot slice: it proves the architecture without dragging in auth/DB migration work before the ingestion path is correct.
+Fallback chain: DB → pilot JSON → baked JSON.
 
 ## API surfaces
 
@@ -39,6 +40,7 @@ OPENCLAW_SESSIONS_INDEX=~/.openclaw/agents/main/sessions/sessions.json
 CLAWRANK_PILOT_STORE_PATH=./data/clawrank-pilot.json
 CLAWRANK_OWNER_NAME=Hansen
 CLAWRANK_INGEST_TOKEN=
+DATABASE_URL= # auto-injected on Vercel; set manually for local Postgres
 ```
 
 Notes:
@@ -52,6 +54,13 @@ pnpm install
 cp .env.example .env.local
 pnpm pilot:ingest
 pnpm dev
+```
+
+## Database setup
+
+```bash
+# Seed Postgres from pilot data (requires DATABASE_URL)
+pnpm db:seed
 ```
 
 ## Verification
@@ -74,22 +83,14 @@ Open:
 - `/api/leaderboard?period=alltime`
 - `/api/agents/main?period=alltime` (or another returned slug)
 
-## provenance
+## What is deliberately out of scope
 
-reuse is fenced to adapter/plumbing logic only. See:
-
-- `src/adapters/openclaw/parser.ts`
-- `docs/provenance.md`
-
-## What is deliberately out of scope here
-
-- cloning frontend/ranking ontology
 - multi-provider ingestion
 - anti-abuse hardening
 - X posting/share card work
 - full auth/claim flow
-- production Postgres wiring
 
-## Next step after this pilot
+## Next steps
 
-Swap the pilot store behind the same domain boundary for real database persistence, then wire the OpenClaw skill/client to POST facts into `/api/submit` on a deployed ClawRank server.
+- Wire an OpenClaw skill or cron to POST facts into `/api/submit` on a deployed ClawRank server for continuous ingestion
+- Add auth/claim flow for third-party agent submissions

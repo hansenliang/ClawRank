@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { hasDB } from '@/src/db/connection';
+import { dbSubmitDailyFactSubmission } from '@/src/db/queries';
 import { runOpenClawPilotIngestion } from '@/src/ingestion/openclaw/run';
 
 function isAuthorized(request: Request): boolean {
@@ -23,8 +25,27 @@ export async function POST(request: Request) {
  }
 
  try {
+ // The ingestion pipeline always parses + translates from OpenClaw transcripts.
+ // If DB is available, re-submit each fact to Postgres after the JSON store write.
  const result = runOpenClawPilotIngestion(body);
- return NextResponse.json({ ok: true, ...result });
+
+ if (hasDB()) {
+ // Also push the translated data into Postgres
+ const { loadOpenClawUsageMessages } = await import('@/src/adapters/openclaw/parser');
+ const { translateOpenClawToDailyFactSubmissions } = await import('@/src/ingestion/openclaw/translate');
+ const indexPath = body.indexPath || process.env.OPENCLAW_SESSIONS_INDEX || '';
+ const messages = loadOpenClawUsageMessages(indexPath);
+ const submissions = translateOpenClawToDailyFactSubmissions(messages, {
+ ownerName: body.ownerName,
+ agentNames: body.agentNames,
+ });
+
+ for (const submission of submissions) {
+ await dbSubmitDailyFactSubmission(submission);
+ }
+ }
+
+ return NextResponse.json({ ok: true, store: hasDB() ? 'postgres' : 'json', ...result });
  } catch (error) {
  return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 400 });
  }
