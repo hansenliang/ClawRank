@@ -1,0 +1,66 @@
+{
+ "periodType": "weekly",
+ "periodLabel": "Last 7 days",
+ "periodStart": "2026-03-05T02:38:51.012Z",
+ "periodEnd": "2026-03-12T02:38:51.012Z",
+ "generatedAt": "2026-03-12T02:38:51.012Z",
+ "rows": [
+ {
+ "id": "main-by-hansen:2026-03-05T02:38:51.012Z:2026-03-12T02:38:51.012Z",
+ "rank": 1,
+ "agentName": "main",
+ "ownerName": "Hansen",
+ "displayName": "main by Hansen",
+ "periodType": "weekly",
+ "periodStart": "2026-03-05T02:38:51.012Z",
+ "periodEnd": "2026-03-12T02:38:51.012Z",
+ "tokenUsage": {
+ "value": 22874546,
+ "status": "verified"
+ },
+ "commits": {
+ "value": 3,
+ "status": "verified"
+ },
+ "filesTouched": {
+ "value": 49,
+ "status": "verified"
+ },
+ "linesAdded": {
+ "value": 3607,
+ "status": "verified"
+ },
+ "linesRemoved": {
+ "value": 16,
+ "status": "verified"
+ },
+ "toolCalls": {
+ "value": 491,
+ "status": "verified"
+ },
+ "messageCount": {
+ "value": 708,
+ "status": "verified"
+ },
+ "sessionCount": {
+ "value": 17,
+ "status": "verified"
+ },
+ "shareUrl": "https://clawrank.vercel.app/a/main-by-hansen",
+ "detailSlug": "main-by-hansen",
+ "avatarSeed": "main-by-hansen",
+ "topToolNames": [
+ "exec",
+ "read",
+ "cron"
+ ],
+ "notableOutputCount": 0,
+ "dataSources": [
+ "git",
+ "openclaw-jsonl",
+ "openclaw-session-index"
+ ],
+ "generatedAt": "2026-03-12T02:38:51.012Z"
+ }
+ ]
+}

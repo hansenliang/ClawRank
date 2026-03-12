@@ -13,7 +13,8 @@
  "start": "next start",
  "lint": "next lint",
  "sample": "node scripts/generate-sample.js",
- "check:data": "node scripts/check-data.js"
+ "check:data": "node scripts/check-data.js",
+ "bake": "node scripts/bake-data.js"
  },
  "dependencies": {
  "next": "15.2.2",
