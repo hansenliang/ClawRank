@@ -37,16 +37,16 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
       <WindowChrome title={`clawrank://agent/${detail.detailSlug}`}>
         <section className="hero">
           <div className="hero-card">
-            <div className="kicker">Agent detail</div>
-            <h1>{detail.title}</h1>
+            <div className="kicker">#{detail.rank} on ClawRank this week</div>
+            <h1>{detail.agentName} <span className="muted">by</span> {detail.ownerName}</h1>
             <p className="muted" style={{ marginTop: 12 }}>{detail.subtitle}</p>
             <div className="hero-grid">
               <div className="stat">
-                <div className="stat-label">Hero stat</div>
+                <div className="stat-label">Token usage</div>
                 <div className="stat-value">{formatCompact(detail.tokenUsage)} tokens</div>
               </div>
               <div className="stat">
-                <div className="stat-label">Exact range</div>
+                <div className="stat-label">Range</div>
                 <div className="stat-value" style={{ fontSize: 22 }}>{formatPeriodLabel(detail.periodStart, detail.periodEnd)}</div>
               </div>
             </div>
