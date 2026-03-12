@@ -61,18 +61,84 @@ def get_owner_name() -> str:
 
 # ── Session Index Parsing ───────────────────────────────────────────────────
 
-def discover_agents(agents_dir: Path) -> list[tuple[str, Path]]:
-    """Return list of (agent_key, sessions.json path) for each agent."""
+def discover_agents(agents_dir: Path) -> list[tuple[str, Path, str | None]]:
+    """Return list of (agent_key, sessions.json path, display_name or None) for each agent."""
     results = []
     if not agents_dir.is_dir():
         return results
+
+    # Try to find workspace paths from openclaw config
+    workspace_map = _load_workspace_map(agents_dir)
+
     for agent_dir in sorted(agents_dir.iterdir()):
         if not agent_dir.is_dir():
             continue
         index_path = agent_dir / "sessions" / "sessions.json"
         if index_path.is_file():
-            results.append((agent_dir.name, index_path))
+            display_name = _resolve_agent_name(agent_dir.name, workspace_map)
+            results.append((agent_dir.name, index_path, display_name))
     return results
+
+
+def _load_workspace_map(agents_dir: Path) -> dict[str, Path]:
+    """Load agent→workspace mappings from openclaw.json."""
+    config_path = agents_dir.parent / "openclaw.json"
+    if not config_path.is_file():
+        return {}
+
+    try:
+        with open(config_path, "r") as f:
+            config = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+    result = {}
+    agents_config = config.get("agents", {})
+
+    # Default workspace applies to all agents unless overridden
+    default_ws = agents_config.get("defaults", {}).get("workspace", "")
+    if default_ws:
+        # Apply default workspace to all agent dirs we find
+        for agent_dir in agents_dir.iterdir():
+            if agent_dir.is_dir():
+                result[agent_dir.name] = Path(default_ws).expanduser()
+
+    # Per-agent workspace overrides
+    entries = agents_config.get("entries", {})
+    for agent_key, entry in entries.items():
+        if isinstance(entry, dict) and entry.get("workspace"):
+            result[agent_key] = Path(entry["workspace"]).expanduser()
+
+    return result
+
+
+def _resolve_agent_name(agent_key: str, workspace_map: dict[str, Path]) -> str | None:
+    """
+    Try to find a display name for an agent. Priority:
+    1. IDENTITY.md in the agent's workspace (parses "Name: ..." line)
+    2. None (caller falls back to agent_key)
+    """
+    workspace = workspace_map.get(agent_key)
+    if not workspace:
+        return None
+
+    identity_path = workspace / "IDENTITY.md"
+    if not identity_path.is_file():
+        return None
+
+    try:
+        with open(identity_path, "r") as f:
+            for line in f:
+                # Match patterns like "- **Name:** Clawdius Maximus" or "Name: Foo"
+                m = re.match(r"[-*\s]*Name[-*\s]*:\s*\**\s*(.+)", line, re.IGNORECASE)
+                if m:
+                    name = m.group(1).strip().rstrip("*").strip()
+                    if name and name.lower() not in ("", "(not set)", "unknown"):
+                        return name
+    except OSError:
+        pass
+
+    return None
 
 
 def load_session_index(index_path: Path) -> dict:
@@ -197,6 +263,7 @@ def aggregate_to_daily_facts(
     messages: list[dict],
     agent_key: str,
     owner_name: str,
+    agent_name: str,
 ) -> dict | None:
     """
     Aggregate usage messages for one agent into a DailyFactSubmission.
@@ -205,7 +272,6 @@ def aggregate_to_daily_facts(
     if not messages:
         return None
 
-    agent_name = title_case(agent_key)
     agent_slug = slugify(agent_name)
 
     # Bucket by date
@@ -354,7 +420,7 @@ def main():
     total_facts = 0
     total_submitted = 0
 
-    for agent_key, index_path in agents:
+    for agent_key, index_path, display_name in agents:
         index = load_session_index(index_path)
         all_messages = []
 
@@ -370,7 +436,8 @@ def main():
                 print(f"  [{agent_key}] No usage data found")
             continue
 
-        submission = aggregate_to_daily_facts(all_messages, agent_key, owner_name)
+        agent_name = display_name or title_case(agent_key)
+        submission = aggregate_to_daily_facts(all_messages, agent_key, owner_name, agent_name)
         if not submission:
             continue
 
