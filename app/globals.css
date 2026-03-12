@@ -265,7 +265,23 @@ h1, h2, h3, p { margin: 0; }
 .status-missing { color: var(--red); border-color: rgba(199,80,80,0.3); }
 
 /* ─── Identity row ─── */
-.identity { display: flex; align-items: center; gap: 10px; }
+.identity-row {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ gap: 12px;
+}
+
+.identity { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.action-button {
+ cursor: pointer;
+ white-space: nowrap;
+}
+
+.actions-spaced {
+ margin-top: 16px;
+}
 
 .avatar {
  width: 32px; height: 32px;
@@ -427,6 +443,10 @@ h1, h2, h3, p { margin: 0; }
  .stat { padding: 10px 0; }
  .stat + .stat { border-top: 1px solid var(--border); }
  .stats-grid { grid-template-columns: 1fr; }
+ .identity-row {
+ align-items: flex-start;
+ flex-direction: column;
+ }
 }
 
 /* ══════════════════════════════════════════════
