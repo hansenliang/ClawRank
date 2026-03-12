@@ -1,13 +1,30 @@
-import { SITE_URL } from './site';
-import type { LeaderboardResponse, ShareDetail } from '@/src/contracts/clawrank';
+import { createRequire } from 'module';
 import * as fs from 'fs';
 import * as path from 'path';
+import type { LeaderboardResponse, ShareDetail } from '@/src/contracts/clawrank';
+import { SITE_URL } from './site';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-let serverModule: { buildLeaderboardResponse: Function; buildShareDetailResponse: Function } | null = null;
+const require = createRequire(import.meta.url);
+
+type CommonOptions = {
+ indexPath?: string;
+ repoPath?: string;
+ baseUrl?: string;
+ defaultOwnerName?: string;
+ now?: string;
+};
+
+type ShareDetailPayload = { detail: ShareDetail } | null;
+
+type ServerModule = {
+ buildLeaderboardResponse: (options?: CommonOptions) => LeaderboardResponse;
+ buildShareDetailResponse: (detailSlug: string, options?: CommonOptions) => ShareDetailPayload;
+};
+
+let serverModule: ServerModule | null = null;
 if (process.env.CLAWRANK_LIVE_DATA === 'true') {
  try {
- serverModule = require('../server/clawrank-data');
+ serverModule = require('../server/clawrank-data') as ServerModule;
  } catch (err) {
  console.error('ClawRank: CLAWRANK_LIVE_DATA=true but server module failed to load:', err);
  }
@@ -41,7 +58,7 @@ function tryBakedDetail(detailSlug: string): ShareDetail | null {
  return null;
 }
 
-function commonOptions() {
+function commonOptions(): CommonOptions {
  return {
  indexPath: process.env.OPENCLAW_SESSIONS_INDEX,
  repoPath: process.env.CLAWRANK_REPO_PATH || process.cwd(),
@@ -52,22 +69,20 @@ function commonOptions() {
 }
 
 export function getLeaderboardData(): LeaderboardResponse {
- // Try baked data first (for Vercel / environments without live logs)
  const baked = tryBakedLeaderboard();
  if (baked) return baked;
 
  if (!serverModule) {
  return { periodType: 'weekly', periodLabel: 'Last 7 days', periodStart: '', periodEnd: '', generatedAt: '', rows: [] } as LeaderboardResponse;
  }
- return serverModule.buildLeaderboardResponse(commonOptions()) as LeaderboardResponse;
+ return serverModule.buildLeaderboardResponse(commonOptions());
 }
 
 export function getShareDetail(detailSlug: string): ShareDetail | null {
- // Try baked data first
  const baked = tryBakedDetail(detailSlug);
  if (baked) return baked;
 
  if (!serverModule) return null;
- const payload = serverModule.buildShareDetailResponse(detailSlug, commonOptions()) as { detail: ShareDetail } | null;
+ const payload = serverModule.buildShareDetailResponse(detailSlug, commonOptions());
  return payload?.detail || null;
 }

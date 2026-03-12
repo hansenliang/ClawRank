@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { WindowChrome } from '@/app/components/chrome';
 import { StatGrid } from '@/app/components/stat-grid';
@@ -56,7 +57,7 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  <div className="actions" style={{ marginTop: 16 }}>
  <a className="action" href={detail.canonicalUrl}>Canonical URL</a>
  <a className="action" href={`/api/og/${detail.detailSlug}`}>OG image</a>
- <a className="action" href="/">Back to leaderboard</a>
+ <Link className="action" href="/">Back to leaderboard</Link>
  </div>
  </div>
  </section>
