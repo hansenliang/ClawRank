@@ -205,7 +205,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
  lineHeight: 1,
  },
  },
- `by ${detail.ownerName}`,
+ `by @${detail.ownerName}`,
  ),
  ),
  h(

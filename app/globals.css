@@ -65,6 +65,7 @@ button { font: inherit; }
 .window {
  background: var(--bg);
  border: 1px solid var(--border);
+ border-radius: 10px;
  overflow: hidden;
 }
 
@@ -353,6 +354,11 @@ h1, h2, h3, p { margin: 0; }
  color: var(--text-4);
  font-size: 12px;
  border-top: 1px solid var(--border);
+}
+
+.footer-note a:hover {
+ color: var(--accent);
+ text-decoration: underline !important;
 }
 
 /* ─── Loading — terminal boot sequence ─── */

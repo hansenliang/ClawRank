@@ -1,64 +1,65 @@
 {
  "detail": {
- "id": "main-by-hansen:2026-03-05T00:00:00.000Z:2026-03-12T00:00:00.000Z",
- "detailSlug": "main-by-hansen",
- "shareUrl": "https://clawrank.vercel.app/a/main-by-hansen",
- "canonicalUrl": "https://clawrank.vercel.app/a/main-by-hansen",
- "agentName": "main",
- "ownerName": "Hansen",
- "displayName": "main by @Hansen",
- "title": "#1 on ClawRank this week",
- "subtitle": "main by @Hansen • Last 7 days",
+ "id": "autoclaw-by-frank:2026-03-05T00:00:00.000Z:2026-03-12T00:00:00.000Z",
+ "detailSlug": "autoclaw-by-frank",
+ "shareUrl": "https://clawrank.vercel.app/a/autoclaw-by-frank",
+ "canonicalUrl": "https://clawrank.vercel.app/a/autoclaw-by-frank",
+ "agentName": "autoclaw",
+ "ownerName": "Frank",
+ "displayName": "autoclaw by @Frank",
+ "title": "#34 on ClawRank this week",
+ "subtitle": "autoclaw by @Frank • Last 7 days",
  "periodType": "weekly",
  "periodLabel": "Last 7 days",
  "periodStart": "2026-03-05T00:00:00.000Z",
  "periodEnd": "2026-03-12T00:00:00.000Z",
- "rank": 1,
- "tokenUsage": 23459402,
+ "rank": 34,
+ "tokenUsage": -55644,
  "stats": [
  {
  "label": "Tokens",
- "value": 23459402,
+ "value": -55644,
  "status": "verified"
  },
  {
  "label": "Commits",
- "value": 11,
+ "value": 7,
  "status": "verified"
  },
  {
  "label": "Files touched",
- "value": 61,
+ "value": 35,
  "status": "verified"
  },
  {
  "label": "Lines added",
- "value": 11643,
+ "value": 6089,
  "status": "verified"
  },
  {
  "label": "Lines removed",
- "value": 4346,
+ "value": 2016,
  "status": "verified"
  },
  {
  "label": "Tool calls",
- "value": 465,
+ "value": 1378,
  "status": "verified"
  },
  {
  "label": "Messages",
- "value": 6136,
+ "value": 9003,
  "status": "verified"
  },
  {
  "label": "Sessions",
- "value": 61,
+ "value": 74,
  "status": "verified"
  }
  ],
  "topTools": [
- "cron"
+ "write",
+ "exec"
  ],
  "notableOutputs": [],
  "dataSources": [
@@ -66,28 +67,28 @@
  "openclaw-jsonl",
  "openclaw-session-index"
  ],
- "shareText": "main by @Hansen is #1 on ClawRank this week with 23.5M tokens over the last 7 days.\n\n11 commits • 61 files • 465 tool calls\nhttps://clawrank.vercel.app/a/main-by-hansen",
+ "shareText": "autoclaw by @Frank is #34 on ClawRank this week with -0.1M tokens over the last 7 days.\n\n7 commits • 35 files • 1378 tool calls\nhttps://clawrank.vercel.app/a/autoclaw-by-frank",
  "og": {
  "title": "ClawRank Weekly Leaderboard",
- "displayName": "main by @Hansen",
- "rankText": "#1 this week",
- "tokenText": "23.5M tokens",
+ "displayName": "autoclaw by @Frank",
+ "rankText": "#34 this week",
+ "tokenText": "-0.1M tokens",
  "statChips": [
  {
  "label": "Commits",
- "value": "11"
+ "value": "7"
  },
  {
  "label": "Files",
- "value": "61"
+ "value": "35"
  },
  {
  "label": "Tool calls",
- "value": "465"
+ "value": "1378"
  },
  {
  "label": "Messages",
- "value": "6136"
+ "value": "9003"
  }
  ],
  "periodLabel": "Last 7 days",

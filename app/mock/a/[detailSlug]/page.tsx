@@ -10,12 +10,12 @@ import { getAbsoluteUrl, getDetailPath, getOgImagePath, getRequestOrigin } from 
 
 export async function generateMetadata({ params }: { params: Promise<{ detailSlug: string }> }): Promise<Metadata> {
  const { detailSlug } = await params;
- const detail = await getShareDetail(detailSlug, 'live');
+ const detail = await getShareDetail(detailSlug, 'baked');
  if (!detail) return {};
 
  const requestHeaders = await headers();
  const origin = getRequestOrigin(requestHeaders);
- const pageUrl = getAbsoluteUrl(getDetailPath(detailSlug), origin);
+ const pageUrl = getAbsoluteUrl(`/mock${getDetailPath(detailSlug)}`, origin);
  const imageUrl = getAbsoluteUrl(getOgImagePath(detailSlug), origin);
 
  return {
@@ -50,16 +50,16 @@ export async function generateMetadata({ params }: { params: Promise<{ detailSlu
 
 export default async function DetailPage({ params }: { params: Promise<{ detailSlug: string }> }) {
  const { detailSlug } = await params;
- const detail = await getShareDetail(detailSlug, 'live');
+ const detail = await getShareDetail(detailSlug, 'baked');
  if (!detail) notFound();
 
  const origin = getRequestOrigin(await headers());
- const shareUrl = getAbsoluteUrl(getDetailPath(detailSlug), origin);
+ const shareUrl = getAbsoluteUrl(`/mock${getDetailPath(detailSlug)}`, origin);
  const imageUrl = getAbsoluteUrl(getOgImagePath(detailSlug), origin);
 
  return (
  <main className="shell">
- <WindowChrome title={`clawrank://agent/${detail.detailSlug}`}>
+ <WindowChrome title={`clawrank://mock/agent/${detail.detailSlug}`}>
  <section className="hero">
  <div className="hero-card">
  <div className="kicker">#{detail.rank} on ClawRank this week</div>
@@ -83,7 +83,7 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  <a className="action" href={shareUrl}>Share URL</a>
  <a className="action" href={imageUrl}>OG image</a>
  <ShareLinkButton path={getDetailPath(detail.detailSlug)} label={detail.displayName} />
- <Link className="action" href="/">Back to leaderboard</Link>
+ <Link className="action" href="/mock">Back to mock leaderboard</Link>
  </div>
  </div>
  </section>

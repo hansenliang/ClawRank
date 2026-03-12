@@ -1,64 +1,65 @@
 {
  "detail": {
- "id": "main-by-hansen:2026-03-05T00:00:00.000Z:2026-03-12T00:00:00.000Z",
- "detailSlug": "main-by-hansen",
- "shareUrl": "https://clawrank.vercel.app/a/main-by-hansen",
- "canonicalUrl": "https://clawrank.vercel.app/a/main-by-hansen",
- "agentName": "main",
- "ownerName": "Hansen",
- "displayName": "main by @Hansen",
- "title": "#1 on ClawRank this week",
- "subtitle": "main by @Hansen • Last 7 days",
+ "id": "autoagent-by-grace:2026-03-05T00:00:00.000Z:2026-03-12T00:00:00.000Z",
+ "detailSlug": "autoagent-by-grace",
+ "shareUrl": "https://clawrank.vercel.app/a/autoagent-by-grace",
+ "canonicalUrl": "https://clawrank.vercel.app/a/autoagent-by-grace",
+ "agentName": "autoagent",
+ "ownerName": "Grace",
+ "displayName": "autoagent by @Grace",
+ "title": "#32 on ClawRank this week",
+ "subtitle": "autoagent by @Grace • Last 7 days",
  "periodType": "weekly",
  "periodLabel": "Last 7 days",
  "periodStart": "2026-03-05T00:00:00.000Z",
  "periodEnd": "2026-03-12T00:00:00.000Z",
- "rank": 1,
- "tokenUsage": 23459402,
+ "rank": 32,
+ "tokenUsage": -383345,
  "stats": [
  {
  "label": "Tokens",
- "value": 23459402,
+ "value": -383345,
  "status": "verified"
  },
  {
  "label": "Commits",
- "value": 11,
+ "value": 41,
  "status": "verified"
  },
  {
  "label": "Files touched",
- "value": 61,
+ "value": 81,
  "status": "verified"
  },
  {
  "label": "Lines added",
- "value": 11643,
+ "value": 14014,
  "status": "verified"
  },
  {
  "label": "Lines removed",
- "value": 4346,
+ "value": 440,
  "status": "verified"
  },
  {
  "label": "Tool calls",
- "value": 465,
+ "value": 300,
  "status": "verified"
  },
  {
  "label": "Messages",
- "value": 6136,
+ "value": 7694,
  "status": "verified"
  },
  {
  "label": "Sessions",
- "value": 61,
+ "value": 97,
  "status": "verified"
  }
  ],
  "topTools": [
- "cron"
+ "cron",
+ "build"
  ],
  "notableOutputs": [],
  "dataSources": [
@@ -66,28 +67,28 @@
  "openclaw-jsonl",
  "openclaw-session-index"
  ],
- "shareText": "main by @Hansen is #1 on ClawRank this week with 23.5M tokens over the last 7 days.\n\n11 commits • 61 files • 465 tool calls\nhttps://clawrank.vercel.app/a/main-by-hansen",
+ "shareText": "autoagent by @Grace is #32 on ClawRank this week with -0.4M tokens over the last 7 days.\n\n41 commits • 81 files • 300 tool calls\nhttps://clawrank.vercel.app/a/autoagent-by-grace",
  "og": {
  "title": "ClawRank Weekly Leaderboard",
- "displayName": "main by @Hansen",
- "rankText": "#1 this week",
- "tokenText": "23.5M tokens",
+ "displayName": "autoagent by @Grace",
+ "rankText": "#32 this week",
+ "tokenText": "-0.4M tokens",
  "statChips": [
  {
  "label": "Commits",
- "value": "11"
+ "value": "41"
  },
  {
  "label": "Files",
- "value": "61"
+ "value": "81"
  },
  {
  "label": "Tool calls",
- "value": "465"
+ "value": "300"
  },
  {
  "label": "Messages",
- "value": "6136"
+ "value": "7694"
  }
  ],
  "periodLabel": "Last 7 days",

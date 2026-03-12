@@ -1,14 +1,11 @@
 import './globals.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '@fontsource/jetbrains-mono/600.css';
+import '@fontsource/jetbrains-mono/700.css';
 import type { Metadata } from 'next';
-import { JetBrains_Mono } from 'next/font/google';
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/src/lib/site';
 import { ErrorBoundary } from './components/error-boundary';
-
-const jetbrains = JetBrains_Mono({
- subsets: ['latin'],
- variable: '--font-mono',
- display: 'swap',
-});
 
 export const metadata: Metadata = {
  metadataBase: new URL(SITE_URL),
@@ -32,7 +29,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
  return (
- <html lang="en" className={jetbrains.variable}>
+ <html lang="en">
  <body>
  <ErrorBoundary>{children}</ErrorBoundary>
  </body>
