@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs');
-const path = require('path');
 const { execFileSync } = require('child_process');
 
 const DEFAULT_INDEX_PATH = process.env.OPENCLAW_SESSIONS_INDEX || '';
