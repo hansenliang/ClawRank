@@ -6,12 +6,61 @@ export const runtime = 'nodejs';
 const h = React.createElement;
 
 const C = {
-  bg:      '#0f0f0e',
-  border:  'rgba(155,153,145,0.15)',
-  text:    '#faf9f5',
-  text3:   '#9b9991',
-  text4:   '#6b6963',
-  accent:  '#d87756',
+  bg: '#0f0f0e',
+  border: 'rgba(155,153,145,0.15)',
+  text: '#faf9f5',
+  text2: '#c1bfb5',
+  text3: '#9b9991',
+  text4: '#6b6963',
+  accent: '#d87756',
+};
+
+const T = {
+  kicker: {
+    size: 24,
+    tracking: 3.5,
+    color: C.text3,
+  },
+  title: {
+    size: 72,
+    tracking: -2,
+    color: C.text,
+  },
+  byline: {
+    size: 34,
+    tracking: 0,
+    color: C.text2,
+  },
+  metric: {
+    size: 112,
+    tracking: -4,
+    color: C.accent,
+  },
+  metricUnit: {
+    size: 44,
+    tracking: -1,
+    color: C.text2,
+  },
+  railLabel: {
+    size: 22,
+    tracking: 2.75,
+    color: C.text3,
+  },
+  railValue: {
+    size: 46,
+    tracking: -1.5,
+    color: C.text,
+  },
+  footer: {
+    size: 22,
+    tracking: 2,
+    color: C.text3,
+  },
+  footerBrand: {
+    size: 24,
+    tracking: -0.5,
+    color: C.accent,
+  },
 };
 
 let fontData: ArrayBuffer | null = null;
@@ -112,9 +161,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
             {
               style: {
                 display: 'flex',
-                color: C.text4,
-                fontSize: 20,
-                letterSpacing: 3,
+                color: T.kicker.color,
+                fontSize: T.kicker.size,
+                letterSpacing: T.kicker.tracking,
                 textTransform: 'uppercase',
                 marginBottom: 18,
               },
@@ -137,11 +186,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
               {
                 style: {
                   display: 'flex',
-                  fontSize: 72,
+                  fontSize: T.title.size,
                   fontWeight: 700,
-                  letterSpacing: -2,
+                  letterSpacing: T.title.tracking,
                   lineHeight: 1,
-                  color: C.text,
+                  color: T.title.color,
                 },
               },
               detail.agentName,
@@ -151,8 +200,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
               {
                 style: {
                   display: 'flex',
-                  color: C.text3,
-                  fontSize: 34,
+                  color: T.byline.color,
+                  fontSize: T.byline.size,
                   lineHeight: 1,
                 },
               },
@@ -175,11 +224,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
               {
                 style: {
                   display: 'flex',
-                  fontSize: 112,
+                  fontSize: T.metric.size,
                   fontWeight: 700,
-                  color: C.accent,
+                  color: T.metric.color,
                   lineHeight: 0.9,
-                  letterSpacing: -4,
+                  letterSpacing: T.metric.tracking,
                 },
               },
               tokenText,
@@ -189,11 +238,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
               {
                 style: {
                   display: 'flex',
-                  color: C.text3,
-                  fontSize: 40,
+                  color: T.metricUnit.color,
+                  fontSize: T.metricUnit.size,
                   fontWeight: 400,
                   lineHeight: 1,
-                  letterSpacing: -1,
+                  letterSpacing: T.metricUnit.tracking,
                 },
               },
               'tokens',
@@ -229,10 +278,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
                 {
                   style: {
                     display: 'flex',
-                    color: C.text4,
-                    fontSize: 18,
+                    color: T.railLabel.color,
+                    fontSize: T.railLabel.size,
                     textTransform: 'uppercase',
-                    letterSpacing: 2.5,
+                    letterSpacing: T.railLabel.tracking,
                   },
                 },
                 stat.label,
@@ -242,10 +291,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
                 {
                   style: {
                     display: 'flex',
-                    color: C.text,
-                    fontSize: 42,
+                    color: T.railValue.color,
+                    fontSize: T.railValue.size,
                     fontWeight: 700,
-                    letterSpacing: -1.5,
+                    letterSpacing: T.railValue.tracking,
                     lineHeight: 1,
                   },
                 },
@@ -264,12 +313,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ det
             justifyContent: 'space-between',
             padding: '24px 42px',
             borderTop: `1px solid ${C.border}`,
-            color: C.text4,
-            fontSize: 24,
+            color: T.footer.color,
+            fontSize: T.footer.size,
           },
         },
-        h('span', { style: { display: 'flex' } }, `▸ ${periodText}`),
-        h('span', { style: { display: 'flex', color: C.accent } }, 'clawrank.dev'),
+        h('span', { style: { display: 'flex', letterSpacing: T.footer.tracking } }, `▸ ${periodText}`),
+        h('span', { style: { display: 'flex', color: T.footerBrand.color, fontSize: T.footerBrand.size, letterSpacing: T.footerBrand.tracking } }, 'clawrank.dev'),
       ),
     ),
     {
