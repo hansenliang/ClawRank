@@ -91,27 +91,12 @@ button { font: inherit; }
 .window-dots span:nth-child(1) { background: var(--red); }
 .window-dots span:nth-child(2) { background: var(--yellow); }
 .window-dots span:nth-child(3) { background: var(--green); }
-.window-dots span:nth-child(3)::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: inherit;
-  border: 1px solid rgba(95, 184, 122, 0.28);
-  animation: statusPulse 2.8s ease-out infinite;
-}
 
 .window-title {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
   margin-left: auto;
   white-space: nowrap;
-}
-
-.window-title::after {
-  content: '▌';
-  color: rgba(216, 119, 86, 0.72);
-  animation: terminalCursor 1.1s steps(1, end) infinite;
 }
 
 /* ─── Hero — CLI output style ─── */
@@ -155,6 +140,18 @@ h1, h2, h3, p { margin: 0; }
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text);
+}
+
+.brand-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.brand-heading::after {
+  content: '▌';
+  color: rgba(216, 119, 86, 0.72);
+  animation: terminalCursor 1.1s steps(1, end) infinite;
 }
 
 .muted { color: var(--text-3); }
@@ -411,20 +408,6 @@ h1, h2, h3, p { margin: 0; }
   50%, 100% { opacity: 0; }
 }
 
-@keyframes statusPulse {
-  0% {
-    opacity: 0;
-    transform: scale(0.86);
-  }
-  20% {
-    opacity: 0.55;
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.9);
-  }
-}
-
 /* ─── Responsive ─── */
 @media (max-width: 900px) {
   .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -474,9 +457,9 @@ h1, h2, h3, p { margin: 0; }
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 24%);
 }
 
-.window-dots span:nth-child(1) { box-shadow: 0 0 4px rgba(199, 80, 80, 0.24); }
-.window-dots span:nth-child(2) { box-shadow: 0 0 4px rgba(212, 168, 75, 0.24); }
-.window-dots span:nth-child(3) { box-shadow: 0 0 6px rgba(95, 184, 122, 0.32); }
+.window-dots span:nth-child(1) { box-shadow: 0 0 4px rgba(199, 80, 80, 0.18); }
+.window-dots span:nth-child(2) { box-shadow: 0 0 4px rgba(212, 168, 75, 0.18); }
+.window-dots span:nth-child(3) { box-shadow: 0 0 4px rgba(95, 184, 122, 0.18); }
 
 @keyframes fadeInUp {
   from {
@@ -510,8 +493,7 @@ h1, h2, h3, p { margin: 0; }
 /* ─── Reduce motion for accessibility ─── */
 @media (prefers-reduced-motion: reduce) {
   .shell,
-  .window-dots span:nth-child(3)::after,
-  .window-title::after,
+  .brand-heading::after,
   .boot-caret,
   .table tbody tr {
     animation: none;
