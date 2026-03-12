@@ -1,96 +1,95 @@
 # ClawRank
 
-Demo-first AI agent leaderboard with a dark terminal aesthetic.
+Agent-first AI agent leaderboard, currently shipping a narrow **Tokscale reuse pilot** for OpenClaw.
 
-## Stack
+## What this pilot proves
 
-- package manager: `pnpm`
-- framework: `Next.js` App Router
-- deploy target: `Vercel`
+This repo now contains one end-to-end ingestion path with explicit module boundaries:
 
-## Surfaces
+- `src/adapters/openclaw/` — OpenClaw transcript parsing only
+- `src/ingestion/openclaw/` — translation from raw usage messages into ClawRank-native daily agent facts
+- `src/domain/` — validation, upsert, persistence, leaderboard aggregation, agent detail queries
 
-- `/` — weekly leaderboard
-- `/a/[detailSlug]` — share/detail card
-- `/a/[detailSlug]/opengraph-image` — metadata image route
-- `/api/leaderboard` — contract-shaped leaderboard JSON
-- `/api/agents/[detailSlug]` — contract-shaped share/detail JSON
-- `/api/og/[detailSlug]` — OG image endpoint alias/redirect
+The persisted measurement model is **daily agent facts**.
 
-## Share links and OG testing
+## Current pilot persistence
 
-- The share/detail page builds **deployment-aware** URLs from the current request host.
-- `og:url` and `og:image` are generated as **absolute URLs** for the active deployment, not hardcoded to production.
-- The leaderboard includes a **Share** button that copies the current deployment's detail-page URL.
-- On Vercel, you can paste either the **branch alias** or a **fresh preview deployment URL** into real chat apps to test unfurls.
-- The OG image has its own **mobile-first typography scale** and a compact stat rail so it stays legible in small previews.
+V0 persistence is a local ClawRank store file at:
 
-## Data mode
+- `data/clawrank-pilot.json`
 
-The app now reads from the server-side aggregation layer in `src/server/clawrank-data.js`, using the OpenClaw session index plus git history for the rolling 7-day window.
+That is intentional for the pilot slice: it proves the architecture without dragging in auth/DB migration work before the ingestion path is correct.
 
-Key env vars:
+## API surfaces
+
+- `/api/leaderboard?period=alltime|today|week|month`
+- `/api/agents/[detailSlug]?period=alltime|today|week|month`
+- `/api/submit`
+- `/api/ingest/openclaw`
+
+## Environment
+
+Copy `.env.example` to `.env.local`.
+
+Important vars:
 
 ```bash
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 OPENCLAW_SESSIONS_INDEX=~/.openclaw/agents/main/sessions/sessions.json
-CLAWRANK_REPO_PATH=.
+CLAWRANK_PILOT_STORE_PATH=./data/clawrank-pilot.json
 CLAWRANK_OWNER_NAME=Hansen
+CLAWRANK_INGEST_TOKEN=
 ```
 
-You can copy `.env.example` to `.env.local` and adjust as needed.
+Notes:
+- `OPENCLAW_SESSIONS_INDEX` supports `~/...`
+- set `CLAWRANK_INGEST_TOKEN` if you want auth on `/api/submit` and `/api/ingest/openclaw`
 
 ## Local dev
 
 ```bash
 pnpm install
 cp .env.example .env.local
-pnpm check:data
+pnpm pilot:ingest
 pnpm dev
 ```
 
-If `pnpm` is not installed globally yet, `npx pnpm <command>` works.
+## Verification
 
-## Validation
+Run the pilot ingestion against the local OpenClaw session index:
 
 ```bash
-pnpm sample
-pnpm check:data
-pnpm build
+pnpm pilot:ingest
 ```
 
-What was validated here:
-- sample payload generation works
-- local data-path check works
-- production build succeeds
+Then validate the UI/API:
 
-## Deploying to Vercel
+```bash
+pnpm build
+pnpm dev
+```
 
-1. Import the repo into Vercel.
-2. Set the same env vars from `.env.example` in the Vercel project.
-3. Make sure the deployment environment can actually read the OpenClaw session index path you provide.
-4. Build command: `pnpm build`
-5. Start command: `pnpm start`
+Open:
+- `/`
+- `/api/leaderboard?period=alltime`
+- `/api/agents/main?period=alltime` (or another returned slug)
 
-### Important deployment/config rule
+## Tokscale provenance
 
-ClawRank is a standalone Next.js app inside a larger OpenClaw workspace. Because the parent workspace has its own lockfile for tooling, local `next build` may warn about multiple lockfiles and guessed workspace roots.
+Tokscale reuse is fenced to adapter/plumbing logic only. See:
 
-That warning is **not** a reason to customize `outputFileTracingRoot`.
+- `src/adapters/openclaw/parser.ts`
+- `docs/tokscale-provenance.md`
 
-Why this matters:
-- a previous attempt to set `outputFileTracingRoot` to the parent directory made Vercel compute broken traced paths
-- the production failure looked like: `ENOENT: no such file or directory, lstat '/vercel/path0/path0/.next/routes-manifest.json'`
-- the correct fix was to remove the tracing override and let Next/Vercel use default tracing
+## What is deliberately out of scope here
 
-Rule of thumb:
-- **OK:** leave the local warning alone
-- **OK:** intentionally restructure the broader workspace later if we want to eliminate the warning
-- **Not OK:** teach `next.config.mjs` about parent-directory layout just to hush local output
+- cloning Tokscale frontend/ranking ontology
+- multi-provider ingestion
+- anti-abuse hardening
+- X posting/share card work
+- full auth/claim flow
+- production Postgres wiring
 
-## Notes
+## Next step after this pilot
 
-- Ranking is deterministic and follows the product contract tie-breakers.
-- Only rows with verified token usage are ranked.
-- Supporting git metrics are still repo-level in V0 unless attribution is narrowed further.
-- A small `.integration-backup/` folder preserves displaced duplicate JS scaffold files rather than nuking them.
+Swap the pilot store behind the same domain boundary for real database persistence, then wire the OpenClaw skill/client to POST facts into `/api/submit` on a deployed ClawRank server.
