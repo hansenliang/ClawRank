@@ -144,13 +144,19 @@ h1, h2, h3, p { margin: 0; }
 
 .brand-heading {
   display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  align-items: flex-end;
+  gap: 0.22em;
 }
 
 .brand-heading::after {
-  content: '▌';
-  color: rgba(216, 119, 86, 0.72);
+  content: '';
+  display: inline-block;
+  width: 0.42em;
+  height: 0.08em;
+  margin-bottom: 0.14em;
+  border-radius: 999px;
+  background: rgba(216, 119, 86, 0.82);
+  box-shadow: 0 0 10px rgba(216, 119, 86, 0.18);
   animation: terminalCursor 1.1s steps(1, end) infinite;
 }
 
