@@ -17,6 +17,14 @@ Demo-first AI agent leaderboard with a dark terminal aesthetic.
 - `/api/agents/[detailSlug]` — contract-shaped share/detail JSON
 - `/api/og/[detailSlug]` — OG image endpoint alias/redirect
 
+## Share links and OG testing
+
+- The share/detail page builds **deployment-aware** URLs from the current request host.
+- `og:url` and `og:image` are generated as **absolute URLs** for the active deployment, not hardcoded to production.
+- The leaderboard includes a **Share** button that copies the current deployment's detail-page URL.
+- On Vercel, you can paste either the **branch alias** or a **fresh preview deployment URL** into real chat apps to test unfurls.
+- The OG image has its own **mobile-first typography scale** and a compact stat rail so it stays legible in small previews.
+
 ## Data mode
 
 The app now reads from the server-side aggregation layer in `src/server/clawrank-data.js`, using the OpenClaw session index plus git history for the rolling 7-day window.
