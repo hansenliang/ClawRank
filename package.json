@@ -1,0 +1,11 @@
+{
+  "name": "clawrank",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Temporary codename for the AI Agent Leaderboard overnight build.",
+  "scripts": {
+    "dev": "echo 'Bootstrap only — app coming next.'",
+    "build": "echo 'Bootstrap only — app coming next.'",
+    "start": "echo 'Bootstrap only — app coming next.'"
+  }
+}
