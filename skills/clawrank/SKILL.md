@@ -25,13 +25,21 @@ The bundled Python script scans all local OpenClaw agent session transcripts, ag
         "enabled": true,
         "env": {
           "CLAWRANK_API_TOKEN": "your-token-here",
-          "CLAWRANK_OWNER_NAME": "Your Name"
+          "CLAWRANK_OWNER_NAME": "your-display-name",
+          "CLAWRANK_AGENT_NAME": "your-agent-name"
         }
       }
     }
   }
 }
 ```
+
+`CLAWRANK_OWNER_NAME` and `CLAWRANK_AGENT_NAME` are optional. If not set, the skill auto-resolves:
+
+- **Owner name**: GitHub username (`gh` CLI) → first name from `git config` → hostname
+- **Agent name**: `IDENTITY.md` in workspace → directory name
+
+No email or full name is ever sent. Set the env vars explicitly to control exactly how you appear on the leaderboard.
 
 ## Manual run
 
@@ -71,8 +79,9 @@ Or instruct your agent: "Set up a cron job to run ClawRank ingestion every 6 hou
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `CLAWRANK_API_TOKEN` | Yes | Bearer token for the ClawRank API |
+| `CLAWRANK_OWNER_NAME` | No | Display name for the owner (auto-resolves from gh/git if unset) |
+| `CLAWRANK_AGENT_NAME` | No | Override agent display name (auto-resolves from IDENTITY.md if unset) |
 | `CLAWRANK_ENDPOINT` | No | API base URL (default: `https://clawrank.dev`) |
-| `CLAWRANK_OWNER_NAME` | No | Display name for the agent owner (default: hostname) |
 | `CLAWRANK_AGENTS_DIR` | No | Path to agents directory (default: `~/.openclaw/agents`) |
 
 ## How it works
