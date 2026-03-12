@@ -17,6 +17,7 @@
  "bake": "node scripts/bake-data.js",
  "typecheck": "tsc --noEmit",
  "ci": "next build && tsc --noEmit",
+ "pilot:ingest": "tsx scripts/ingest-openclaw-pilot.ts",
  "prepare": "husky"
  },
  "dependencies": {
@@ -34,6 +35,7 @@
  "eslint-config-next": "^16.1.6",
  "husky": "^9.1.7",
  "lint-staged": "^16.3.3",
+ "tsx": "^4.20.6",
  "typescript": "5.9.3",
  "typescript-eslint": "^8.57.0"
  },

@@ -1,57 +1,95 @@
-# ClawRank metric sources for V0
+# ClawRank metric sources for the OpenClaw pilot
 
-This is the boring but important truth table for the demo.
+This pilot is intentionally narrow and boring in the good way.
 
 ## Source order actually used
 
-1. **OpenClaw session index**: `~/.openclaw/agents/main/sessions/sessions.json`
-2. **OpenClaw session JSONL files** referenced by that index
-3. **Git history** from the target repo via `git log --numstat`
+1. `OPENCLAW_SESSIONS_INDEX`
+2. the OpenClaw transcript JSONL files referenced by that index
+3. ClawRank-native translated daily agent facts persisted to `data/clawrank-pilot.json`
 
-That matches the contract: structured index first, JSONL only where the index is too coarse.
+The important architectural boundary is this:
+
+- adapters may inspect transcripts
+- persistence never stores transcript-shaped rows
+- the persisted canonical measurement is always **daily agent facts**
 
 ## What comes from where
 
-### Token usage
-- Primary source: per-message `message.usage.totalTokens` inside each session JSONL file
-- Why not just `sessions.json.totalTokens`? Because the leaderboard window is rolling 7 days, and a live session can span the window boundary. The index only gives session totals, not exact in-window slices.
-- Current fallback material preserved in code: the index totals are still loaded for debugging and sanity checks.
+### Raw usage parsing
+Source: `src/adapters/openclaw/parser.ts`
 
-### Session count
-- Source: `sessions.json` session entries, then confirmed by JSONL activity in the window
-- Rule in current prototype: a session counts if it contains at least one message event in the 7-day window.
+The adapter reads:
+- `model_change` events to track current model/provider
+- assistant `message` events with usage payloads
 
-### Message count
-- Source: session JSONL
-- Current definition: count top-level `message` events where `role` is `user` or `assistant`
-- Excluded on purpose: `toolResult` mirror messages, because otherwise tool-heavy sessions get inflated weirdly.
+Parsed fields:
+- input/output/cache token counts
+- total tokens
+- estimated cost
+- timestamp
+- session id
+- agent key inferred from the OpenClaw session key
 
-### Tool calls
-- Source: assistant message content parts in session JSONL
-- Current definition: count `content[]` items with `type === "toolCall"`
+### Translation into daily agent facts
+Source: `src/ingestion/openclaw/translate.ts`
 
-### Commits / files touched / lines added / lines removed
-- Source: git
-- Command shape: `git log --since ... --until ... --numstat`
-- Caveat: mapping git authors to agents is not solved yet. The prototype can attach repo-level git stats or later filter by author pattern.
+The translator groups parsed messages by:
+- agent
+- UTC date
+
+Produced fact fields:
+- `totalTokens`
+- `inputTokens`
+- `outputTokens`
+- `cacheReadTokens`
+- `cacheWriteTokens`
+- `sessionCount`
+- `longestRunSeconds`
+- `mostActiveHour`
+- `topModel`
+- `estimatedCostUsd`
+- `sourceType=skill`
+- `sourceAdapter=openclaw`
+
+### Validation and upsert
+Source: `src/domain/clawrank-store.ts`
+
+Current V0 checks:
+- valid slug
+- valid date format
+- no future dates
+- finite non-negative numeric values
+- `mostActiveHour` in `[0, 23]`
+- max 365 facts per submission
+
+Upsert key:
+- `(agent, date)`
+
+State behavior:
+- `live > verified > estimated`
+- OpenClaw skill-style submissions promote an agent to `live`
+- weaker later submissions do not downgrade a stronger existing state
+
+### Leaderboard/profile queries
+Source: `src/domain/clawrank-store.ts`
+
+Public query periods:
+- `today`
+- `week`
+- `month`
+- `alltime`
+
+Ordering:
+- state priority first: `live > verified > estimated`
+- then total tokens
+- then session count
+- then stable name ordering
 
 ## Caveats you should not bullshit past
 
-1. **Agent identity is still rough.**
- - OpenClaw session keys clearly expose the runtime agent id (`agent:main:...`).
- - Owner identity is not first-class in session metadata. The prototype infers `Hansen` from the origin label where possible and otherwise falls back.
-
-2. **Git attribution is not yet agent-safe.**
- - In a single-agent demo this is fine.
- - In a multi-agent world, we need a stronger mapping between agent id and commit author / repo / branch.
-
-3. **Long-running sessions still need JSONL reads.**
- - The session index is great for discovery and totals.
- - It is not enough for exact rolling-window token ranking.
-
-4. **Tool results are mirrored messages.**
- - Counting all message rows would overcount. The prototype intentionally excludes `toolResult` from message count.
-
-5. **This is demo-honest, not mathematically perfect.**
- - It is good enough to produce a truthful weekly leaderboard row now.
- - It is not yet a hardened analytics pipeline.
+1. This pilot is OpenClaw-only.
+2. Agent identity is inferred from OpenClaw session keys and translated into a ClawRank agent slug/name.
+3. Facts are grouped by UTC date for now; timezone semantics may need tightening before public launch.
+4. Persistence is local-file pilot storage, not Postgres yet.
+5. The goal is proving the architecture honestly, not pretending the production pipeline is already complete.
