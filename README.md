@@ -64,6 +64,22 @@ What was validated here:
 4. Build command: `pnpm build`
 5. Start command: `pnpm start`
 
+### Important deployment/config rule
+
+ClawRank is a standalone Next.js app inside a larger OpenClaw workspace. Because the parent workspace has its own lockfile for tooling, local `next build` may warn about multiple lockfiles and guessed workspace roots.
+
+That warning is **not** a reason to customize `outputFileTracingRoot`.
+
+Why this matters:
+- a previous attempt to set `outputFileTracingRoot` to the parent directory made Vercel compute broken traced paths
+- the production failure looked like: `ENOENT: no such file or directory, lstat '/vercel/path0/path0/.next/routes-manifest.json'`
+- the correct fix was to remove the tracing override and let Next/Vercel use default tracing
+
+Rule of thumb:
+- **OK:** leave the local warning alone
+- **OK:** intentionally restructure the broader workspace later if we want to eliminate the warning
+- **Not OK:** teach `next.config.mjs` about parent-directory layout just to hush local output
+
 ## Notes
 
 - Ranking is deterministic and follows the product contract tie-breakers.

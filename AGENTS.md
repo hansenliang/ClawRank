@@ -15,6 +15,10 @@ Read this before writing any code. Violations get reverted.
 - **No dead code.** If nothing imports it, delete it. Don't leave "backup" files, commented-out blocks, or unused modules.
 - **Env-gated features, not try/catch gating.** Use explicit env vars (e.g. `CLAWRANK_LIVE_DATA=true`) to toggle features. Don't use require failures as feature flags.
 - **Baked data is the default path.** Live data parsing is opt-in via env var. Vercel/production always uses pre-baked JSON.
+- **This app is standalone.** Treat `ClawRank/` as its own app root. Do not make app config depend on random files or lockfiles in parent directories.
+- **No tracing-root hacks.** Do not add `outputFileTracingRoot` just to silence local Next.js warnings about multiple lockfiles. That warning comes from the parent OpenClaw workspace; ClawRank deploys correctly only when Next/Vercel use the default tracing behavior.
+- **Production config must stay boring.** If a config change quiets local warnings but changes deploy path math, reject it. We already hit a Vercel failure from this exact mistake (`ENOENT ... /vercel/path0/path0/.next/routes-manifest.json`).
+- **Fix the boundary, not the symptom.** If local tooling complains about parent workspace files, either live with the warning or restructure intentionally later. Do not encode workspace-layout trivia into `next.config.mjs`.
 
 ## Code Quality
 
