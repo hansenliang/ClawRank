@@ -2,6 +2,8 @@ import { WindowChrome } from './components/chrome';
 import { LeaderboardTable } from './components/leaderboard-table';
 import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data';
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   const leaderboard = await getLeaderboard('live');
   const leader = leaderboard.rows[0];
