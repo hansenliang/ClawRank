@@ -21,7 +21,9 @@ export default function Loading() {
               </div>
             ))}
           </div>
-          <div className="boot-dim">stand by…</div>
+          <div className="boot-dim">
+            stand by<span className="boot-caret" aria-hidden="true" />
+          </div>
         </div>
       </WindowChrome>
     </main>
