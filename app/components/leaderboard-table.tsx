@@ -26,15 +26,15 @@ export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardR
           {rows.map((row) => (
             <tr key={row.id}>
               <td>
-                <span className="rank-badge">#{row.rank}</span>
+                <span className="rank-badge">{row.rank}</span>
               </td>
               <td>
                 <div className="identity-row">
                   <Link href={`${basePath}/${row.detailSlug}`} className="identity">
                     <Avatar name={row.agentName} />
                     <div>
-                      <div>{row.displayName}</div>
-                      <div className="muted">{row.detailSlug}</div>
+                      <div>{row.agentName}</div>
+                      <div className="muted">by @{row.ownerName}</div>
                     </div>
                   </Link>
                   <ShareLinkButton path={`${basePath}/${row.detailSlug}`} label={row.displayName} />
