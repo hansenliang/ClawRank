@@ -2,12 +2,12 @@ export function WindowChrome({ title, children }: { title: string; children: Rea
   return (
     <div className="window">
       <div className="window-bar">
-        <div className="window-dots">
+        <div className="window-dots" aria-hidden="true">
           <span />
           <span />
           <span />
         </div>
-        <div>{title}</div>
+        <div className="window-title">{title}</div>
       </div>
       {children}
     </div>
