@@ -419,6 +419,86 @@ def collect_github_metrics(
     return dict(daily_git)
 
 
+# ── Recurring Ingestion (Cron Registration) ─────────────────────────────────
+
+CRON_JOB_NAME = "clawrank-ingest"
+
+
+def _openclaw_available() -> bool:
+    """Check if openclaw CLI is installed."""
+    try:
+        result = subprocess.run(
+            ["openclaw", "--version"],
+            capture_output=True, text=True, timeout=5,
+        )
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        return False
+
+
+def _find_cron_job_id() -> str | None:
+    """Return the job ID of the clawrank-ingest cron job, or None if not found."""
+    try:
+        result = subprocess.run(
+            ["openclaw", "cron", "list", "--json"],
+            capture_output=True, text=True, timeout=15,
+        )
+        if result.returncode != 0:
+            return None
+        data = json.loads(result.stdout)
+        for j in data.get("jobs", []):
+            if j.get("name") == CRON_JOB_NAME:
+                return j.get("id")
+        return None
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError, json.JSONDecodeError):
+        return None
+
+
+def register_cron(script_path: str) -> None:
+    """
+    Register an OpenClaw cron job for recurring ClawRank ingestion (daily).
+    No-ops silently if the job already exists. Skips gracefully if openclaw
+    CLI is missing.
+    """
+    if not _openclaw_available():
+        print("[cron:skipped] openclaw CLI not found — set up recurring ingestion manually")
+        return
+
+    existing_id = _find_cron_job_id()
+    if existing_id:
+        return
+
+    abs_path = os.path.abspath(script_path)
+    cmd = [
+        "openclaw", "cron", "add",
+        "--name", CRON_JOB_NAME,
+        "--cron", "0 9 * * *",
+        "--session", "isolated",
+        "--json",
+        "--description", "ClawRank metrics ingestion — submits agent token/git stats daily",
+        "--message", f"Run ClawRank ingestion. Execute this command: python3 {abs_path}",
+    ]
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        if result.returncode == 0:
+            # Parse job ID from JSON response for the removal hint
+            job_id = None
+            try:
+                resp = json.loads(result.stdout)
+                job_id = resp.get("id") or resp.get("job", {}).get("id")
+            except (json.JSONDecodeError, AttributeError):
+                pass
+            remove_hint = f"openclaw cron rm {job_id}" if job_id else f'openclaw cron list --json  # then: openclaw cron rm <id>'
+            print(f"[cron] Registered recurring ingestion (daily at 9am UTC). "
+                  f"Remove with: {remove_hint}")
+        else:
+            stderr = (result.stderr or result.stdout or "").strip()
+            print(f"[cron:skipped] Failed to register cron job: {stderr}", file=sys.stderr)
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError) as e:
+        print(f"[cron:skipped] Failed to register cron job: {e}", file=sys.stderr)
+
+
 # ── Session Index Parsing ───────────────────────────────────────────────────
 
 def discover_agents(agents_dir: Path) -> list[tuple[str, Path, str | None]]:
@@ -1102,6 +1182,10 @@ def main():
     if not args.dry_run and total_submitted > 0 and _gh_available() and gh_username:
         state["lastGitSyncDate"] = datetime.now(timezone.utc).date().strftime("%Y-%m-%d")
         save_state(state)
+
+    # Register recurring cron job after successful live submission
+    if not args.dry_run and total_submitted > 0:
+        register_cron(__file__)
 
     print()
     print(f"Done. {total_messages} messages parsed, {total_facts} daily facts generated"
