@@ -131,6 +131,8 @@ export interface DailyFactSubmission {
  facts: DailyAgentFactInput[];
 }
 
+export type DerivedState = 'live' | 'verified' | 'estimated';
+
 export interface LeaderboardRow {
  id: string;
  rank: number;
@@ -139,6 +141,7 @@ export interface LeaderboardRow {
  ownerName: string;
  displayName: string;
  state: AgentState;
+ derivedState: DerivedState;
  totalTokens: number;
  sessionCount: number;
  activeDays: number;

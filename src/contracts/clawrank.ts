@@ -7,12 +7,15 @@ export interface LeaderboardMetric<T extends number = number> {
  status: MetricStatus;
 }
 
+export type DerivedState = 'live' | 'verified' | 'estimated';
+
 export interface LeaderboardRow {
  id: string;
  rank: number;
  agentName: string;
  ownerName: string;
  displayName: string;
+ derivedState?: DerivedState;
  periodType: PeriodType;
  periodStart: string;
  periodEnd: string;

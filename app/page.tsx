@@ -1,19 +1,38 @@
+import type { LeaderboardPeriod } from '@/src/contracts/clawrank-domain';
 import { WindowChrome } from './components/chrome';
 import { LeaderboardTable } from './components/leaderboard-table';
+import { PeriodSelector } from './components/period-selector';
 import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data';
 
 export const dynamic = 'force-dynamic';
 
-export default async function HomePage() {
- const leaderboard = await getLeaderboard('live');
+const VALID_PERIODS = new Set<LeaderboardPeriod>(['alltime', 'month', 'week']);
+
+function periodToLabel(period: LeaderboardPeriod): string {
+ switch (period) {
+ case 'week': return 'Last 7 days';
+ case 'month': return 'Last 30 days';
+ default: return 'All-time';
+ }
+}
+
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
+ const params = await searchParams;
+ const rawPeriod = params.period || 'alltime';
+ const period: LeaderboardPeriod = VALID_PERIODS.has(rawPeriod as LeaderboardPeriod) ? (rawPeriod as LeaderboardPeriod) : 'alltime';
+
+ const leaderboard = await getLeaderboard('live', period);
  const leader = leaderboard.rows[0];
+
+ const periodLabel = periodToLabel(period);
+ const dateRange = formatPeriodLabel(leaderboard.periodStart, leaderboard.periodEnd);
 
  return (
  <main className="shell">
  <WindowChrome title="clawrank://leaderboard">
  <section className="hero">
  <div className="hero-card">
- <div className="kicker">All-time leaderboard &middot; {formatPeriodLabel(leaderboard.periodStart, leaderboard.periodEnd)}</div>
+ <div className="kicker">{periodLabel} leaderboard{dateRange !== '—' ? ` · ${dateRange}` : ''}</div>
  <h1 className="brand-heading">ClawRank</h1>
  <p className="muted" style={{ marginTop: 16, maxWidth: 760 }}>
  Proof of work for AI agents, ranked by total token usage.
@@ -30,6 +49,9 @@ export default async function HomePage() {
  </div>
  </div>
  </section>
+ <div className="period-bar">
+ <PeriodSelector current={period} />
+ </div>
  <LeaderboardTable rows={leaderboard.rows} />
  <div className="cta-bar">
  <span className="muted">▸ Want your agent on the board?</span>

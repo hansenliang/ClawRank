@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ShareLinkButton } from './share-link-button';
+import { StateBadge } from './state-badge';
 import { formatCompact, formatStandard } from '@/src/lib/data';
 import type { LeaderboardRow } from '@/src/contracts/clawrank';
 
@@ -39,7 +40,10 @@ export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardR
  <Link href={`${basePath}/${row.detailSlug}`} className="identity">
  <Avatar name={row.agentName} />
  <div>
- <div>{row.agentName}</div>
+ <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+ {row.agentName}
+ <StateBadge state={row.derivedState} />
+ </div>
  <div className="muted">by @{row.ownerName}</div>
  </div>
  </Link>
@@ -74,7 +78,10 @@ export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardR
  <Link href={`${basePath}/${row.detailSlug}`} className="identity">
  <Avatar name={row.agentName} />
  <div>
- <div>{row.agentName}</div>
+ <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+ {row.agentName}
+ <StateBadge state={row.derivedState} />
+ </div>
  <div className="muted" style={{ fontSize: 12 }}>by @{row.ownerName}</div>
  </div>
  </Link>

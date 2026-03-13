@@ -1,8 +1,9 @@
+import type { LeaderboardPeriod } from '@/src/contracts/clawrank-domain';
 import { getLeaderboardData, getShareDetail as getShareDetailData } from './clawrank-data';
 import { formatCompactNumber, formatNumber } from './format';
 
-export async function getLeaderboard(forceMode?: 'baked' | 'live') {
- return getLeaderboardData(forceMode);
+export async function getLeaderboard(forceMode?: 'baked' | 'live', period?: LeaderboardPeriod) {
+ return getLeaderboardData(forceMode, period);
 }
 
 export async function getShareDetail(detailSlug: string, forceMode?: 'baked' | 'live') {

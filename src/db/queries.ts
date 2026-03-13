@@ -12,6 +12,7 @@ import type {
  DailyAgentFact,
  DailyAgentFactInput,
  DailyFactSubmission,
+ DerivedState,
  LeaderboardPeriod,
  LeaderboardResponse,
  LeaderboardRow,
@@ -509,61 +510,70 @@ function uniq<T>(items: T[]): T[] {
  return [...new Set(items)];
 }
 
+/**
+ * Derives agent state dynamically from facts, NOT from the stored state column.
+ * - Live: has source_type='skill' fact within last 7 days
+ * - Verified: agent is claimed (user_id set) AND has at least one source_type='skill' fact ever, but none in last 7 days
+ * - Estimated: everything else
+ */
+function deriveState(
+ agent: { userId?: string | null },
+ allFacts: DailyAgentFact[],
+ now: Date,
+): DerivedState {
+ const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000).toISOString().slice(0, 10);
+ const hasRecentSkillFact = allFacts.some((f) => f.sourceType === 'skill' && f.date >= sevenDaysAgo);
+ if (hasRecentSkillFact) return 'live';
+ const hasAnySkillFact = allFacts.some((f) => f.sourceType === 'skill');
+ if (agent.userId && hasAnySkillFact) return 'verified';
+ return 'estimated';
+}
+
 export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', now = new Date()): Promise<LeaderboardResponse> {
  const sql = getSQL();
  if (!sql) throw new Error('DATABASE_URL not configured');
 
  const range = periodRange(period, now);
 
- // Fetch all facts in period with their agent data
- let factRows;
- if (range.start && range.endExclusive) {
- factRows = await sql`
- SELECT f.*, a.slug, a.agent_name, a.owner_name, a.state, a.last_submission_at
- FROM daily_agent_facts f
- JOIN agents a ON f.agent_id = a.id
- WHERE f.date >= ${range.start}::date AND f.date < ${range.endExclusive}::date
- ORDER BY a.slug, f.date
- `;
- } else {
- factRows = await sql`
- SELECT f.*, a.slug, a.agent_name, a.owner_name, a.state, a.last_submission_at
+ // Fetch ALL facts with their agent data (we need full history for state derivation)
+ const allFactRows = await sql`
+ SELECT f.*, a.slug, a.agent_name, a.owner_name, a.state, a.user_id as a_user_id, a.last_submission_at
  FROM daily_agent_facts f
  JOIN agents a ON f.agent_id = a.id
  ORDER BY a.slug, f.date
  `;
- }
 
- // Group by agent
- const agentMap = new Map<string, { agent: AgentRecord; facts: DailyAgentFact[] }>();
- for (const row of factRows) {
+ // Group ALL facts by agent (for state derivation)
+ const agentAllFacts = new Map<string, { agent: { id: string; userId: string | null; slug: string; agentName: string; ownerName: string; state: AgentState; lastSubmissionAt: string | null }; facts: DailyAgentFact[] }>();
+ for (const row of allFactRows) {
  const agentId = row.agent_id as string;
- if (!agentMap.has(agentId)) {
- agentMap.set(agentId, {
+ if (!agentAllFacts.has(agentId)) {
+ agentAllFacts.set(agentId, {
  agent: {
  id: agentId,
- userId: row.user_id ?? null,
+ userId: (row.a_user_id as string) ?? null,
  slug: row.slug as string,
  agentName: row.agent_name as string,
  ownerName: row.owner_name as string,
  state: row.state as AgentState,
- primaryGithubUsername: null,
- xHandle: null,
- bio: null,
- avatarUrl: null,
- sourceOfTruth: null,
- createdAt: '',
- updatedAt: '',
  lastSubmissionAt: row.last_submission_at ? String(row.last_submission_at) : null,
  },
  facts: [],
  });
  }
- agentMap.get(agentId)!.facts.push(mapFact(row));
+ agentAllFacts.get(agentId)!.facts.push(mapFact(row));
  }
 
- const rows: LeaderboardRow[] = [...agentMap.values()]
- .map(({ agent, facts }) => {
+ // Filter facts to period for metric aggregation
+ const rows: LeaderboardRow[] = [...agentAllFacts.values()]
+ .map(({ agent, facts: allFacts }) => {
+ // Filter to period for metrics
+ const facts = (range.start && range.endExclusive)
+ ? allFacts.filter((f) => f.date >= range.start! && f.date < range.endExclusive!)
+ : allFacts;
+
+ if (facts.length === 0) return null; // No data in this period
+
  const totalTokens = facts.reduce((sum, f) => sum + f.totalTokens, 0);
  const sessionCount = facts.reduce((sum, f) => sum + (f.sessionCount || 0), 0);
  const activeDays = facts.filter((f) => f.totalTokens > 0).length;
@@ -593,6 +603,9 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
  const mostActiveHour = [...hourTotals.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
  const topToolNames = [...toolTotals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([name]) => name);
 
+ // Derive state from ALL facts (not just period-filtered)
+ const derivedState = deriveState({ userId: agent.userId }, allFacts, now);
+
  return {
  id: agent.id,
  rank: 0,
@@ -601,6 +614,7 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
  ownerName: agent.ownerName,
  displayName: `${agent.agentName} by ${agent.ownerName}`,
  state: agent.state,
+ derivedState,
  totalTokens,
  sessionCount,
  activeDays,
@@ -616,6 +630,7 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
  lastSubmissionAt: agent.lastSubmissionAt,
  };
  })
+ .filter((row): row is NonNullable<typeof row> => row !== null)
  .sort((a, b) => {
  return (
  b.totalTokens - a.totalTokens ||
