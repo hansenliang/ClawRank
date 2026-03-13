@@ -61,6 +61,12 @@ button { font: inherit; }
  padding: 0 0 48px;
 }
 
+@media (min-width: 641px) {
+ .shell {
+  padding: 24px 0 72px;
+ }
+}
+
 /* ─── Window Chrome — slim, functional ─── */
 .window {
  background: var(--bg);
@@ -446,8 +452,8 @@ h1, h2, h3, p { margin: 0; }
  .shell { width: calc(100% - 16px); }
  .hero, .table-wrap, .detail-grid { padding-left: 12px; padding-right: 12px; }
  .hero-grid { flex-direction: column; }
- .stat { padding: 10px 0; }
- .stat + .stat { border-top: 1px solid var(--border); }
+  .hero .stat { flex: 0 1 auto; }
+  .stat { padding: 10px 0; }
  .stats-grid { grid-template-columns: 1fr; }
  .identity-row {
  align-items: flex-start;
@@ -462,6 +468,7 @@ h1, h2, h3, p { margin: 0; }
 @media (max-width: 640px) {
  .desktop-only { display: none !important; }
  .mobile-only { display: block !important; }
+ .mobile-card-list { padding-top: 8px; }
 }
 
 .mobile-card-list {
@@ -600,8 +607,8 @@ h1, h2, h3, p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
  .shell,
  .brand-heading::after,
- .boot-caret,
- .table tbody tr {
+  .boot-caret,
+  .table tbody tr {
  animation: none;
  transition: none;
  }
@@ -614,13 +621,14 @@ h1, h2, h3, p { margin: 0; }
 
 /* ─── Period Selector — terminal tab style ─── */
 .period-bar {
- padding: 0 20px;
+ padding: 0;
  border-bottom: 1px solid var(--border);
 }
 
 .period-selector {
  display: flex;
  gap: 0;
+  padding: 0 20px;
 }
 
 .period-tab {
@@ -680,7 +688,8 @@ h1, h2, h3, p { margin: 0; }
 }
 
 @media (max-width: 640px) {
- .period-bar { padding: 0 12px; }
+ .period-bar { padding: 0; }
+ .period-selector { padding: 0 12px; }
  .period-tab { padding: 10px 12px; font-size: 11px; }
 }
 
@@ -689,11 +698,28 @@ h1, h2, h3, p { margin: 0; }
  display: flex;
  align-items: center;
  gap: 10px;
+  flex-wrap: wrap;
  padding: 16px 0;
  border-top: 1px solid var(--border);
  border-bottom: 1px solid var(--border);
  margin: 24px 0;
  font-size: 13px;
+}
+
+.cta-bar-no-top {
+  border-top: none;
+  padding-top: 0;
+}
+
+.cta-openclaw {
+  align-items: flex-start;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.cta-openclaw > .muted {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .cta-link {
@@ -704,6 +730,61 @@ h1, h2, h3, p { margin: 0; }
 
 .cta-link:hover {
  text-shadow: 0 0 8px rgba(216, 119, 86, 0.4);
+}
+
+.inline-code-with-copy {
+  display: inline-flex;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 4px;
+  flex-wrap: wrap;
+  flex: 0 1 auto;
+  width: fit-content;
+  min-width: 0;
+  max-width: 100%;
+  justify-content: flex-start;
+  padding-right: 2px;
+}
+
+.inline-code-text {
+  flex: 1 1 320px;
+  overflow-wrap: anywhere;
+  color: var(--text-2);
+}
+
+.inline-code-copy-button {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.inline-code-copy-button[data-status='copied'] {
+  color: var(--text);
+}
+
+.inline-code-copy-button[data-status='failed'] {
+  color: var(--red);
+}
+
+@media (max-width: 640px) {
+  .inline-code-with-copy {
+    justify-content: flex-start;
+  }
+
+  .inline-code-copy-button {
+    flex-basis: 100%;
+    width: fit-content;
+    margin: 2px auto 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .cta-openclaw {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 }
 
 /* ─── Setup page ─── */

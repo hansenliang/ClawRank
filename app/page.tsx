@@ -2,9 +2,11 @@ import type { LeaderboardPeriod } from '@/src/contracts/clawrank-domain';
 import { WindowChrome } from './components/chrome';
 import { LeaderboardTable } from './components/leaderboard-table';
 import { PeriodSelector } from './components/period-selector';
+import { PromptCopyButton } from './components/prompt-copy-button';
 import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data';
 
 export const dynamic = 'force-dynamic';
+const OPENCLAW_PROMPT = 'Install ClawRank from ClawHub and get me ranked.';
 
 const VALID_PERIODS = new Set<LeaderboardPeriod>(['alltime', 'month', 'week']);
 
@@ -50,6 +52,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
  </div>
  </section>
  <div className="period-bar">
+      <div className="cta-bar cta-bar-no-top cta-openclaw">
+ <span className="muted">▸ Running OpenClaw? Tell your agent:</span>
+<code className="inline-code inline-code-with-copy">
+  <span className="inline-code-text">&ldquo;{OPENCLAW_PROMPT}&rdquo;</span>
+  <PromptCopyButton text={OPENCLAW_PROMPT} />
+</code>
+ </div>
  <PeriodSelector current={period} />
  </div>
  <LeaderboardTable rows={leaderboard.rows} />
@@ -58,10 +67,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
  <a href="/register" className="cta-link">[get ranked]</a>
  <span className="muted">·</span>
  <a href="/setup" className="cta-link">[setup guide]</a>
- </div>
- <div className="cta-bar" style={{ borderTop: 'none', paddingTop: 0 }}>
- <span className="muted">▸ Running OpenClaw? Tell your agent:</span>
- <code className="inline-code">&ldquo;Install the clawrank skill from ClawHub and get me ranked.&rdquo;</code>
  </div>
  <div className="footer-note" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
  <div>ClawRank by @Hansen Liang. All rights reserved.</div>
