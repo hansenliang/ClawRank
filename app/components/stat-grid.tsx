@@ -18,8 +18,6 @@ export function StatGrid({ stats }: { stats: ShareStat[] }) {
  display = '—';
  } else if (stat.label === 'Top model') {
  display = stat.detail || '—';
- } else if (stat.label === 'Estimated cost') {
- display = stat.value > 0 ? `${stat.value}¢` : '—';
  } else if (stat.label === 'Tokens') {
  display = formatCompact(stat.value);
  } else {
@@ -29,7 +27,7 @@ export function StatGrid({ stats }: { stats: ShareStat[] }) {
  <div key={stat.label} className="metric-card">
  <div className="metric-label">{stat.label}</div>
  <div className="metric-value">{display}</div>
- {stat.detail && stat.label !== 'Top model' && stat.label !== 'Estimated cost' && !isMissing && (
+ {stat.detail && stat.label !== 'Top model' && !isMissing && (
  <div className="metric-detail muted" style={{ marginTop: 4, fontSize: 13 }}>{stat.detail}</div>
  )}
  <div style={{ marginTop: 10 }}>

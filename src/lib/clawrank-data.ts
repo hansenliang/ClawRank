@@ -102,7 +102,6 @@ function domainStatToUiStat(stat: DomainShareStat): import('@/src/contracts/claw
  'User messages': 'Messages',
  'Assistant turns': 'Assistant turns',
  'Top model': 'Top model',
- 'Estimated cost': 'Estimated cost',
  };
  return {
  label: labelMap[stat.label] || 'Tokens',

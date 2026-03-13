@@ -54,8 +54,7 @@ export interface ShareStat {
  | 'Sessions'
  | 'Active days'
  | 'Assistant turns'
- | 'Top model'
- | 'Estimated cost';
+ | 'Top model';
  value: number;
  status: MetricStatus;
  detail?: string | null;

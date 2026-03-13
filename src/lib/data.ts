@@ -19,7 +19,7 @@ export function formatStandard(value: number) {
 }
 
 export function formatPeriodLabel(periodStart: string, periodEnd: string) {
- if (!periodStart || !periodEnd) return '—';
+ if (!periodStart || !periodEnd) return 'All time';
 
  const start = new Date(periodStart);
  const end = new Date(periodEnd);

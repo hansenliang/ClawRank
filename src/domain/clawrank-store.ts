@@ -434,7 +434,6 @@ export function getAgentDetail(store: ClawRankStore, slug: string, period: Leade
  .sort((a, b) => b.date.localeCompare(a.date));
 
  const periodFacts = facts.filter((fact) => withinPeriod(fact.date, period, now));
- const estimatedCostCents = Math.round((row?.estimatedCostUsd || 0) * 100);
  const totalToolCalls = periodFacts.reduce((sum, fact) => sum + (fact.toolCallCount || 0), 0);
  const totalUserMessages = periodFacts.reduce((sum, fact) => sum + (fact.userMessageCount || 0), 0);
  const totalAssistantMessages = periodFacts.reduce((sum, fact) => sum + (fact.assistantMessageCount || 0), 0);
@@ -474,7 +473,6 @@ export function getAgentDetail(store: ClawRankStore, slug: string, period: Leade
  stat('User messages', totalUserMessages),
  stat('Assistant turns', totalAssistantMessages),
  stat('Top model', 0, row?.topModel || null),
- stat('Estimated cost', estimatedCostCents, '¢'),
  ],
  topModel: row?.topModel || null,
  lastSubmissionAt: agent.lastSubmissionAt || null,
