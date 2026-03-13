@@ -53,6 +53,7 @@ function tryBakedDetail(detailSlug: string): ShareDetail | null {
 
 function domainRowToUiRow(row: DomainLeaderboardRow, periodStart: string, periodEnd: string): import('@/src/contracts/clawrank').LeaderboardRow {
  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || SITE_URL;
+ const hasGitMetrics = row.commitCount > 0 || row.linesAdded > 0 || row.linesRemoved > 0 || row.prCount > 0;
  return {
  id: row.id,
  rank: row.rank,
@@ -64,10 +65,10 @@ function domainRowToUiRow(row: DomainLeaderboardRow, periodStart: string, period
  periodStart,
  periodEnd,
  tokenUsage: { value: row.totalTokens, status: 'verified' },
- commits: { value: 0, status: 'missing' },
+ commits: hasGitMetrics ? { value: row.commitCount, status: 'verified' } : { value: 0, status: 'missing' },
  filesTouched: { value: 0, status: 'missing' },
- linesAdded: { value: 0, status: 'missing' },
- linesRemoved: { value: 0, status: 'missing' },
+ linesAdded: hasGitMetrics ? { value: row.linesAdded, status: 'verified' } : { value: 0, status: 'missing' },
+ linesRemoved: hasGitMetrics ? { value: row.linesRemoved, status: 'verified' } : { value: 0, status: 'missing' },
  toolCalls: row.toolCallCount > 0 ? { value: row.toolCallCount, status: 'verified' } : { value: 0, status: 'missing' },
  messageCount: row.userMessageCount > 0 ? { value: row.userMessageCount, status: 'verified' } : { value: 0, status: 'missing' },
  sessionCount: { value: row.sessionCount, status: 'verified' },
@@ -102,6 +103,10 @@ function domainStatToUiStat(stat: DomainShareStat): import('@/src/contracts/claw
  'User messages': 'Messages',
  'Assistant turns': 'Assistant turns',
  'Top model': 'Top model',
+ 'Commits': 'Commits',
+ 'PRs opened': 'PRs opened',
+ 'Lines added': 'Lines added',
+ 'Lines removed': 'Lines removed',
  };
  return {
  label: labelMap[stat.label] || 'Tokens',
@@ -119,6 +124,7 @@ function domainDetailToUi(detail: AgentDetail): ShareDetail {
  // Extract real tool names from stats
  const toolCallStat = detail.stats.find((s) => s.label === 'Tool calls');
  const userMsgStat = detail.stats.find((s) => s.label === 'User messages');
+ const commitsStat = detail.stats.find((s) => s.label === 'Commits');
 
  // Build top tools list from daily facts aggregation
  const toolTotals = new Map<string, number>();
@@ -163,8 +169,9 @@ function domainDetailToUi(detail: AgentDetail): ShareDetail {
  rankText: `#${detail.rank}`,
  tokenText: `${detail.tokenUsage.toLocaleString()} tokens`,
  statChips: [
- { label: 'Tool calls', value: String(toolCallStat?.value || 0) },
- { label: 'Messages', value: String(userMsgStat?.value || 0) },
+ ...((commitsStat?.value || 0) > 0 ? [{ label: 'Commits' as const, value: String(commitsStat!.value) }] : []),
+ { label: 'Tool calls' as const, value: String(toolCallStat?.value || 0) },
+ { label: 'Messages' as const, value: String(userMsgStat?.value || 0) },
  ],
  periodLabel: detail.periodLabel,
  theme: 'terminal',

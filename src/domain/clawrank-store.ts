@@ -123,6 +123,10 @@ export function validateDailyFactSubmission(submission: DailyFactSubmission): st
  ['longestRunSeconds', fact.longestRunSeconds],
  ['mostActiveHour', fact.mostActiveHour],
  ['estimatedCostUsd', fact.estimatedCostUsd],
+ ['commitCount', fact.commitCount],
+ ['linesAdded', fact.linesAdded],
+ ['linesRemoved', fact.linesRemoved],
+ ['prCount', fact.prCount],
  ];
 
  for (const [field, value] of numericFields) {
@@ -206,6 +210,10 @@ export function submitDailyFactSubmission(
  existing.mostActiveHour = fact.mostActiveHour ?? null;
  existing.topModel = fact.topModel ?? null;
  existing.estimatedCostUsd = fact.estimatedCostUsd ?? null;
+ existing.commitCount = fact.commitCount ?? existing.commitCount ?? null;
+ existing.linesAdded = fact.linesAdded ?? existing.linesAdded ?? null;
+ existing.linesRemoved = fact.linesRemoved ?? existing.linesRemoved ?? null;
+ existing.prCount = fact.prCount ?? existing.prCount ?? null;
  existing.sourceType = fact.sourceType;
  existing.sourceAdapter = fact.sourceAdapter ?? null;
  existing.datePrecision = fact.datePrecision ?? 'day';
@@ -225,6 +233,10 @@ export function submitDailyFactSubmission(
  mostActiveHour: fact.mostActiveHour ?? null,
  topModel: fact.topModel ?? null,
  estimatedCostUsd: fact.estimatedCostUsd ?? null,
+ commitCount: fact.commitCount ?? null,
+ linesAdded: fact.linesAdded ?? null,
+ linesRemoved: fact.linesRemoved ?? null,
+ prCount: fact.prCount ?? null,
  sourceType: fact.sourceType,
  sourceAdapter: fact.sourceAdapter ?? null,
  datePrecision: fact.datePrecision ?? 'day',
@@ -310,6 +322,10 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[], al
  let estimatedCostUsd = 0;
  let toolCallCount = 0;
  let userMessageCount = 0;
+ let commitCount = 0;
+ let linesAdded = 0;
+ let linesRemoved = 0;
+ let prCount = 0;
  for (const fact of facts) {
  if (fact.topModel) {
  modelTotals.set(fact.topModel, (modelTotals.get(fact.topModel) || 0) + fact.totalTokens);
@@ -320,6 +336,10 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[], al
  estimatedCostUsd += fact.estimatedCostUsd || 0;
  toolCallCount += fact.toolCallCount || 0;
  userMessageCount += fact.userMessageCount || 0;
+ commitCount += fact.commitCount || 0;
+ linesAdded += fact.linesAdded || 0;
+ linesRemoved += fact.linesRemoved || 0;
+ prCount += fact.prCount || 0;
  if (fact.topTools && typeof fact.topTools === 'object') {
  for (const [name, count] of Object.entries(fact.topTools)) {
  toolTotals.set(name, (toolTotals.get(name) || 0) + (count as number));
@@ -352,6 +372,10 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[], al
  estimatedCostUsd: Number(estimatedCostUsd.toFixed(4)),
  toolCallCount,
  userMessageCount,
+ commitCount,
+ linesAdded,
+ linesRemoved,
+ prCount,
  topToolNames,
  sourceTypes,
  sourceAdapters,
@@ -437,6 +461,10 @@ export function getAgentDetail(store: ClawRankStore, slug: string, period: Leade
  const totalToolCalls = periodFacts.reduce((sum, fact) => sum + (fact.toolCallCount || 0), 0);
  const totalUserMessages = periodFacts.reduce((sum, fact) => sum + (fact.userMessageCount || 0), 0);
  const totalAssistantMessages = periodFacts.reduce((sum, fact) => sum + (fact.assistantMessageCount || 0), 0);
+ const totalCommits = periodFacts.reduce((sum, fact) => sum + (fact.commitCount || 0), 0);
+ const totalLinesAdded = periodFacts.reduce((sum, fact) => sum + (fact.linesAdded || 0), 0);
+ const totalLinesRemoved = periodFacts.reduce((sum, fact) => sum + (fact.linesRemoved || 0), 0);
+ const totalPRs = periodFacts.reduce((sum, fact) => sum + (fact.prCount || 0), 0);
 
  // Aggregate top tools across all period facts
  const toolTotals = new Map<string, number>();
@@ -473,6 +501,10 @@ export function getAgentDetail(store: ClawRankStore, slug: string, period: Leade
  stat('User messages', totalUserMessages),
  stat('Assistant turns', totalAssistantMessages),
  stat('Top model', 0, row?.topModel || null),
+ stat('Commits', totalCommits),
+ stat('PRs opened', totalPRs),
+ stat('Lines added', totalLinesAdded),
+ stat('Lines removed', totalLinesRemoved),
  ],
  topModel: row?.topModel || null,
  lastSubmissionAt: agent.lastSubmissionAt || null,

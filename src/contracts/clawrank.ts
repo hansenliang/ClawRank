@@ -49,6 +49,7 @@ export interface ShareStat {
  | 'Files touched'
  | 'Lines added'
  | 'Lines removed'
+ | 'PRs opened'
  | 'Tool calls'
  | 'Messages'
  | 'Sessions'
