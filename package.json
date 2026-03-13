@@ -5,49 +5,50 @@
  "description": "Demo-first AI agent leaderboard with a terminal aesthetic.",
  "packageManager": "pnpm@10.32.1",
  "engines": {
- "node": ">=20.11.0"
+  "node": ">=20.11.0"
  },
  "scripts": {
- "dev": "next dev",
- "build": "next build",
- "start": "next start",
- "lint": "eslint . --ext .ts,.tsx,.js",
- "sample": "node scripts/generate-sample.js",
- "check:data": "node scripts/check-data.js",
- "bake": "node scripts/bake-data.js",
- "typecheck": "tsc --noEmit",
- "ci": "next build && tsc --noEmit",
- "pilot:ingest": "tsx scripts/ingest-openclaw-pilot.ts",
- "db:seed": "tsx scripts/seed-db.ts",
- "prepare": "husky"
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "lint": "eslint . --ext .ts,.tsx,.js",
+  "sample": "node scripts/generate-sample.js",
+  "check:data": "node scripts/check-data.js",
+  "bake": "node scripts/bake-data.js",
+  "typecheck": "tsc --noEmit",
+  "ci": "next build && tsc --noEmit",
+  "pilot:ingest": "tsx scripts/ingest-openclaw-pilot.ts",
+  "db:seed": "tsx scripts/seed-db.ts",
+  "prepare": "husky"
  },
  "dependencies": {
- "@fontsource/jetbrains-mono": "^5.2.8",
- "@neondatabase/serverless": "^1.0.2",
- "next": "15.5.10",
- "react": "19.0.0",
- "react-dom": "19.0.0"
+  "@fontsource/jetbrains-mono": "^5.2.8",
+  "@neondatabase/serverless": "^1.0.2",
+  "jose": "^6.2.1",
+  "next": "15.5.10",
+  "react": "19.0.0",
+  "react-dom": "19.0.0"
  },
  "devDependencies": {
- "@eslint/eslintrc": "^3.3.1",
- "@eslint/js": "^9.38.0",
- "@types/node": "25.4.0",
- "@types/react": "19.2.14",
- "eslint": "^9.38.0",
- "eslint-config-next": "^16.1.6",
- "husky": "^9.1.7",
- "lint-staged": "^16.3.3",
- "tsx": "^4.20.6",
- "typescript": "5.9.3",
- "typescript-eslint": "^8.57.0"
+  "@eslint/eslintrc": "^3.3.1",
+  "@eslint/js": "^9.38.0",
+  "@types/node": "25.4.0",
+  "@types/react": "19.2.14",
+  "eslint": "^9.38.0",
+  "eslint-config-next": "^16.1.6",
+  "husky": "^9.1.7",
+  "lint-staged": "^16.3.3",
+  "tsx": "^4.20.6",
+  "typescript": "5.9.3",
+  "typescript-eslint": "^8.57.0"
  },
  "lint-staged": {
- "*.{ts,tsx}": [
- "eslint --fix",
- "bash -c \"tsc --noEmit\""
- ],
- "*.{js,jsx}": [
- "eslint --fix"
- ]
+  "*.{ts,tsx}": [
+   "eslint --fix",
+   "bash -c \"tsc --noEmit\""
+  ],
+  "*.{js,jsx}": [
+   "eslint --fix"
+  ]
  }
 }
