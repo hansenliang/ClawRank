@@ -3,13 +3,45 @@ export type LeaderboardPeriod = 'today' | 'week' | 'month' | 'alltime';
 export type SourceType = 'skill' | 'manual' | 'x_scrape';
 export type MetricStatus = 'verified';
 
+export type AuthProvider = 'github' | 'x' | 'google' | 'discord';
+
 export interface UserRecord {
  id: string;
- githubId?: string | null;
- githubUsername?: string | null;
+ displayName?: string | null;
  avatarUrl?: string | null;
+ isAdmin: boolean;
+ defaultAgentId?: string | null;
  createdAt: string;
  updatedAt: string;
+}
+
+export interface LinkedAccount {
+ id: string;
+ userId: string;
+ provider: AuthProvider;
+ providerUserId: string;
+ handle?: string | null;
+ displayName?: string | null;
+ avatarUrl?: string | null;
+ verified: boolean;
+ verifiedAt?: string | null;
+ metadataJson?: Record<string, unknown> | null;
+ createdAt: string;
+ updatedAt: string;
+}
+
+export interface ApiToken {
+ id: string;
+ userId: string;
+ label?: string | null;
+ lastUsedAt?: string | null;
+ createdAt: string;
+ revokedAt?: string | null;
+}
+
+export interface ApiTokenCreateResult {
+ token: ApiToken;
+ rawToken: string; // shown once at creation
 }
 
 export interface AgentRecord {

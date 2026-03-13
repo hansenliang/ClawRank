@@ -7,18 +7,72 @@ import type {
  AgentRecord,
  AgentState,
  AgentUpsertInput,
+ ApiToken,
+ AuthProvider,
  DailyAgentFact,
  DailyAgentFactInput,
  DailyFactSubmission,
  LeaderboardPeriod,
  LeaderboardResponse,
  LeaderboardRow,
+ LinkedAccount,
  SourceType,
+ UserRecord,
 } from '@/src/contracts/clawrank-domain';
 
 // ── Row mappers ────────────────────────────────────────────────────────────
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+function toIso(val: unknown): string {
+ if (val instanceof Date) return val.toISOString();
+ return String(val);
+}
+
+function toIsoOrNull(val: unknown): string | null {
+ if (val == null) return null;
+ return toIso(val);
+}
+
+function mapUser(row: any): UserRecord {
+ return {
+ id: row.id,
+ displayName: row.display_name ?? null,
+ avatarUrl: row.avatar_url ?? null,
+ isAdmin: Boolean(row.is_admin),
+ defaultAgentId: row.default_agent_id ?? null,
+ createdAt: toIso(row.created_at),
+ updatedAt: toIso(row.updated_at),
+ };
+}
+
+function mapLinkedAccount(row: any): LinkedAccount {
+ return {
+ id: row.id,
+ userId: row.user_id,
+ provider: row.provider as AuthProvider,
+ providerUserId: row.provider_user_id,
+ handle: row.handle ?? null,
+ displayName: row.display_name ?? null,
+ avatarUrl: row.avatar_url ?? null,
+ verified: Boolean(row.verified),
+ verifiedAt: toIsoOrNull(row.verified_at),
+ metadataJson: row.metadata_json ?? null,
+ createdAt: toIso(row.created_at),
+ updatedAt: toIso(row.updated_at),
+ };
+}
+
+function mapApiToken(row: any): ApiToken {
+ return {
+ id: row.id,
+ userId: row.user_id,
+ label: row.label ?? null,
+ lastUsedAt: toIsoOrNull(row.last_used_at),
+ createdAt: toIso(row.created_at),
+ revokedAt: toIsoOrNull(row.revoked_at),
+ };
+}
+
 function mapAgent(row: any): AgentRecord {
  return {
  id: row.id,
@@ -60,6 +114,153 @@ function mapFact(row: any): DailyAgentFact {
  };
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+// ── User operations ────────────────────────────────────────────────────────
+
+export async function dbGetUserById(id: string): Promise<UserRecord | null> {
+ const sql = getSQL();
+ if (!sql) return null;
+ const rows = await sql`SELECT * FROM users WHERE id = ${id} LIMIT 1`;
+ return rows.length ? mapUser(rows[0]) : null;
+}
+
+export async function dbCreateUser(displayName?: string | null, avatarUrl?: string | null): Promise<UserRecord> {
+ const sql = getSQL();
+ if (!sql) throw new Error('DATABASE_URL not configured');
+ const now = new Date().toISOString();
+ const rows = await sql`
+   INSERT INTO users (display_name, avatar_url, created_at, updated_at)
+   VALUES (${displayName ?? null}, ${avatarUrl ?? null}, ${now}, ${now})
+   RETURNING *
+ `;
+ return mapUser(rows[0]);
+}
+
+// ── Linked account operations ──────────────────────────────────────────────
+
+export async function dbFindLinkedAccount(provider: string, providerUserId: string): Promise<LinkedAccount | null> {
+ const sql = getSQL();
+ if (!sql) return null;
+ const rows = await sql`
+   SELECT * FROM linked_accounts
+   WHERE provider = ${provider} AND provider_user_id = ${providerUserId}
+   LIMIT 1
+ `;
+ return rows.length ? mapLinkedAccount(rows[0]) : null;
+}
+
+export async function dbGetLinkedAccountsForUser(userId: string): Promise<LinkedAccount[]> {
+ const sql = getSQL();
+ if (!sql) return [];
+ const rows = await sql`
+   SELECT * FROM linked_accounts WHERE user_id = ${userId} ORDER BY created_at
+ `;
+ return rows.map(mapLinkedAccount);
+}
+
+export async function dbUpsertLinkedAccount(input: {
+ userId: string;
+ provider: string;
+ providerUserId: string;
+ handle?: string | null;
+ displayName?: string | null;
+ avatarUrl?: string | null;
+ verified?: boolean;
+}): Promise<LinkedAccount> {
+ const sql = getSQL();
+ if (!sql) throw new Error('DATABASE_URL not configured');
+ const now = new Date().toISOString();
+ const rows = await sql`
+   INSERT INTO linked_accounts (user_id, provider, provider_user_id, handle, display_name, avatar_url, verified, verified_at, created_at, updated_at)
+   VALUES (${input.userId}, ${input.provider}, ${input.providerUserId}, ${input.handle ?? null}, ${input.displayName ?? null}, ${input.avatarUrl ?? null}, ${input.verified ?? false}, ${input.verified ? now : null}, ${now}, ${now})
+   ON CONFLICT (provider, provider_user_id) DO UPDATE SET
+     handle = COALESCE(EXCLUDED.handle, linked_accounts.handle),
+     display_name = COALESCE(EXCLUDED.display_name, linked_accounts.display_name),
+     avatar_url = COALESCE(EXCLUDED.avatar_url, linked_accounts.avatar_url),
+     verified = EXCLUDED.verified,
+     verified_at = CASE WHEN EXCLUDED.verified THEN COALESCE(linked_accounts.verified_at, ${now}) ELSE linked_accounts.verified_at END,
+     updated_at = ${now}
+   RETURNING *
+ `;
+ return mapLinkedAccount(rows[0]);
+}
+
+// ── API token operations ───────────────────────────────────────────────────
+
+export async function dbCreateApiToken(userId: string, tokenHash: string, label?: string | null): Promise<ApiToken> {
+ const sql = getSQL();
+ if (!sql) throw new Error('DATABASE_URL not configured');
+ const now = new Date().toISOString();
+ const rows = await sql`
+   INSERT INTO api_tokens (user_id, token_hash, label, created_at)
+   VALUES (${userId}, ${tokenHash}, ${label ?? null}, ${now})
+   RETURNING *
+ `;
+ return mapApiToken(rows[0]);
+}
+
+export async function dbGetTokensForUser(userId: string): Promise<ApiToken[]> {
+ const sql = getSQL();
+ if (!sql) return [];
+ const rows = await sql`
+   SELECT * FROM api_tokens
+   WHERE user_id = ${userId} AND revoked_at IS NULL
+   ORDER BY created_at DESC
+ `;
+ return rows.map(mapApiToken);
+}
+
+export async function dbRevokeToken(tokenId: string, userId: string): Promise<boolean> {
+ const sql = getSQL();
+ if (!sql) return false;
+ const now = new Date().toISOString();
+ const rows = await sql`
+   UPDATE api_tokens SET revoked_at = ${now}
+   WHERE id = ${tokenId} AND user_id = ${userId} AND revoked_at IS NULL
+   RETURNING id
+ `;
+ return rows.length > 0;
+}
+
+export async function dbFindValidToken(tokenHash: string): Promise<{ token: ApiToken; user: UserRecord } | null> {
+ const sql = getSQL();
+ if (!sql) return null;
+ const rows = await sql`
+   SELECT t.*, u.id as u_id, u.display_name as u_display_name, u.avatar_url as u_avatar_url,
+          u.is_admin as u_is_admin, u.default_agent_id as u_default_agent_id,
+          u.created_at as u_created_at, u.updated_at as u_updated_at
+   FROM api_tokens t
+   JOIN users u ON t.user_id = u.id
+   WHERE t.token_hash = ${tokenHash} AND t.revoked_at IS NULL
+   LIMIT 1
+ `;
+ if (!rows.length) return null;
+
+ const row = rows[0];
+ const token = mapApiToken(row);
+ const user = mapUser({
+   id: row.u_id,
+   display_name: row.u_display_name,
+   avatar_url: row.u_avatar_url,
+   is_admin: row.u_is_admin,
+   default_agent_id: row.u_default_agent_id,
+   created_at: row.u_created_at,
+   updated_at: row.u_updated_at,
+ });
+
+ // Update last_used_at (fire-and-forget)
+ const now = new Date().toISOString();
+ sql`UPDATE api_tokens SET last_used_at = ${now} WHERE id = ${token.id}`.catch(() => {});
+
+ return { token, user };
+}
+
+export async function dbGetAgentsForUser(userId: string): Promise<AgentRecord[]> {
+ const sql = getSQL();
+ if (!sql) return [];
+ const rows = await sql`SELECT * FROM agents WHERE user_id = ${userId} ORDER BY agent_name`;
+ return rows.map(mapAgent);
+}
 
 // ── Agent operations ───────────────────────────────────────────────────────
 
