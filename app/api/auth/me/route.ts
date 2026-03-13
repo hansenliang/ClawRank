@@ -3,7 +3,7 @@
  */
 import { NextResponse } from 'next/server';
 import { getSession } from '@/src/lib/auth';
-import { dbGetUserById, dbGetLinkedAccountsForUser, dbGetAgentsForUser } from '@/src/db/queries';
+import { dbGetUserById, dbGetLinkedAccountsForUser, dbGetAgentsForUser, dbGetUnclaimedAgents } from '@/src/db/queries';
 
 export async function GET() {
   const session = await getSession();
@@ -18,6 +18,7 @@ export async function GET() {
 
   const linkedAccounts = await dbGetLinkedAccountsForUser(user.id);
   const agents = await dbGetAgentsForUser(user.id);
+  const unclaimedAgents = await dbGetUnclaimedAgents();
 
   return NextResponse.json({
     authenticated: true,
@@ -37,6 +38,13 @@ export async function GET() {
       id: a.id,
       slug: a.slug,
       agentName: a.agentName,
+      state: a.state,
+    })),
+    unclaimedAgents: unclaimedAgents.map(a => ({
+      id: a.id,
+      slug: a.slug,
+      agentName: a.agentName,
+      ownerName: a.ownerName,
       state: a.state,
     })),
   });
