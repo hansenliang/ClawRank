@@ -269,6 +269,48 @@ export async function dbGetUnclaimedAgents(): Promise<AgentRecord[]> {
  return rows.map(mapAgent);
 }
 
+/**
+ * Returns unclaimed agents whose primary_github_username or owner_name
+ * matches the given GitHub handle (case-insensitive).
+ * This restricts claiming to agents that plausibly belong to the user.
+ */
+export async function dbGetClaimableAgentsForHandle(githubHandle: string): Promise<AgentRecord[]> {
+ const sql = getSQL();
+ if (!sql) return [];
+ const handle = githubHandle.toLowerCase();
+ const rows = await sql`
+   SELECT * FROM agents
+   WHERE user_id IS NULL
+     AND (
+       LOWER(primary_github_username) = ${handle}
+       OR LOWER(owner_name) = ${handle}
+     )
+   ORDER BY agent_name
+ `;
+ return rows.map(mapAgent);
+}
+
+/**
+ * Checks whether a specific agent is claimable by the given GitHub handle.
+ * Used for server-side enforcement on POST /api/agents/claim.
+ */
+export async function dbIsAgentClaimableByHandle(agentId: string, githubHandle: string): Promise<boolean> {
+ const sql = getSQL();
+ if (!sql) return false;
+ const handle = githubHandle.toLowerCase();
+ const rows = await sql`
+   SELECT id FROM agents
+   WHERE id = ${agentId}
+     AND user_id IS NULL
+     AND (
+       LOWER(primary_github_username) = ${handle}
+       OR LOWER(owner_name) = ${handle}
+     )
+   LIMIT 1
+ `;
+ return rows.length > 0;
+}
+
 export async function dbClaimAgent(agentId: string, userId: string): Promise<boolean> {
  const sql = getSQL();
  if (!sql) return false;

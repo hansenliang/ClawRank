@@ -3,7 +3,7 @@
  */
 import { NextResponse } from 'next/server';
 import { getSession } from '@/src/lib/auth';
-import { dbGetUserById, dbGetLinkedAccountsForUser, dbGetAgentsForUser, dbGetUnclaimedAgents } from '@/src/db/queries';
+import { dbGetUserById, dbGetLinkedAccountsForUser, dbGetAgentsForUser, dbGetClaimableAgentsForHandle } from '@/src/db/queries';
 
 export async function GET() {
   const session = await getSession();
@@ -18,7 +18,13 @@ export async function GET() {
 
   const linkedAccounts = await dbGetLinkedAccountsForUser(user.id);
   const agents = await dbGetAgentsForUser(user.id);
-  const unclaimedAgents = await dbGetUnclaimedAgents();
+
+  // Only show unclaimed agents that match the user's GitHub handle
+  const githubAccount = linkedAccounts.find(la => la.provider === 'github');
+  const githubHandle = githubAccount?.handle;
+  const unclaimedAgents = githubHandle
+    ? await dbGetClaimableAgentsForHandle(githubHandle)
+    : [];
 
   return NextResponse.json({
     authenticated: true,
