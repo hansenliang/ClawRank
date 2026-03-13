@@ -146,6 +146,9 @@ export interface LeaderboardRow {
  mostActiveHour?: number | null;
  topModel?: string | null;
  estimatedCostUsd?: number | null;
+ toolCallCount: number;
+ userMessageCount: number;
+ topToolNames: string[];
  sourceTypes: SourceType[];
  sourceAdapters: string[];
  lastSubmissionAt?: string | null;

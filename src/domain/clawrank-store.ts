@@ -287,10 +287,13 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[]): L
 
  const modelTotals = new Map<string, number>();
  const hourTotals = new Map<number, number>();
+ const toolTotals = new Map<string, number>();
  const sourceTypes = uniq(facts.map((fact) => fact.sourceType));
  const sourceAdapters = uniq(facts.map((fact) => fact.sourceAdapter || '').filter(Boolean));
 
  let estimatedCostUsd = 0;
+ let toolCallCount = 0;
+ let userMessageCount = 0;
  for (const fact of facts) {
  if (fact.topModel) {
  modelTotals.set(fact.topModel, (modelTotals.get(fact.topModel) || 0) + fact.totalTokens);
@@ -299,10 +302,18 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[]): L
  hourTotals.set(fact.mostActiveHour, (hourTotals.get(fact.mostActiveHour) || 0) + fact.totalTokens);
  }
  estimatedCostUsd += fact.estimatedCostUsd || 0;
+ toolCallCount += fact.toolCallCount || 0;
+ userMessageCount += fact.userMessageCount || 0;
+ if (fact.topTools && typeof fact.topTools === 'object') {
+ for (const [name, count] of Object.entries(fact.topTools)) {
+ toolTotals.set(name, (toolTotals.get(name) || 0) + (count as number));
+ }
+ }
  }
 
  const topModel = [...modelTotals.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] || null;
  const mostActiveHour = [...hourTotals.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0]?.[0] ?? null;
+ const topToolNames = [...toolTotals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([name]) => name);
 
  return {
  id: agent.id,
@@ -319,6 +330,9 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[]): L
  mostActiveHour,
  topModel,
  estimatedCostUsd: Number(estimatedCostUsd.toFixed(4)),
+ toolCallCount,
+ userMessageCount,
+ topToolNames,
  sourceTypes,
  sourceAdapters,
  lastSubmissionAt: agent.lastSubmissionAt || null,
@@ -341,7 +355,6 @@ export function getLeaderboardResponse(store: ClawRankStore, period: Leaderboard
  .map(({ agent, facts }) => aggregateLeaderboardRow(agent, facts))
  .sort((a, b) => {
  return (
- STATE_PRIORITY[b.state] - STATE_PRIORITY[a.state] ||
  b.totalTokens - a.totalTokens ||
  b.sessionCount - a.sessionCount ||
  a.displayName.localeCompare(b.displayName)

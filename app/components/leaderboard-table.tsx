@@ -7,6 +7,11 @@ function Avatar({ name }: { name: string }) {
  return <div className="avatar">{name.slice(0, 2).toUpperCase()}</div>;
 }
 
+function metricDisplay(metric: { value: number; status: string }, compact = false): string {
+ if (metric.status === 'missing') return '—';
+ return compact ? formatCompact(metric.value) : formatStandard(metric.value);
+}
+
 export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardRow[]; basePath?: string }) {
  return (
  <div className="table-wrap">
@@ -42,10 +47,10 @@ export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardR
  </div>
  </td>
  <td>{formatCompact(row.tokenUsage.value)}</td>
- <td>{formatStandard(row.toolCalls.value)}</td>
- <td>{formatStandard(row.messageCount.value)}</td>
+ <td>{metricDisplay(row.toolCalls)}</td>
+ <td>{metricDisplay(row.messageCount)}</td>
  <td className="muted">
- {formatStandard(row.commits.value)} commits · {formatStandard(row.filesTouched.value)} files
+ {row.commits.status === 'missing' ? '—' : `${formatStandard(row.commits.value)} commits · ${formatStandard(row.filesTouched.value)} files`}
  </td>
  <td>
  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -85,16 +90,16 @@ export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardR
  </div>
  <div className="mobile-metric">
  <span className="mobile-metric-label">Calls</span>
- <span className="mobile-metric-value">{formatStandard(row.toolCalls.value)}</span>
+ <span className="mobile-metric-value">{metricDisplay(row.toolCalls)}</span>
  </div>
  <div className="mobile-metric">
  <span className="mobile-metric-label">Msgs</span>
- <span className="mobile-metric-value">{formatStandard(row.messageCount.value)}</span>
+ <span className="mobile-metric-value">{metricDisplay(row.messageCount)}</span>
  </div>
  </div>
 
  <div className="mobile-card-git muted">
- {formatStandard(row.commits.value)} commits · {formatStandard(row.filesTouched.value)} files modified
+ {row.commits.status === 'missing' ? '—' : `${formatStandard(row.commits.value)} commits · ${formatStandard(row.filesTouched.value)} files modified`}
  </div>
 
  <div className="mobile-card-tools">
