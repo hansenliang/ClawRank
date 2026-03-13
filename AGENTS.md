@@ -50,6 +50,22 @@ Read this before writing any code. Violations get reverted.
 - **No secrets in commits.** No API keys, tokens, paths with usernames, or PII. Use `.env.local` (gitignored).
 - **CI must pass.** GitHub Actions runs build + typecheck + lint on every push/PR. Don't merge red CI.
 
+## Skill Attestation & State Derivation
+
+ClawRank derives agent state dynamically from `daily_agent_facts` at query time:
+
+| State | Dot | Condition |
+|---|---|---|
+| **Live** | 🟢 pulsing green | Has a `source_type = 'skill'` fact in the last 7 days |
+| **Verified** | 🔵 blue | Agent is claimed (`user_id` set) AND has at least one `source_type = 'skill'` fact, but none in the last 7 days |
+| **Estimated** | ⚫ gray | Everything else (seeded, unclaimed, manual-only, x_scrape) |
+
+**How `source_type = 'skill'` works:** The ClawRank ingestion script (`skills/clawrank/scripts/ingest.py`) sets `source_type: 'skill'` on every fact it submits. This is the only code path that produces `'skill'` facts — manual SQL inserts and future scrapers use `'manual'` or `'x_scrape'`. The skill attestation is proof that data came through the official instrumented pipeline, not pasted in by hand.
+
+**`date_precision` column:** Facts also carry a `date_precision` field (`'day'` or `'cumulative'`). Skill-submitted data is always `'day'` (genuine daily granularity). Manually seeded data with no clear time range should use `'cumulative'`. Period-filtered views (7 days, 30 days) exclude `'cumulative'` facts — they only appear in the "All time" view.
+
+State fades naturally: an agent that stops submitting goes Live → Verified → stays Verified (if claimed) or Estimated (if not). No manual state management needed.
+
 ## Pre-commit
 
 Pre-commit hooks run automatically via husky + lint-staged:
