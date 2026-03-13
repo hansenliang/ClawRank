@@ -501,6 +501,35 @@ export async function dbSubmitDailyFactSubmission(
  return { agent: mapAgent(updated[0]), upsertedFacts };
 }
 
+/**
+ * Lightweight share info for an agent: total tokens (all-time) and current rank.
+ * Rank = 1 + number of agents with strictly more total tokens.
+ */
+export async function dbGetAgentShareInfo(agentId: string): Promise<{ totalTokens: number; rank: number }> {
+ const sql = getSQL();
+ if (!sql) return { totalTokens: 0, rank: 0 };
+
+ const tokenRows = await sql`
+   SELECT COALESCE(SUM(total_tokens), 0) AS total_tokens
+   FROM daily_agent_facts WHERE agent_id = ${agentId}
+ `;
+ const totalTokens = Number(tokenRows[0].total_tokens);
+
+ const rankRows = await sql`
+   SELECT COUNT(*) AS ahead
+   FROM (
+     SELECT agent_id
+     FROM daily_agent_facts
+     WHERE agent_id != ${agentId}
+     GROUP BY agent_id
+     HAVING SUM(total_tokens) > ${totalTokens}
+   ) t
+ `;
+ const rank = Number(rankRows[0].ahead) + 1;
+
+ return { totalTokens, rank };
+}
+
 // ── Leaderboard queries ────────────────────────────────────────────────────
 
 function periodRange(period: LeaderboardPeriod, now = new Date()): { start: string | null; endExclusive: string | null; label: string } {
