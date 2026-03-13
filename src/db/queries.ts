@@ -307,9 +307,11 @@ export async function dbUpsertAgent(input: AgentUpsertInput, now = new Date().to
  const sql = getSQL();
  if (!sql) throw new Error('DATABASE_URL not configured');
 
+ const effectiveState = input.state || 'live';
+
  const existing = await dbGetAgentBySlug(input.slug);
  if (existing) {
- const newState = strongerState(existing.state, input.state);
+ const newState = strongerState(existing.state, effectiveState);
  const rows = await sql`
  UPDATE agents SET
  agent_name = ${input.agentName},
@@ -329,7 +331,7 @@ export async function dbUpsertAgent(input: AgentUpsertInput, now = new Date().to
 
  const rows = await sql`
  INSERT INTO agents (slug, agent_name, owner_name, state, source_of_truth, primary_github_username, x_handle, bio, avatar_url, created_at, updated_at)
- VALUES (${input.slug}, ${input.agentName}, ${input.ownerName}, ${input.state}, ${input.sourceOfTruth ?? null}, ${input.primaryGithubUsername ?? null}, ${input.xHandle ?? null}, ${input.bio ?? null}, ${input.avatarUrl ?? null}, ${now}, ${now})
+ VALUES (${input.slug}, ${input.agentName}, ${input.ownerName}, ${effectiveState}, ${input.sourceOfTruth ?? null}, ${input.primaryGithubUsername ?? null}, ${input.xHandle ?? null}, ${input.bio ?? null}, ${input.avatarUrl ?? null}, ${now}, ${now})
  RETURNING *
  `;
  return mapAgent(rows[0]);
