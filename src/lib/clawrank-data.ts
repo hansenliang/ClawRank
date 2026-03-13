@@ -59,6 +59,7 @@ function domainRowToUiRow(row: DomainLeaderboardRow, periodStart: string, period
  agentName: row.agentName,
  ownerName: row.ownerName,
  displayName: row.displayName,
+ derivedState: row.derivedState,
  periodType: 'weekly',
  periodStart,
  periodEnd,
@@ -101,7 +102,6 @@ function domainStatToUiStat(stat: DomainShareStat): import('@/src/contracts/claw
  'User messages': 'Messages',
  'Assistant turns': 'Assistant turns',
  'Top model': 'Top model',
- 'Estimated cost': 'Estimated cost',
  };
  return {
  label: labelMap[stat.label] || 'Tokens',
@@ -142,6 +142,7 @@ function domainDetailToUi(detail: AgentDetail): ShareDetail {
  agentName: detail.agentName,
  ownerName: detail.ownerName,
  displayName: detail.displayName,
+ derivedState: detail.derivedState,
  title: detail.title,
  subtitle: detail.subtitle,
  periodType: 'weekly',
@@ -174,9 +175,9 @@ function domainDetailToUi(detail: AgentDetail): ShareDetail {
 
 // ── DB-backed queries ──────────────────────────────────────────────────────
 
-async function dbLeaderboard(): Promise<LeaderboardResponse | null> {
+async function dbLeaderboard(period: import('@/src/contracts/clawrank-domain').LeaderboardPeriod = 'alltime'): Promise<LeaderboardResponse | null> {
  try {
- const domain = await dbGetLeaderboard('alltime');
+ const domain = await dbGetLeaderboard(period);
  return domainLeaderboardToUi(domain);
  } catch (err) {
  console.error('ClawRank DB leaderboard query failed:', err);
@@ -246,7 +247,7 @@ const EMPTY_LEADERBOARD: LeaderboardResponse = {
  rows: [],
 };
 
-export async function getLeaderboardData(forceMode?: 'baked' | 'live'): Promise<LeaderboardResponse> {
+export async function getLeaderboardData(forceMode?: 'baked' | 'live', period?: import('@/src/contracts/clawrank-domain').LeaderboardPeriod): Promise<LeaderboardResponse> {
  // Baked mode: read from pre-generated JSON files
  if (forceMode === 'baked') {
  return tryBakedLeaderboard() || EMPTY_LEADERBOARD;
@@ -254,7 +255,7 @@ export async function getLeaderboardData(forceMode?: 'baked' | 'live'): Promise<
 
  // Live mode or default: try DB first, then pilot JSON, then baked
  if (hasDB()) {
- const result = await dbLeaderboard();
+ const result = await dbLeaderboard(period || 'alltime');
  if (result && result.rows.length) return result;
  }
 

@@ -7,12 +7,15 @@ export interface LeaderboardMetric<T extends number = number> {
  status: MetricStatus;
 }
 
+export type DerivedState = 'live' | 'verified' | 'estimated';
+
 export interface LeaderboardRow {
  id: string;
  rank: number;
  agentName: string;
  ownerName: string;
  displayName: string;
+ derivedState?: DerivedState;
  periodType: PeriodType;
  periodStart: string;
  periodEnd: string;
@@ -51,8 +54,7 @@ export interface ShareStat {
  | 'Sessions'
  | 'Active days'
  | 'Assistant turns'
- | 'Top model'
- | 'Estimated cost';
+ | 'Top model';
  value: number;
  status: MetricStatus;
  detail?: string | null;
@@ -79,6 +81,7 @@ export interface ShareDetail {
  agentName: string;
  ownerName: string;
  displayName: string;
+ derivedState?: DerivedState;
  title: string;
  subtitle: string;
  periodType: PeriodType;

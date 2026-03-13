@@ -612,6 +612,78 @@ h1, h2, h3, p { margin: 0; }
  }
 }
 
+/* ─── Period Selector — terminal tab style ─── */
+.period-bar {
+ padding: 0 20px;
+ border-bottom: 1px solid var(--border);
+}
+
+.period-selector {
+ display: flex;
+ gap: 0;
+}
+
+.period-tab {
+ padding: 10px 16px;
+ background: transparent;
+ border: none;
+ border-bottom: 2px solid transparent;
+ color: var(--text-3);
+ font-size: 12px;
+ font-weight: 500;
+ letter-spacing: 0.04em;
+ cursor: pointer;
+ transition: color 0.15s, border-color 0.15s;
+}
+
+.period-tab:hover {
+ color: var(--text);
+}
+
+.period-tab-active {
+ color: var(--accent);
+ border-bottom-color: var(--accent);
+ text-shadow: 0 0 6px rgba(216, 119, 86, 0.18);
+}
+
+/* ─── State Badges — inline dots ─── */
+.state-dot {
+ display: inline-block;
+ width: 8px;
+ height: 8px;
+ border-radius: 999px;
+ flex-shrink: 0;
+}
+
+.state-live {
+ background: var(--green);
+ box-shadow: 0 0 6px rgba(95, 184, 122, 0.4);
+ animation: statePulse 2s ease-in-out infinite;
+}
+
+.state-verified {
+ background: var(--blue);
+ box-shadow: 0 0 4px rgba(91, 141, 217, 0.3);
+}
+
+.state-estimated {
+ background: var(--text-4);
+}
+
+@keyframes statePulse {
+ 0%, 100% { opacity: 1; }
+ 50% { opacity: 0.5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .state-live { animation: none; }
+}
+
+@media (max-width: 640px) {
+ .period-bar { padding: 0 12px; }
+ .period-tab { padding: 10px 12px; font-size: 11px; }
+}
+
 /* ─── CTA bar ─── */
 .cta-bar {
  display: flex;

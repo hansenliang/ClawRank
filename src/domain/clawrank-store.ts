@@ -10,6 +10,7 @@ import type {
  DailyAgentFact,
  DailyAgentFactInput,
  DailyFactSubmission,
+ DerivedState,
  LeaderboardPeriod,
  LeaderboardResponse,
  LeaderboardRow,
@@ -207,6 +208,7 @@ export function submitDailyFactSubmission(
  existing.estimatedCostUsd = fact.estimatedCostUsd ?? null;
  existing.sourceType = fact.sourceType;
  existing.sourceAdapter = fact.sourceAdapter ?? null;
+ existing.datePrecision = fact.datePrecision ?? 'day';
  existing.updatedAt = now;
  } else {
  const created: DailyAgentFact = {
@@ -225,6 +227,7 @@ export function submitDailyFactSubmission(
  estimatedCostUsd: fact.estimatedCostUsd ?? null,
  sourceType: fact.sourceType,
  sourceAdapter: fact.sourceAdapter ?? null,
+ datePrecision: fact.datePrecision ?? 'day',
  createdAt: now,
  updatedAt: now,
  };
@@ -279,7 +282,20 @@ function uniq<T>(items: T[]): T[] {
  return [...new Set(items)];
 }
 
-function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[]): LeaderboardRow {
+function deriveStateFromFacts(
+ agent: { userId?: string | null },
+ allFacts: DailyAgentFact[],
+ now: Date,
+): DerivedState {
+ const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000).toISOString().slice(0, 10);
+ const hasRecentSkillFact = allFacts.some((f) => f.sourceType === 'skill' && f.date >= sevenDaysAgo);
+ if (hasRecentSkillFact) return 'live';
+ const hasAnySkillFact = allFacts.some((f) => f.sourceType === 'skill');
+ if (agent.userId && hasAnySkillFact) return 'verified';
+ return 'estimated';
+}
+
+function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[], allFacts: DailyAgentFact[], now: Date): LeaderboardRow {
  const totalTokens = facts.reduce((sum, fact) => sum + fact.totalTokens, 0);
  const sessionCount = facts.reduce((sum, fact) => sum + (fact.sessionCount || 0), 0);
  const activeDays = facts.filter((fact) => fact.totalTokens > 0).length;
@@ -315,6 +331,9 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[]): L
  const mostActiveHour = [...hourTotals.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0]?.[0] ?? null;
  const topToolNames = [...toolTotals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([name]) => name);
 
+ // Derive state from ALL facts (not just period-filtered)
+ const derivedState = deriveStateFromFacts({ userId: agent.userId }, allFacts, now);
+
  return {
  id: agent.id,
  rank: 0,
@@ -323,6 +342,7 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[]): L
  ownerName: agent.ownerName,
  displayName: `${agent.agentName} by ${agent.ownerName}`,
  state: agent.state,
+ derivedState,
  totalTokens,
  sessionCount,
  activeDays,
@@ -340,7 +360,13 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[]): L
 }
 
 export function getLeaderboardResponse(store: ClawRankStore, period: LeaderboardPeriod = 'alltime', now = new Date()): LeaderboardResponse {
- const filteredFacts = store.dailyAgentFacts.filter((fact) => withinPeriod(fact.date, period, now));
+ const isPeriodFiltered = period !== 'alltime';
+ const filteredFacts = store.dailyAgentFacts.filter((fact) => {
+ if (!withinPeriod(fact.date, period, now)) return false;
+ // Exclude cumulative facts from period-filtered views
+ if (isPeriodFiltered && fact.datePrecision === 'cumulative') return false;
+ return true;
+ });
  const factsByAgent = new Map<string, DailyAgentFact[]>();
 
  for (const fact of filteredFacts) {
@@ -349,10 +375,18 @@ export function getLeaderboardResponse(store: ClawRankStore, period: Leaderboard
  factsByAgent.set(fact.agentId, bucket);
  }
 
+ // Build map of ALL facts per agent for state derivation
+ const allFactsByAgent = new Map<string, DailyAgentFact[]>();
+ for (const fact of store.dailyAgentFacts) {
+ const bucket = allFactsByAgent.get(fact.agentId) || [];
+ bucket.push(fact);
+ allFactsByAgent.set(fact.agentId, bucket);
+ }
+
  const rows = store.agents
- .map((agent) => ({ agent, facts: factsByAgent.get(agent.id) || [] }))
+ .map((agent) => ({ agent, facts: factsByAgent.get(agent.id) || [], allFacts: allFactsByAgent.get(agent.id) || [] }))
  .filter(({ facts }) => facts.length > 0)
- .map(({ agent, facts }) => aggregateLeaderboardRow(agent, facts))
+ .map(({ agent, facts, allFacts }) => aggregateLeaderboardRow(agent, facts, allFacts, now))
  .sort((a, b) => {
  return (
  b.totalTokens - a.totalTokens ||
@@ -400,7 +434,6 @@ export function getAgentDetail(store: ClawRankStore, slug: string, period: Leade
  .sort((a, b) => b.date.localeCompare(a.date));
 
  const periodFacts = facts.filter((fact) => withinPeriod(fact.date, period, now));
- const estimatedCostCents = Math.round((row?.estimatedCostUsd || 0) * 100);
  const totalToolCalls = periodFacts.reduce((sum, fact) => sum + (fact.toolCallCount || 0), 0);
  const totalUserMessages = periodFacts.reduce((sum, fact) => sum + (fact.userMessageCount || 0), 0);
  const totalAssistantMessages = periodFacts.reduce((sum, fact) => sum + (fact.assistantMessageCount || 0), 0);
@@ -423,6 +456,7 @@ export function getAgentDetail(store: ClawRankStore, slug: string, period: Leade
  ownerName: agent.ownerName,
  displayName: `${agent.agentName} by ${agent.ownerName}`,
  state: agent.state,
+ derivedState: deriveStateFromFacts({ userId: agent.userId }, facts, now),
  title: `${agent.agentName} on ClawRank`,
  subtitle: `${leaderboard.periodLabel} • ${agent.state}`,
  rank: row?.rank || 0,
@@ -439,7 +473,6 @@ export function getAgentDetail(store: ClawRankStore, slug: string, period: Leade
  stat('User messages', totalUserMessages),
  stat('Assistant turns', totalAssistantMessages),
  stat('Top model', 0, row?.topModel || null),
- stat('Estimated cost', estimatedCostCents, '¢'),
  ],
  topModel: row?.topModel || null,
  lastSubmissionAt: agent.lastSubmissionAt || null,

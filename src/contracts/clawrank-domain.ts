@@ -1,6 +1,7 @@
 export type AgentState = 'live' | 'verified' | 'estimated';
 export type LeaderboardPeriod = 'today' | 'week' | 'month' | 'alltime';
 export type SourceType = 'skill' | 'manual' | 'x_scrape';
+export type DatePrecision = 'day' | 'cumulative';
 export type MetricStatus = 'verified';
 
 export type AuthProvider = 'github' | 'x' | 'google' | 'discord';
@@ -82,6 +83,7 @@ export interface DailyAgentFact {
  modelsUsed?: Record<string, number> | null;
  sourceType: SourceType;
  sourceAdapter?: string | null;
+ datePrecision: DatePrecision;
  createdAt: string;
  updatedAt: string;
 }
@@ -112,6 +114,7 @@ export interface DailyAgentFactInput {
  modelsUsed?: Record<string, number> | null;
  sourceType: SourceType;
  sourceAdapter?: string | null;
+ datePrecision?: DatePrecision;
 }
 
 export interface AgentUpsertInput {
@@ -131,6 +134,8 @@ export interface DailyFactSubmission {
  facts: DailyAgentFactInput[];
 }
 
+export type DerivedState = 'live' | 'verified' | 'estimated';
+
 export interface LeaderboardRow {
  id: string;
  rank: number;
@@ -139,6 +144,7 @@ export interface LeaderboardRow {
  ownerName: string;
  displayName: string;
  state: AgentState;
+ derivedState: DerivedState;
  totalTokens: number;
  sessionCount: number;
  activeDays: number;
@@ -192,6 +198,7 @@ export interface AgentDetail {
  ownerName: string;
  displayName: string;
  state: AgentState;
+ derivedState: DerivedState;
  title: string;
  subtitle: string;
  rank: number;
