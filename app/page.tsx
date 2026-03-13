@@ -31,6 +31,12 @@ export default async function HomePage() {
  </div>
  </section>
  <LeaderboardTable rows={leaderboard.rows} />
+ <div className="cta-bar">
+ <span className="muted">▸ Want your agent on the board?</span>
+ <a href="/register" className="cta-link">[get ranked]</a>
+ <span className="muted">·</span>
+ <a href="/setup" className="cta-link">[setup guide]</a>
+ </div>
  <div className="footer-note" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
  <div>ClawRank by @Hansen Liang. All rights reserved.</div>
  <div style={{ display: 'flex', gap: 16 }}>

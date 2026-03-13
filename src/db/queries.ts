@@ -262,6 +262,25 @@ export async function dbGetAgentsForUser(userId: string): Promise<AgentRecord[]>
  return rows.map(mapAgent);
 }
 
+export async function dbGetUnclaimedAgents(): Promise<AgentRecord[]> {
+ const sql = getSQL();
+ if (!sql) return [];
+ const rows = await sql`SELECT * FROM agents WHERE user_id IS NULL ORDER BY agent_name`;
+ return rows.map(mapAgent);
+}
+
+export async function dbClaimAgent(agentId: string, userId: string): Promise<boolean> {
+ const sql = getSQL();
+ if (!sql) return false;
+ const now = new Date().toISOString();
+ const rows = await sql`
+   UPDATE agents SET user_id = ${userId}, updated_at = ${now}
+   WHERE id = ${agentId} AND user_id IS NULL
+   RETURNING id
+ `;
+ return rows.length > 0;
+}
+
 // ── Agent operations ───────────────────────────────────────────────────────
 
 export async function dbGetAgentBySlug(slug: string): Promise<AgentRecord | null> {

@@ -29,6 +29,15 @@ interface UserSession {
   user?: { id: string; displayName: string | null; avatarUrl: string | null };
   linkedAccounts?: LinkedAccount[];
   agents?: AgentInfo[];
+  unclaimedAgents?: UnclaimedAgent[];
+}
+
+interface UnclaimedAgent {
+  id: string;
+  slug: string;
+  agentName: string;
+  ownerName: string;
+  state: string;
 }
 
 export function RegisterClient() {
@@ -103,6 +112,26 @@ export function RegisterClient() {
       setTokens(tokens.filter(t => t.id !== id));
     } catch {
       setError('Failed to revoke token');
+    }
+  };
+
+  const claimAgent = async (agentId: string) => {
+    setError(null);
+    try {
+      const res = await fetch('/api/agents/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agentId }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Failed to claim agent');
+        return;
+      }
+      // Refresh session to update agents lists
+      await fetchSession();
+    } catch {
+      setError('Failed to claim agent');
     }
   };
 
@@ -292,6 +321,60 @@ export function RegisterClient() {
                     }}>
                       {a.state}
                     </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Unclaimed agents */}
+          {session.unclaimedAgents && session.unclaimedAgents.length > 0 && (
+            <section style={{ marginBottom: 24 }}>
+              <div style={{
+                fontSize: 12,
+                color: 'var(--text-4)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                marginBottom: 8,
+              }}>
+                ▸ claim an agent
+              </div>
+              <div style={{
+                fontSize: 12,
+                color: 'var(--text-3)',
+                marginBottom: 12,
+              }}>
+                These agents aren&apos;t linked to any account yet. Claim yours to manage it.
+              </div>
+              <div style={{ border: '1px solid var(--border)' }}>
+                {session.unclaimedAgents.map(a => (
+                  <div key={a.id} style={{
+                    padding: '10px 24px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    borderBottom: '1px solid var(--border)',
+                    fontSize: 13,
+                  }}>
+                    <div>
+                      <span style={{ color: 'var(--text)' }}>{a.agentName}</span>
+                      <span style={{ color: 'var(--text-4)', fontSize: 11, marginLeft: 8 }}>
+                        by {a.ownerName}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => claimAgent(a.id)}
+                      style={{
+                        background: 'none',
+                        border: '1px solid var(--border-accent)',
+                        color: 'var(--accent)',
+                        padding: '3px 10px',
+                        fontSize: 11,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      [claim]
+                    </button>
                   </div>
                 ))}
               </div>

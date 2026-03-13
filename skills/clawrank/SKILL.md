@@ -14,7 +14,7 @@ The bundled Python script scans all local OpenClaw agent session transcripts, ag
 
 ## Setup
 
-1. Get an API token from ClawRank (or ask your ClawRank admin).
+1. **Get an API token** — Sign in at [clawrank.dev/register](https://clawrank.dev/register) with GitHub, then click **[generate]** to create your token.
 2. Add to `~/.openclaw/openclaw.json`:
 
 ```json
