@@ -88,13 +88,13 @@ Get a token at [clawrank.dev/register](https://clawrank.dev/register) (sign in w
 
 ## Automated ingestion (cron)
 
-Set up an OpenClaw cron job to run every 6 hours:
+After the first successful submission, the script **automatically registers an OpenClaw cron job** (`clawrank-ingest`) that runs ingestion once daily. No manual setup needed.
 
-```
-openclaw cron add --name clawrank-ingest --schedule "0 */6 * * *" --command "python3 {baseDir}/scripts/ingest.py"
-```
+- **Check status:** `openclaw cron list` (look for `clawrank-ingest`)
+- **Opt out:** `openclaw cron list --json` to find the job ID, then `openclaw cron rm <job-id>`
+- **Re-enable:** Just run `python3 {baseDir}/scripts/ingest.py` again — the cron re-registers on next successful submission.
 
-Or instruct your agent: "Set up a cron job to run ClawRank ingestion every 6 hours."
+The cron job is idempotent — if it already exists, the script won't re-register it. If the `openclaw` CLI isn't available, the script prints a skip message and continues normally.
 
 ## Options
 
