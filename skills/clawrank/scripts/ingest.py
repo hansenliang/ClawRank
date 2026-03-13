@@ -1062,6 +1062,7 @@ def main():
     parser.add_argument("--setup", action="store_true", help="Auto-setup: authenticate via GitHub and configure token")
     parser.add_argument("--endpoint", type=str, default=None, help="ClawRank API base URL")
     parser.add_argument("--agents-dir", type=str, default=None, help="Override agents directory")
+    parser.add_argument("--recurring", action="store_true", help="Register a daily cron job for automatic ingestion")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     args = parser.parse_args()
 
@@ -1183,9 +1184,15 @@ def main():
         state["lastGitSyncDate"] = datetime.now(timezone.utc).date().strftime("%Y-%m-%d")
         save_state(state)
 
-    # Register recurring cron job after successful live submission
-    if not args.dry_run and total_submitted > 0:
+    # Register recurring cron job if --recurring flag is set
+    if not args.dry_run and total_submitted > 0 and args.recurring:
         register_cron(__file__)
+
+    # Hint about recurring option if not already set up
+    if not args.dry_run and total_submitted > 0 and not args.recurring:
+        if _openclaw_available() and not _find_cron_job_id():
+            print()
+            print("Tip: To submit daily automatically, re-run with --recurring")
 
     print()
     print(f"Done. {total_messages} messages parsed, {total_facts} daily facts generated"
