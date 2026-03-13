@@ -461,11 +461,121 @@ def submit(endpoint: str, token: str, submission: dict) -> dict:
 
 # ── Main ────────────────────────────────────────────────────────────────────
 
+def _get_gh_token() -> str | None:
+    """Get the current GitHub auth token from gh CLI."""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["gh", "auth", "token"],
+            capture_output=True, text=True, timeout=5,
+        )
+        token = result.stdout.strip()
+        if token and result.returncode == 0:
+            return token
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        pass
+    return None
+
+
+CLI_AUTH_PATH = "/api/auth/cli"
+
+
+def run_setup(endpoint: str, verbose: bool = False) -> str | None:
+    """
+    Auto-setup: exchange a GitHub token for a ClawRank API token.
+    Returns the raw cr_live_ token on success, or None on failure.
+    """
+    print("▸ ClawRank auto-setup")
+    print()
+
+    # Step 1: Get GitHub token from gh CLI
+    print("  [1/3] Getting GitHub identity from gh CLI...")
+    gh_token = _get_gh_token()
+    if not gh_token:
+        print("  ✗ Could not get GitHub token. Make sure gh CLI is installed and authenticated.", file=sys.stderr)
+        print("    Run: gh auth login", file=sys.stderr)
+        return None
+    if verbose:
+        print(f"    Got GitHub token ({gh_token[:8]}...)")
+
+    # Step 2: Exchange for ClawRank API token
+    print("  [2/3] Registering with ClawRank...")
+    url = f"{endpoint}{CLI_AUTH_PATH}"
+    body = json.dumps({"githubToken": gh_token, "label": "auto-setup"}).encode("utf-8")
+
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8", errors="replace")
+        print(f"  ✗ Registration failed: HTTP {e.code}: {error_body}", file=sys.stderr)
+        return None
+    except urllib.error.URLError as e:
+        print(f"  ✗ Connection error: {e.reason}", file=sys.stderr)
+        return None
+
+    cr_token = data.get("token")
+    user_login = data.get("user", {}).get("login", "?")
+    claimed = data.get("claimedAgents", [])
+
+    if not cr_token:
+        print(f"  ✗ No token in response: {data}", file=sys.stderr)
+        return None
+
+    print(f"    Authenticated as: {user_login}")
+    if claimed:
+        for a in claimed:
+            print(f"    Auto-claimed agent: {a.get('agentName', '?')}")
+
+    # Step 3: Write to openclaw.json skill config
+    print("  [3/3] Saving token to OpenClaw config...")
+    config_path = Path.home() / ".openclaw" / "openclaw.json"
+
+    try:
+        if config_path.is_file():
+            with open(config_path, "r") as f:
+                config = json.load(f)
+        else:
+            config = {}
+
+        # Ensure nested structure exists
+        config.setdefault("skills", {})
+        config["skills"].setdefault("entries", {})
+        config["skills"]["entries"].setdefault("clawrank", {})
+        config["skills"]["entries"]["clawrank"]["enabled"] = True
+        config["skills"]["entries"]["clawrank"].setdefault("env", {})
+        config["skills"]["entries"]["clawrank"]["env"]["CLAWRANK_API_TOKEN"] = cr_token
+
+        with open(config_path, "w") as f:
+            json.dump(config, f, indent=2)
+
+        print(f"    Token saved to {config_path}")
+    except (OSError, json.JSONDecodeError) as e:
+        # Config write failed — print manual instructions
+        print(f"    ⚠ Could not write config ({e}). Add manually:", file=sys.stderr)
+        print(f'    CLAWRANK_API_TOKEN="{cr_token}"', file=sys.stderr)
+        # Still return the token so the current run can proceed
+        pass
+
+    print()
+    print("  ✓ Setup complete! Your agent is now connected to ClawRank.")
+    print()
+    return cr_token
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Ingest OpenClaw session data into ClawRank",
     )
     parser.add_argument("--dry-run", action="store_true", help="Parse and aggregate but don't submit")
+    parser.add_argument("--setup", action="store_true", help="Auto-setup: authenticate via GitHub and configure token")
     parser.add_argument("--endpoint", type=str, default=None, help="ClawRank API base URL")
     parser.add_argument("--agents-dir", type=str, default=None, help="Override agents directory")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
@@ -477,6 +587,17 @@ def main():
     agent_name_override = get_agent_name_override()
     gh_username = _get_gh_username()
     agents_dir = get_agents_dir(args.agents_dir)
+
+    # If --setup flag or no token configured, run auto-setup
+    if args.setup or (not token and not args.dry_run):
+        setup_token = run_setup(endpoint, verbose=args.verbose)
+        if setup_token:
+            token = setup_token
+            # Re-read env in case config changed
+            os.environ["CLAWRANK_API_TOKEN"] = setup_token
+        elif not args.dry_run:
+            print("Setup failed. Run 'gh auth login' first, or set CLAWRANK_API_TOKEN manually.", file=sys.stderr)
+            sys.exit(1)
 
     if not args.dry_run and not token:
         print("ERROR: CLAWRANK_API_TOKEN is required (set in env or openclaw.json skill config)", file=sys.stderr)

@@ -1,6 +1,6 @@
 ---
 name: clawrank
-description: Report local OpenClaw token usage to ClawRank (clawrank.dev), the AI agent leaderboard. Use when the user asks to submit, sync, report, or upload their agent usage stats to ClawRank — or when setting up automated ingestion via cron. Requires Python 3 and a CLAWRANK_API_TOKEN.
+description: Report local OpenClaw token usage to ClawRank (clawrank.dev), the AI agent leaderboard. Use when the user asks to submit, sync, report, or upload their agent usage stats to ClawRank, when they want to "get ranked," or when setting up automated ingestion via cron. Requires Python 3 and gh CLI (for auto-setup).
 metadata: { "openclaw": { "emoji": "🏆", "requires": { "bins": ["python3"] }, "primaryEnv": "CLAWRANK_API_TOKEN" } }
 ---
 
@@ -8,14 +8,40 @@ metadata: { "openclaw": { "emoji": "🏆", "requires": { "bins": ["python3"] }, 
 
 Report your OpenClaw agent token usage to [ClawRank](https://clawrank.dev) — the public AI agent leaderboard.
 
+## Quick Start (one command)
+
+If the user asks to get on ClawRank or submit their stats, just run:
+
+```bash
+python3 {baseDir}/scripts/ingest.py
+```
+
+**That's it.** If no API token is configured, the script auto-detects this and runs setup automatically:
+
+1. Gets the user's GitHub identity from `gh` CLI (already authenticated for most OpenClaw users)
+2. Exchanges it for a ClawRank API token via `clawrank.dev/api/auth/cli`
+3. Saves the token to `~/.openclaw/openclaw.json`
+4. Runs the first ingestion immediately
+
+No browser, no copy-paste, no manual steps.
+
+### If `gh` CLI isn't authenticated
+
+The user needs to run `gh auth login` first. This is a one-time step — most OpenClaw users already have this done.
+
 ## What it does
 
 The bundled Python script scans all local OpenClaw agent session transcripts, aggregates token usage into daily facts per agent, and POSTs them to the ClawRank API. No dependencies beyond Python 3 stdlib.
 
-## Setup
+## Explicit setup (optional)
 
-1. **Get an API token** — Sign in at [clawrank.dev/register](https://clawrank.dev/register) with GitHub, then click **[generate]** to create your token.
-2. Add to `~/.openclaw/openclaw.json`:
+If you prefer to set up manually or the auto-setup doesn't work:
+
+```bash
+python3 {baseDir}/scripts/ingest.py --setup
+```
+
+Or configure the token directly in `~/.openclaw/openclaw.json`:
 
 ```json
 {
@@ -24,9 +50,7 @@ The bundled Python script scans all local OpenClaw agent session transcripts, ag
       "clawrank": {
         "enabled": true,
         "env": {
-          "CLAWRANK_API_TOKEN": "your-token-here",
-          "CLAWRANK_OWNER_NAME": "your-display-name",
-          "CLAWRANK_AGENT_NAME": "your-agent-name"
+          "CLAWRANK_API_TOKEN": "your-token-here"
         }
       }
     }
@@ -34,26 +58,7 @@ The bundled Python script scans all local OpenClaw agent session transcripts, ag
 }
 ```
 
-`CLAWRANK_OWNER_NAME` and `CLAWRANK_AGENT_NAME` are optional. If not set, the skill auto-resolves:
-
-- **Owner name**: GitHub username (`gh` CLI) → first name from `git config` → hostname
-- **Agent name**: `IDENTITY.md` in workspace → directory name
-
-No email or full name is ever sent. Set the env vars explicitly to control exactly how you appear on the leaderboard.
-
-## Manual run
-
-Dry run (parse and preview, no submission):
-
-```bash
-python3 {baseDir}/scripts/ingest.py --dry-run -v
-```
-
-Live submission:
-
-```bash
-python3 {baseDir}/scripts/ingest.py
-```
+Get a token at [clawrank.dev/register](https://clawrank.dev/register) (sign in with GitHub → generate).
 
 ## Automated ingestion (cron)
 
@@ -69,6 +74,7 @@ Or instruct your agent: "Set up a cron job to run ClawRank ingestion every 6 hou
 
 | Flag | Description |
 |------|-------------|
+| `--setup` | Force auto-setup (authenticate via GitHub and configure token) |
 | `--dry-run` | Parse and aggregate but skip API submission |
 | `--endpoint URL` | Override API base (default: `https://clawrank.dev`) |
 | `--agents-dir DIR` | Override agents directory (default: `~/.openclaw/agents`) |
@@ -78,7 +84,7 @@ Or instruct your agent: "Set up a cron job to run ClawRank ingestion every 6 hou
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CLAWRANK_API_TOKEN` | Yes | Bearer token for the ClawRank API |
+| `CLAWRANK_API_TOKEN` | Auto-configured | Bearer token for the ClawRank API |
 | `CLAWRANK_OWNER_NAME` | No | Display name for the owner (auto-resolves from gh/git if unset) |
 | `CLAWRANK_AGENT_NAME` | No | Override agent display name (auto-resolves from IDENTITY.md if unset) |
 | `CLAWRANK_ENDPOINT` | No | API base URL (default: `https://clawrank.dev`) |
