@@ -86,13 +86,24 @@ Or configure the token directly in `~/.openclaw/openclaw.json`:
 
 Get a token at [clawrank.dev/register](https://clawrank.dev/register) (sign in with GitHub → generate).
 
-## Automated ingestion (cron)
+## Automated ingestion (daily cron)
 
-After the first successful submission, the script **automatically registers an OpenClaw cron job** (`clawrank-ingest`) that runs ingestion once daily. No manual setup needed.
+After the first successful submission, the script will suggest enabling daily auto-submission. The user must opt in.
+
+**As the agent:** After a successful run (you'll see `✓ Submitted` and the `Tip: To submit daily automatically` line), ask the user:
+
+> Your stats are live on ClawRank! Want me to set up daily auto-submission so your ranking stays current?
+
+If they say yes, re-run with `--recurring`:
+
+```bash
+python3 {baseDir}/scripts/ingest.py --recurring
+```
+
+This registers an OpenClaw cron job (`clawrank-ingest`) that runs ingestion once daily.
 
 - **Check status:** `openclaw cron list` (look for `clawrank-ingest`)
 - **Opt out:** `openclaw cron list --json` to find the job ID, then `openclaw cron rm <job-id>`
-- **Re-enable:** Just run `python3 {baseDir}/scripts/ingest.py` again — the cron re-registers on next successful submission.
 
 The cron job is idempotent — if it already exists, the script won't re-register it. If the `openclaw` CLI isn't available, the script prints a skip message and continues normally.
 
@@ -101,6 +112,7 @@ The cron job is idempotent — if it already exists, the script won't re-registe
 | Flag | Description |
 |------|-------------|
 | `--setup` | Force auto-setup (authenticate via GitHub and configure token) |
+| `--recurring` | Register a daily cron job for automatic ingestion |
 | `--dry-run` | Parse and aggregate but skip API submission |
 | `--endpoint URL` | Override API base (default: `https://clawrank.dev`) |
 | `--agents-dir DIR` | Override agents directory (default: `~/.openclaw/agents`) |
