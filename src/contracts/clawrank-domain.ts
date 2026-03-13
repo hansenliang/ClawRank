@@ -108,7 +108,7 @@ export interface AgentUpsertInput {
  slug: string;
  agentName: string;
  ownerName: string;
- state: AgentState;
+ state?: AgentState;
  sourceOfTruth?: string | null;
  primaryGithubUsername?: string | null;
  xHandle?: string | null;
