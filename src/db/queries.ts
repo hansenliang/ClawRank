@@ -107,6 +107,11 @@ function mapFact(row: any): DailyAgentFact {
  mostActiveHour: row.most_active_hour != null ? Number(row.most_active_hour) : null,
  topModel: row.top_model ?? null,
  estimatedCostUsd: row.estimated_cost_usd != null ? Number(row.estimated_cost_usd) : null,
+ userMessageCount: row.user_message_count != null ? Number(row.user_message_count) : null,
+ assistantMessageCount: row.assistant_message_count != null ? Number(row.assistant_message_count) : null,
+ toolCallCount: row.tool_call_count != null ? Number(row.tool_call_count) : null,
+ topTools: row.top_tools ?? null,
+ modelsUsed: row.models_used ?? null,
  sourceType: (row.source_type ?? 'manual') as SourceType,
  sourceAdapter: row.source_adapter ?? null,
  createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at),
@@ -406,16 +411,24 @@ export async function dbUpsertFact(agentId: string, fact: DailyAgentFactInput, n
  const sql = getSQL();
  if (!sql) throw new Error('DATABASE_URL not configured');
 
+ const topToolsJson = fact.topTools ? JSON.stringify(fact.topTools) : null;
+ const modelsUsedJson = fact.modelsUsed ? JSON.stringify(fact.modelsUsed) : null;
+
  const rows = await sql`
  INSERT INTO daily_agent_facts (
  agent_id, date, total_tokens, input_tokens, output_tokens,
  cache_read_tokens, cache_write_tokens, session_count, longest_run_seconds,
- most_active_hour, top_model, estimated_cost_usd, source_type, source_adapter,
+ most_active_hour, top_model, estimated_cost_usd,
+ user_message_count, assistant_message_count, tool_call_count, top_tools, models_used,
+ source_type, source_adapter,
  created_at, updated_at
  ) VALUES (
  ${agentId}, ${fact.date}::date, ${fact.totalTokens}, ${fact.inputTokens ?? null}, ${fact.outputTokens ?? null},
  ${fact.cacheReadTokens ?? null}, ${fact.cacheWriteTokens ?? null}, ${fact.sessionCount ?? null}, ${fact.longestRunSeconds ?? null},
- ${fact.mostActiveHour ?? null}, ${fact.topModel ?? null}, ${fact.estimatedCostUsd ?? null}, ${fact.sourceType}, ${fact.sourceAdapter ?? null},
+ ${fact.mostActiveHour ?? null}, ${fact.topModel ?? null}, ${fact.estimatedCostUsd ?? null},
+ ${fact.userMessageCount ?? null}, ${fact.assistantMessageCount ?? null}, ${fact.toolCallCount ?? null},
+ ${topToolsJson}::jsonb, ${modelsUsedJson}::jsonb,
+ ${fact.sourceType}, ${fact.sourceAdapter ?? null},
  ${now}, ${now}
  )
  ON CONFLICT (agent_id, date) DO UPDATE SET
@@ -429,6 +442,11 @@ export async function dbUpsertFact(agentId: string, fact: DailyAgentFactInput, n
  most_active_hour = EXCLUDED.most_active_hour,
  top_model = EXCLUDED.top_model,
  estimated_cost_usd = EXCLUDED.estimated_cost_usd,
+ user_message_count = EXCLUDED.user_message_count,
+ assistant_message_count = EXCLUDED.assistant_message_count,
+ tool_call_count = EXCLUDED.tool_call_count,
+ top_tools = EXCLUDED.top_tools,
+ models_used = EXCLUDED.models_used,
  source_type = EXCLUDED.source_type,
  source_adapter = EXCLUDED.source_adapter,
  updated_at = ${now}

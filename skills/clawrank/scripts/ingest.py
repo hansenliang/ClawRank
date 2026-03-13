@@ -223,15 +223,30 @@ def load_session_index(index_path: Path) -> dict:
 
 # ── JSONL Transcript Parsing ────────────────────────────────────────────────
 
-def parse_transcript(session_path: Path, agent_key: str) -> list[dict]:
+def parse_transcript(session_path: Path, agent_key: str) -> tuple[list[dict], dict]:
     """
-    Parse a single JSONL transcript file and return usage message dicts.
-    Tracks model_change events to attribute usage to the correct model.
+    Parse a single JSONL transcript file.
+    Returns (usage_messages, session_stats) where session_stats contains
+    counts for user messages, assistant turns, tool calls, tool breakdown, etc.
     """
+    empty_stats = {
+        "user_messages": 0,
+        "assistant_messages": 0,
+        "tool_calls": 0,
+        "tool_names": defaultdict(int),
+        "models_tokens": defaultdict(int),
+    }
     if not session_path.is_file():
-        return []
+        return [], empty_stats
 
     messages = []
+    stats = {
+        "user_messages": 0,
+        "assistant_messages": 0,
+        "tool_calls": 0,
+        "tool_names": defaultdict(int),
+        "models_tokens": defaultdict(int),
+    }
     current_model = ""
     current_provider = "unknown"
 
@@ -256,8 +271,29 @@ def parse_transcript(session_path: Path, agent_key: str) -> list[dict]:
                 continue
 
             msg = entry.get("message")
-            if not msg or msg.get("role") != "assistant":
+            if not msg:
                 continue
+
+            role = msg.get("role")
+
+            # Count user messages
+            if role == "user":
+                stats["user_messages"] += 1
+                continue
+
+            if role != "assistant":
+                continue
+
+            stats["assistant_messages"] += 1
+
+            # Count tool calls in content blocks
+            content = msg.get("content", "")
+            if isinstance(content, list):
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "toolCall":
+                        stats["tool_calls"] += 1
+                        tool_name = block.get("name", "unknown")
+                        stats["tool_names"][tool_name] += 1
 
             usage = msg.get("usage")
             if not usage or not current_model:
@@ -272,6 +308,9 @@ def parse_transcript(session_path: Path, agent_key: str) -> list[dict]:
                 int(usage.get("totalTokens", 0) or 0),
             )
             cost = max(0.0, float((usage.get("cost") or {}).get("total", 0) or 0))
+
+            # Track tokens per model
+            stats["models_tokens"][current_model] += total
 
             # Determine timestamp
             ts_ms = msg.get("timestamp")
@@ -302,7 +341,7 @@ def parse_transcript(session_path: Path, agent_key: str) -> list[dict]:
                 "session_id": session_path.stem,
             })
 
-    return messages
+    return messages, stats
 
 
 def resolve_session_path(index_path: Path, entry: dict) -> Path | None:
@@ -335,6 +374,7 @@ def title_case(value: str) -> str:
 
 def aggregate_to_daily_facts(
     messages: list[dict],
+    session_stats: list[dict],
     agent_key: str,
     owner_name: str,
     agent_name: str,
@@ -361,6 +401,11 @@ def aggregate_to_daily_facts(
         "session_bounds": defaultdict(lambda: {"min": float("inf"), "max": 0}),
         "hours": defaultdict(int),
         "model_totals": defaultdict(int),
+        "user_messages": 0,
+        "assistant_messages": 0,
+        "tool_calls": 0,
+        "tool_names": defaultdict(int),
+        "models_tokens": defaultdict(int),
     })
 
     for m in messages:
@@ -383,6 +428,35 @@ def aggregate_to_daily_facts(
         bucket["hours"][hour] += m["total_tokens"]
         bucket["model_totals"][m["model_id"]] += m["total_tokens"]
 
+    # Merge session stats into date buckets
+    # Session stats are per-session; we need to distribute them to the dates
+    # where those sessions had activity. We map session_id → dates, then add stats.
+    session_to_dates: dict[str, set[str]] = defaultdict(set)
+    for m in messages:
+        dt = datetime.fromtimestamp(m["timestamp_ms"] / 1000, tz=timezone.utc)
+        date_str = dt.strftime("%Y-%m-%d")
+        session_to_dates[m["session_id"]].add(date_str)
+
+    for ss in session_stats:
+        sid = ss.get("session_id", "")
+        dates = session_to_dates.get(sid, set())
+        if not dates:
+            # If we can't attribute to a date, skip
+            continue
+        # For simplicity, add the full counts to each date the session touched.
+        # Most sessions span a single date, so this is usually exact.
+        # For multi-day sessions, this slightly inflates per-day counts but
+        # the totals remain correct at the agent level.
+        for date_str in dates:
+            bucket = by_date[date_str]
+            bucket["user_messages"] += ss.get("user_messages", 0)
+            bucket["assistant_messages"] += ss.get("assistant_messages", 0)
+            bucket["tool_calls"] += ss.get("tool_calls", 0)
+            for tool_name, count in ss.get("tool_names", {}).items():
+                bucket["tool_names"][tool_name] += count
+            for model, tokens in ss.get("models_tokens", {}).items():
+                bucket["models_tokens"][model] += tokens
+
     facts = []
     for date_str in sorted(by_date.keys()):
         b = by_date[date_str]
@@ -400,6 +474,18 @@ def aggregate_to_daily_facts(
         if b["model_totals"]:
             top_model = max(b["model_totals"], key=lambda m: (b["model_totals"][m], m))
 
+        # Build top_tools as dict (sorted by count desc, top 20)
+        top_tools = None
+        if b["tool_names"]:
+            sorted_tools = sorted(b["tool_names"].items(), key=lambda x: -x[1])[:20]
+            top_tools = dict(sorted_tools)
+
+        # Build models_used as dict
+        models_used = None
+        if b["models_tokens"]:
+            sorted_models = sorted(b["models_tokens"].items(), key=lambda x: -x[1])
+            models_used = dict(sorted_models)
+
         facts.append({
             "date": date_str,
             "totalTokens": b["total_tokens"],
@@ -412,6 +498,11 @@ def aggregate_to_daily_facts(
             "mostActiveHour": most_active_hour,
             "topModel": top_model,
             "estimatedCostUsd": round(b["estimated_cost_usd"], 4),
+            "userMessageCount": b["user_messages"],
+            "assistantMessageCount": b["assistant_messages"],
+            "toolCallCount": b["tool_calls"],
+            "topTools": top_tools,
+            "modelsUsed": models_used,
             "sourceType": "skill",
             "sourceAdapter": "openclaw",
         })
@@ -625,13 +716,16 @@ def main():
     for agent_key, index_path, display_name in agents:
         index = load_session_index(index_path)
         all_messages = []
+        all_session_stats = []
 
         for session_key, entry in index.items():
             session_path = resolve_session_path(index_path, entry)
             if not session_path or not session_path.is_file():
                 continue
-            msgs = parse_transcript(session_path, agent_key)
+            msgs, stats = parse_transcript(session_path, agent_key)
+            stats["session_id"] = session_path.stem
             all_messages.extend(msgs)
+            all_session_stats.append(stats)
 
         if not all_messages:
             if args.verbose:
@@ -639,7 +733,7 @@ def main():
             continue
 
         agent_name = agent_name_override or display_name or title_case(agent_key)
-        submission = aggregate_to_daily_facts(all_messages, agent_key, owner_name, agent_name, gh_username)
+        submission = aggregate_to_daily_facts(all_messages, all_session_stats, agent_key, owner_name, agent_name, gh_username)
         if not submission:
             continue
 

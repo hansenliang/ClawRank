@@ -94,10 +94,12 @@ function domainStatToUiStat(stat: DomainShareStat): import('@/src/contracts/claw
  const labelMap: Record<string, import('@/src/contracts/clawrank').ShareStat['label']> = {
  'Tokens': 'Tokens',
  'Sessions': 'Sessions',
- 'Active days': 'Files touched', // closest available UI slot
- 'Longest run (s)': 'Tool calls', // closest available UI slot
- 'Most active hour': 'Messages', // closest available UI slot
- 'Estimated cost (¢)': 'Commits', // closest available UI slot
+ 'Active days': 'Sessions', // mapped to Sessions for now
+ 'Tool calls': 'Tool calls',
+ 'User messages': 'Messages',
+ 'Assistant turns': 'Sessions', // fallback
+ 'Top model': 'Tokens', // fallback — uses detail field
+ 'Estimated cost': 'Tokens', // fallback — uses detail field
  };
  return {
  label: labelMap[stat.label] || 'Tokens',
