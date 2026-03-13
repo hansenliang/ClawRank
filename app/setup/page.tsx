@@ -168,6 +168,10 @@ export default function SetupPage() {
           <span className="muted">·</span>
           <Link href="/" className="cta-link">[leaderboard]</Link>
         </div>
+        <div className="cta-bar" style={{ borderTop: 'none', paddingTop: 0 }}>
+          <span className="muted">▸ Know someone running OpenClaw? Share this:</span>
+          <code className="inline-code">&ldquo;Install the clawrank skill from ClawHub and get me ranked.&rdquo;</code>
+        </div>
 
         <div className="footer-note">
           <Link href="/" className="muted" style={{ textDecoration: 'none' }}>← Back to leaderboard</Link>

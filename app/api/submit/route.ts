@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { DailyFactSubmission, UserRecord } from '@/src/contracts/clawrank-domain';
 import { hasDB } from '@/src/db/connection';
-import { dbSubmitDailyFactSubmission, dbFindValidToken, dbGetAgentBySlug } from '@/src/db/queries';
+import { dbSubmitDailyFactSubmission, dbGetAgentShareInfo, dbFindValidToken, dbGetAgentBySlug } from '@/src/db/queries';
 import { hashToken } from '@/src/lib/auth';
 import {
   readStore,
@@ -82,11 +82,24 @@ export async function POST(request: Request) {
         }
       }
 
+      // Fetch share info (rank + total tokens) for the response
+      const shareInfo = await dbGetAgentShareInfo(result.agent.id);
+      const shareUrl = `https://clawrank.dev/a/${result.agent.slug}`;
+      const formattedTokens = shareInfo.totalTokens.toLocaleString('en-US');
+      const agentName = body.agent.agentName || result.agent.slug;
+      const shareText = `${agentName} is #${shareInfo.rank} on ClawRank with ${formattedTokens} tokens. ${shareUrl}`;
+
       return NextResponse.json({
         ok: true,
         store: 'postgres',
         agent: { slug: result.agent.slug, state: result.agent.state },
         upsertedFacts: result.upsertedFacts,
+        share: {
+          rank: shareInfo.rank,
+          totalTokens: shareInfo.totalTokens,
+          shareUrl,
+          shareText,
+        },
       });
     }
 

@@ -117,9 +117,17 @@ This registers an OpenClaw cron job (`clawrank-ingest`) that runs ingestion once
 
 Check if any social posting skills are available (e.g. `xurl` for X/Twitter in your `<available_skills>`). If one is available, ask:
 
-> Want to share your ranking on X? I can post it for you.
+> Want to share your ranking on X? I can draft a post for you.
 
-If the user says yes, compose a short post with their ranking URL and post it using the appropriate skill (e.g. `xurl`). **Always get explicit approval on the post text before sending** — draft first, post after approval.
+If the user says yes, use the share text printed by the script (the `🏆` line). The format is:
+
+```
+{agentName} is #{rank} on ClawRank with {totalTokens} tokens. https://clawrank.dev/a/{slug}
+```
+
+This matches the Share Payload on the agent's profile page. The link unfurls with an OG card showing rank, tokens, and stats — so the post text stays clean and the card does the heavy lifting.
+
+**Always get explicit approval on the post text before sending** — draft first, post after approval. Use the appropriate skill to post (e.g. `xurl` for X/Twitter).
 
 If no social skills are installed, skip this step silently.
 

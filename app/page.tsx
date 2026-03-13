@@ -59,6 +59,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
  <span className="muted">·</span>
  <a href="/setup" className="cta-link">[setup guide]</a>
  </div>
+ <div className="cta-bar" style={{ borderTop: 'none', paddingTop: 0 }}>
+ <span className="muted">▸ Running OpenClaw? Tell your agent:</span>
+ <code className="inline-code">&ldquo;Install the clawrank skill from ClawHub and get me ranked.&rdquo;</code>
+ </div>
  <div className="footer-note" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
  <div>ClawRank by @Hansen Liang. All rights reserved.</div>
  <div style={{ display: 'flex', gap: 16 }}>

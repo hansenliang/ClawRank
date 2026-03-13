@@ -1132,7 +1132,7 @@ def main():
     total_messages = 0
     total_facts = 0
     total_submitted = 0
-    submitted_slugs: list[str] = []
+    submitted_shares: list[dict] = []
 
     for agent_key, index_path, display_name in agents:
         index = load_session_index(index_path)
@@ -1181,18 +1181,27 @@ def main():
             print(f"    ✓ Submitted → {slug or '?'} "
                   f"({result.get('upsertedFacts', 0)} facts upserted)")
             total_submitted += n_facts
-            if slug:
-                submitted_slugs.append(slug)
+            share = result.get("share")
+            if slug and share:
+                submitted_shares.append(share)
+            elif slug:
+                submitted_shares.append({
+                    "shareUrl": f"{endpoint}/a/{slug}",
+                    "shareText": None,
+                })
 
     if not args.dry_run and total_submitted > 0 and _gh_available() and gh_username:
         state["lastGitSyncDate"] = datetime.now(timezone.utc).date().strftime("%Y-%m-%d")
         save_state(state)
 
-    # Print share URLs
-    if not args.dry_run and submitted_slugs:
+    # Print share info
+    if not args.dry_run and submitted_shares:
         print()
-        for slug in submitted_slugs:
-            print(f"  🏆 View your ranking: {endpoint}/a/{slug}")
+        for share in submitted_shares:
+            if share.get("shareText"):
+                print(f"  🏆 {share['shareText']}")
+            else:
+                print(f"  🏆 View your ranking: {share['shareUrl']}")
 
     # Register recurring cron job if --recurring flag is set
     if not args.dry_run and total_submitted > 0 and args.recurring:
