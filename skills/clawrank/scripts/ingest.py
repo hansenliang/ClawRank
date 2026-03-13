@@ -1132,6 +1132,7 @@ def main():
     total_messages = 0
     total_facts = 0
     total_submitted = 0
+    submitted_slugs: list[str] = []
 
     for agent_key, index_path, display_name in agents:
         index = load_session_index(index_path)
@@ -1176,13 +1177,22 @@ def main():
         if result.get("error"):
             print(f"    ✗ Submit failed: {result['error']}", file=sys.stderr)
         else:
-            print(f"    ✓ Submitted → {result.get('agent', {}).get('slug', '?')} "
+            slug = result.get("agent", {}).get("slug", "")
+            print(f"    ✓ Submitted → {slug or '?'} "
                   f"({result.get('upsertedFacts', 0)} facts upserted)")
             total_submitted += n_facts
+            if slug:
+                submitted_slugs.append(slug)
 
     if not args.dry_run and total_submitted > 0 and _gh_available() and gh_username:
         state["lastGitSyncDate"] = datetime.now(timezone.utc).date().strftime("%Y-%m-%d")
         save_state(state)
+
+    # Print share URLs
+    if not args.dry_run and submitted_slugs:
+        print()
+        for slug in submitted_slugs:
+            print(f"  🏆 View your ranking: {endpoint}/a/{slug}")
 
     # Register recurring cron job if --recurring flag is set
     if not args.dry_run and total_submitted > 0 and args.recurring:
