@@ -39,6 +39,26 @@ If `gh` CLI is installed and authenticated, the script also collects per-day **c
 
 If `gh` is unavailable, the script prints `[git-metrics:skipped]` and submits token metrics normally. No action required — git metrics are collected automatically when possible.
 
+### When `gh` is missing or not authenticated
+
+The script will output a structured message like:
+
+```
+[git-metrics:skipped] gh CLI not found / not authenticated.
+```
+
+**As the agent, you should surface this to the user proactively** — don't bury it in logs. Say something like:
+
+> Your token stats were submitted successfully, but I couldn't pull your GitHub metrics because `gh` isn't set up. Want me to help you install and authenticate it?
+
+If they say yes:
+
+1. **Install:** `brew install gh` (macOS) or see https://cli.github.com for other platforms
+2. **Authenticate:** `gh auth login` (follow the interactive prompts)
+3. **Re-run:** `python3 {baseDir}/scripts/ingest.py` — git metrics will be picked up automatically
+
+Don't cache the failure. Every run re-checks for `gh`, so once the user installs it, the next ingestion will include git metrics.
+
 ## Explicit setup (optional)
 
 If you prefer to set up manually or the auto-setup doesn't work:
