@@ -81,6 +81,10 @@ export interface DailyAgentFact {
  toolCallCount?: number | null;
  topTools?: Record<string, number> | null;
  modelsUsed?: Record<string, number> | null;
+ commitCount?: number | null;
+ linesAdded?: number | null;
+ linesRemoved?: number | null;
+ prCount?: number | null;
  sourceType: SourceType;
  sourceAdapter?: string | null;
  datePrecision: DatePrecision;
@@ -112,6 +116,10 @@ export interface DailyAgentFactInput {
  toolCallCount?: number | null;
  topTools?: Record<string, number> | null;
  modelsUsed?: Record<string, number> | null;
+ commitCount?: number | null;
+ linesAdded?: number | null;
+ linesRemoved?: number | null;
+ prCount?: number | null;
  sourceType: SourceType;
  sourceAdapter?: string | null;
  datePrecision?: DatePrecision;
@@ -154,6 +162,10 @@ export interface LeaderboardRow {
  estimatedCostUsd?: number | null;
  toolCallCount: number;
  userMessageCount: number;
+ commitCount: number;
+ linesAdded: number;
+ linesRemoved: number;
+ prCount: number;
  topToolNames: string[];
  sourceTypes: SourceType[];
  sourceAdapters: string[];
@@ -178,7 +190,11 @@ export interface ShareStat {
  | 'User messages'
  | 'Assistant turns'
  | 'Top model'
- | 'Estimated cost';
+ | 'Estimated cost'
+ | 'Commits'
+ | 'PRs opened'
+ | 'Lines added'
+ | 'Lines removed';
  value: number;
  status: MetricStatus;
  detail?: string | null;

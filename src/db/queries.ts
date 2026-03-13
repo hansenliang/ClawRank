@@ -114,6 +114,10 @@ function mapFact(row: any): DailyAgentFact {
  toolCallCount: row.tool_call_count != null ? Number(row.tool_call_count) : null,
  topTools: row.top_tools ?? null,
  modelsUsed: row.models_used ?? null,
+ commitCount: row.commit_count != null ? Number(row.commit_count) : null,
+ linesAdded: row.lines_added != null ? Number(row.lines_added) : null,
+ linesRemoved: row.lines_removed != null ? Number(row.lines_removed) : null,
+ prCount: row.pr_count != null ? Number(row.pr_count) : null,
  sourceType: (row.source_type ?? 'manual') as SourceType,
  sourceAdapter: row.source_adapter ?? null,
  datePrecision: (row.date_precision ?? 'day') as DatePrecision,
@@ -423,6 +427,7 @@ export async function dbUpsertFact(agentId: string, fact: DailyAgentFactInput, n
  cache_read_tokens, cache_write_tokens, session_count, longest_run_seconds,
  most_active_hour, top_model, estimated_cost_usd,
  user_message_count, assistant_message_count, tool_call_count, top_tools, models_used,
+ commit_count, lines_added, lines_removed, pr_count,
  source_type, source_adapter, date_precision,
  created_at, updated_at
  ) VALUES (
@@ -431,6 +436,7 @@ export async function dbUpsertFact(agentId: string, fact: DailyAgentFactInput, n
  ${fact.mostActiveHour ?? null}, ${fact.topModel ?? null}, ${fact.estimatedCostUsd ?? null},
  ${fact.userMessageCount ?? null}, ${fact.assistantMessageCount ?? null}, ${fact.toolCallCount ?? null},
  ${topToolsJson}::jsonb, ${modelsUsedJson}::jsonb,
+ ${fact.commitCount ?? null}, ${fact.linesAdded ?? null}, ${fact.linesRemoved ?? null}, ${fact.prCount ?? null},
  ${fact.sourceType}, ${fact.sourceAdapter ?? null}, ${fact.datePrecision ?? 'day'},
  ${now}, ${now}
  )
@@ -450,6 +456,10 @@ export async function dbUpsertFact(agentId: string, fact: DailyAgentFactInput, n
  tool_call_count = EXCLUDED.tool_call_count,
  top_tools = EXCLUDED.top_tools,
  models_used = EXCLUDED.models_used,
+ commit_count = COALESCE(EXCLUDED.commit_count, daily_agent_facts.commit_count),
+ lines_added = COALESCE(EXCLUDED.lines_added, daily_agent_facts.lines_added),
+ lines_removed = COALESCE(EXCLUDED.lines_removed, daily_agent_facts.lines_removed),
+ pr_count = COALESCE(EXCLUDED.pr_count, daily_agent_facts.pr_count),
  source_type = EXCLUDED.source_type,
  source_adapter = EXCLUDED.source_adapter,
  date_precision = EXCLUDED.date_precision,
@@ -589,6 +599,10 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
  let estimatedCostUsd = 0;
  let toolCallCount = 0;
  let userMessageCount = 0;
+ let commitCount = 0;
+ let linesAdded = 0;
+ let linesRemoved = 0;
+ let prCount = 0;
 
  for (const f of facts) {
  if (f.topModel) modelTotals.set(f.topModel, (modelTotals.get(f.topModel) || 0) + f.totalTokens);
@@ -596,6 +610,10 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
  estimatedCostUsd += f.estimatedCostUsd || 0;
  toolCallCount += f.toolCallCount || 0;
  userMessageCount += f.userMessageCount || 0;
+ commitCount += f.commitCount || 0;
+ linesAdded += f.linesAdded || 0;
+ linesRemoved += f.linesRemoved || 0;
+ prCount += f.prCount || 0;
  if (f.topTools && typeof f.topTools === 'object') {
  for (const [name, count] of Object.entries(f.topTools as Record<string, number>)) {
  toolTotals.set(name, (toolTotals.get(name) || 0) + count);
@@ -628,6 +646,10 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
  estimatedCostUsd: Number(estimatedCostUsd.toFixed(4)),
  toolCallCount,
  userMessageCount,
+ commitCount,
+ linesAdded,
+ linesRemoved,
+ prCount,
  topToolNames,
  sourceTypes: uniq(facts.map((f) => f.sourceType)),
  sourceAdapters: uniq(facts.map((f) => f.sourceAdapter || '').filter(Boolean)),

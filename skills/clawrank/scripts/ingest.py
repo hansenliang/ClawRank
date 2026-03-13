@@ -5,7 +5,8 @@ from __future__ import annotations
 ClawRank OpenClaw Ingestion Script
 
 Scans local OpenClaw session transcripts, aggregates token usage into
-daily agent facts, and POSTs them to the ClawRank API.
+daily agent facts, and POSTs them to the ClawRank API. Optionally collects
+GitHub commit and PR metrics via the gh CLI.
 
 Usage:
     python3 ingest.py [--dry-run] [--endpoint URL] [--agents-dir DIR]
@@ -22,11 +23,13 @@ import json
 import os
 import platform
 import re
+import subprocess
 import sys
 import urllib.request
 import urllib.error
+import urllib.parse
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 
@@ -34,6 +37,7 @@ from pathlib import Path
 
 DEFAULT_ENDPOINT = "https://clawrank.dev"
 SUBMIT_PATH = "/api/submit"
+STATE_PATH_ENV = "CLAWRANK_STATE_PATH"
 
 
 def get_agents_dir(override: str | None = None) -> Path:
@@ -53,6 +57,34 @@ def get_endpoint(override: str | None = None) -> str:
 
 def get_token() -> str | None:
     return os.environ.get("CLAWRANK_API_TOKEN")
+
+
+def get_state_path() -> Path:
+    env = os.environ.get(STATE_PATH_ENV)
+    if env:
+        return Path(env).expanduser()
+    return Path.home() / ".openclaw" / "clawrank-state.json"
+
+
+def load_state() -> dict:
+    state_path = get_state_path()
+    if not state_path.is_file():
+        return {}
+    try:
+        with open(state_path, "r") as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def save_state(state: dict) -> None:
+    state_path = get_state_path()
+    try:
+        state_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(state_path, "w") as f:
+            json.dump(state, f, indent=2)
+    except OSError:
+        pass
 
 
 def get_owner_name_override() -> str | None:
@@ -98,7 +130,6 @@ def resolve_owner_name() -> str:
 def _get_gh_username() -> str | None:
     """Extract GitHub username from `gh auth status` output."""
     try:
-        import subprocess
         result = subprocess.run(
             ["gh", "auth", "status"],
             capture_output=True, text=True, timeout=5,
@@ -116,7 +147,6 @@ def _get_gh_username() -> str | None:
 def _get_git_first_name() -> str | None:
     """Get first name from git config. Returns None if not set or looks like an email."""
     try:
-        import subprocess
         result = subprocess.run(
             ["git", "config", "--global", "user.name"],
             capture_output=True, text=True, timeout=5,
@@ -131,6 +161,232 @@ def _get_git_first_name() -> str | None:
     except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
         pass
     return None
+
+
+# ── GitHub Metrics Ingestion ────────────────────────────────────────────────
+
+def _gh_available() -> bool:
+    """Check if gh CLI is installed and authenticated."""
+    try:
+        result = subprocess.run(
+            ["gh", "auth", "status"],
+            capture_output=True, text=True, timeout=10,
+        )
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        return False
+
+
+def _gh_api(endpoint: str, paginate: bool = False) -> list | dict | None:
+    """Call the GitHub API via gh CLI. Returns parsed JSON or None on error."""
+    cmd = ["gh", "api", endpoint, "--header", "Accept: application/vnd.github+json"]
+    if paginate:
+        cmd.append("--paginate")
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        if result.returncode != 0:
+            return None
+        text = result.stdout.strip()
+        if not text:
+            return None
+        # --paginate can produce concatenated JSON arrays; merge them
+        if paginate and text.startswith("["):
+            merged = []
+            decoder = json.JSONDecoder()
+            pos = 0
+            while pos < len(text):
+                # skip whitespace
+                while pos < len(text) and text[pos] in " \t\n\r":
+                    pos += 1
+                if pos >= len(text):
+                    break
+                obj, end = decoder.raw_decode(text, pos)
+                if isinstance(obj, list):
+                    merged.extend(obj)
+                else:
+                    merged.append(obj)
+                pos = end
+            return merged
+        return json.loads(text)
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError, json.JSONDecodeError):
+        return None
+
+
+def _get_gh_authenticated_user() -> str | None:
+    """Get the authenticated GitHub username via API."""
+    data = _gh_api("/user")
+    if isinstance(data, dict):
+        return data.get("login")
+    return None
+
+
+def _discover_repos(login: str, verbose: bool = False) -> list[dict]:
+    """
+    Discover repos accessible to the authenticated user that have recent pushes.
+    Returns list of {owner, name, full_name, pushed_at}.
+    """
+    repos = _gh_api("/user/repos?sort=pushed&per_page=100&type=all", paginate=True)
+    if not isinstance(repos, list):
+        return []
+
+    # Filter to repos with a push in the last 90 days
+    cutoff = datetime.now(timezone.utc) - timedelta(days=90)
+    results = []
+    for repo in repos:
+        pushed_at = repo.get("pushed_at", "")
+        try:
+            pushed_at_dt = datetime.fromisoformat(pushed_at.replace("Z", "+00:00"))
+        except (AttributeError, ValueError):
+            continue
+        if pushed_at_dt >= cutoff:
+            owner = repo.get("owner", {}).get("login", "")
+            name = repo.get("name", "")
+            if owner and name:
+                results.append({
+                    "owner": owner,
+                    "name": name,
+                    "full_name": f"{owner}/{name}",
+                    "pushed_at": pushed_at,
+                })
+    if verbose:
+        print(f"    Found {len(results)} repos with recent activity")
+    return results
+
+
+def _fetch_commits_for_date(
+    owner: str, name: str, login: str, date_str: str, verbose: bool = False,
+) -> tuple[int, int, int]:
+    """
+    Fetch commits by login for a specific date in a repo.
+    Returns (commit_count, lines_added, lines_removed).
+    Excludes merge commits (>1 parent).
+    """
+    # date_str is YYYY-MM-DD; GitHub API uses ISO 8601
+    since = f"{date_str}T00:00:00Z"
+    until_dt = datetime.strptime(date_str, "%Y-%m-%d") + timedelta(days=1)
+    until = until_dt.strftime("%Y-%m-%dT00:00:00Z")
+
+    commits_data = _gh_api(
+        f"/repos/{owner}/{name}/commits?author={login}&since={since}&until={until}&per_page=100",
+        paginate=True,
+    )
+    if not isinstance(commits_data, list):
+        return 0, 0, 0
+
+    commit_count = 0
+    total_added = 0
+    total_removed = 0
+
+    for commit_summary in commits_data:
+        # Skip merge commits (more than 1 parent)
+        parents = commit_summary.get("parents", [])
+        if len(parents) > 1:
+            continue
+
+        sha = commit_summary.get("sha")
+        if not sha:
+            continue
+
+        # Fetch full commit for stats
+        commit_detail = _gh_api(f"/repos/{owner}/{name}/commits/{sha}")
+        if not isinstance(commit_detail, dict):
+            continue
+
+        stats = commit_detail.get("stats", {})
+        additions = stats.get("additions", 0)
+        deletions = stats.get("deletions", 0)
+
+        commit_count += 1
+        total_added += additions
+        total_removed += deletions
+
+    return commit_count, total_added, total_removed
+
+
+def _fetch_prs_for_date(login: str, date_str: str) -> int:
+    """Count PRs opened by login on a specific date using search API."""
+    query = f"author:{login} type:pr created:{date_str}"
+    data = _gh_api(f"/search/issues?q={urllib.parse.quote(query)}&per_page=1")
+    if isinstance(data, dict):
+        return data.get("total_count", 0)
+    return 0
+
+
+def collect_github_metrics(
+    login: str,
+    last_submission_date: str | None = None,
+    verbose: bool = False,
+) -> dict[str, dict]:
+    """
+    Collect GitHub commit and PR metrics per day.
+    Returns {date_str: {commit_count, lines_added, lines_removed, pr_count}}.
+
+    Backfills up to 90 days on first run; subsequent runs fetch only since
+    last_submission_date.
+    """
+    repos = _discover_repos(login, verbose=verbose)
+    if not repos:
+        if verbose:
+            print("    No repos with recent activity found")
+        return {}
+
+    # Determine date range
+    today = datetime.now(timezone.utc).date()
+    if last_submission_date:
+        try:
+            start_date = datetime.strptime(last_submission_date, "%Y-%m-%d").date()
+        except ValueError:
+            start_date = today - timedelta(days=90)
+    else:
+        start_date = today - timedelta(days=90)
+
+    # Ensure we don't go beyond 90 days (GitHub Events API limit)
+    earliest = today - timedelta(days=90)
+    if start_date < earliest:
+        start_date = earliest
+
+    if verbose:
+        print(f"    Collecting git metrics from {start_date} to {today} across {len(repos)} repos")
+
+    daily_git: dict[str, dict] = defaultdict(lambda: {
+        "commit_count": 0,
+        "lines_added": 0,
+        "lines_removed": 0,
+        "pr_count": 0,
+    })
+
+    # Collect commits per repo per day
+    current = start_date
+    dates = []
+    while current <= today:
+        dates.append(current.strftime("%Y-%m-%d"))
+        current += timedelta(days=1)
+
+    for repo in repos:
+        for date_str in dates:
+            commits, added, removed = _fetch_commits_for_date(
+                repo["owner"], repo["name"], login, date_str, verbose=verbose,
+            )
+            if commits > 0:
+                daily_git[date_str]["commit_count"] += commits
+                daily_git[date_str]["lines_added"] += added
+                daily_git[date_str]["lines_removed"] += removed
+
+    # Collect PRs per day (one search call per day, not per repo)
+    for date_str in dates:
+        pr_count = _fetch_prs_for_date(login, date_str)
+        if pr_count > 0:
+            daily_git[date_str]["pr_count"] += pr_count
+
+    # Remove days with no activity
+    daily_git = {d: v for d, v in daily_git.items() if any(v.values())}
+
+    if verbose:
+        total_commits = sum(v["commit_count"] for v in daily_git.values())
+        total_prs = sum(v["pr_count"] for v in daily_git.values())
+        print(f"    Git metrics: {total_commits} commits, {total_prs} PRs across {len(daily_git)} days")
+
+    return dict(daily_git)
 
 
 # ── Session Index Parsing ───────────────────────────────────────────────────
@@ -379,6 +635,7 @@ def aggregate_to_daily_facts(
     owner_name: str,
     agent_name: str,
     gh_username: str | None = None,
+    git_metrics: dict[str, dict] | None = None,
 ) -> dict | None:
     """
     Aggregate usage messages for one agent into a DailyFactSubmission.
@@ -505,7 +762,34 @@ def aggregate_to_daily_facts(
             "modelsUsed": models_used,
             "sourceType": "skill",
             "sourceAdapter": "openclaw",
+            "datePrecision": "day",
         })
+
+    # Merge git metrics into existing facts and create new facts for git-only days
+    if git_metrics:
+        fact_dates = {f["date"]: f for f in facts}
+        for date_str, gm in git_metrics.items():
+            if date_str in fact_dates:
+                # Merge into existing fact
+                fact_dates[date_str]["commitCount"] = gm["commit_count"]
+                fact_dates[date_str]["linesAdded"] = gm["lines_added"]
+                fact_dates[date_str]["linesRemoved"] = gm["lines_removed"]
+                fact_dates[date_str]["prCount"] = gm["pr_count"]
+            else:
+                # Create a git-only fact (zero tokens)
+                facts.append({
+                    "date": date_str,
+                    "totalTokens": 0,
+                    "commitCount": gm["commit_count"],
+                    "linesAdded": gm["lines_added"],
+                    "linesRemoved": gm["lines_removed"],
+                    "prCount": gm["pr_count"],
+                    "sourceType": "skill",
+                    "sourceAdapter": "openclaw",
+                    "datePrecision": "day",
+                })
+        # Re-sort by date
+        facts.sort(key=lambda f: f["date"])
 
     agent_data = {
         "slug": agent_slug,
@@ -555,7 +839,6 @@ def submit(endpoint: str, token: str, submission: dict) -> dict:
 def _get_gh_token() -> str | None:
     """Get the current GitHub auth token from gh CLI."""
     try:
-        import subprocess
         result = subprocess.run(
             ["gh", "auth", "token"],
             capture_output=True, text=True, timeout=5,
@@ -674,9 +957,10 @@ def main():
 
     endpoint = get_endpoint(args.endpoint)
     token = get_token()
+    state = load_state()
     owner_name = resolve_owner_name()
     agent_name_override = get_agent_name_override()
-    gh_username = _get_gh_username()
+    gh_username = _get_gh_authenticated_user() or _get_gh_username()
     agents_dir = get_agents_dir(args.agents_dir)
 
     # If --setup flag or no token configured, run auto-setup
@@ -709,6 +993,31 @@ def main():
     print(f"Mode: {'DRY RUN' if args.dry_run else 'LIVE'}")
     print()
 
+    # ── GitHub metrics collection ───────────────────────────────────────────
+    git_metrics: dict[str, dict] | None = None
+    last_git_sync_date = state.get("lastGitSyncDate")
+    if _gh_available() and gh_username:
+        print("  [git-metrics] gh CLI detected — collecting GitHub commit & PR metrics...")
+        try:
+            git_metrics = collect_github_metrics(
+                login=gh_username,
+                last_submission_date=last_git_sync_date,
+                verbose=args.verbose,
+            )
+            if git_metrics:
+                total_git_commits = sum(v["commit_count"] for v in git_metrics.values())
+                total_git_prs = sum(v["pr_count"] for v in git_metrics.values())
+                print(f"  [git-metrics] {total_git_commits} commits, {total_git_prs} PRs across {len(git_metrics)} days")
+            else:
+                print("  [git-metrics] No commit/PR activity found in last 90 days")
+        except Exception as e:
+            print(f"  [git-metrics:skipped] Error collecting git metrics: {e}", file=sys.stderr)
+            git_metrics = None
+    else:
+        reason = "gh CLI not found" if not _gh_available() else "GitHub username not resolved"
+        print(f"  [git-metrics:skipped] {reason} — submitting token metrics only")
+    print()
+
     total_messages = 0
     total_facts = 0
     total_submitted = 0
@@ -733,14 +1042,14 @@ def main():
             continue
 
         agent_name = agent_name_override or display_name or title_case(agent_key)
-        submission = aggregate_to_daily_facts(all_messages, all_session_stats, agent_key, owner_name, agent_name, gh_username)
+        submission = aggregate_to_daily_facts(all_messages, all_session_stats, agent_key, owner_name, agent_name, gh_username, git_metrics)
         if not submission:
             continue
 
         n_facts = len(submission["facts"])
         n_msgs = len(all_messages)
         total_tokens = sum(f["totalTokens"] for f in submission["facts"])
-        total_cost = sum(f["estimatedCostUsd"] for f in submission["facts"])
+        total_cost = sum(f.get("estimatedCostUsd", 0) for f in submission["facts"])
         total_messages += n_msgs
         total_facts += n_facts
 
@@ -759,6 +1068,10 @@ def main():
             print(f"    ✓ Submitted → {result.get('agent', {}).get('slug', '?')} "
                   f"({result.get('upsertedFacts', 0)} facts upserted)")
             total_submitted += n_facts
+
+    if not args.dry_run and total_submitted > 0 and _gh_available() and gh_username:
+        state["lastGitSyncDate"] = datetime.now(timezone.utc).date().strftime("%Y-%m-%d")
+        save_state(state)
 
     print()
     print(f"Done. {total_messages} messages parsed, {total_facts} daily facts generated"
