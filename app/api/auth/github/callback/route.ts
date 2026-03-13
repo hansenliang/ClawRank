@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
     return redirectWithError('no_code');
   }
 
-  const clientId = process.env.GITHUB_CLIENT_ID;
-  const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+  const clientId = process.env.GITHUB_CLIENT_ID?.trim();
+  const clientSecret = process.env.GITHUB_CLIENT_SECRET?.trim();
 
   if (!clientId || !clientSecret) {
     return redirectWithError('not_configured');
