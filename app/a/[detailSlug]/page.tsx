@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { WindowChrome } from '@/app/components/chrome';
 import { ShareLinkButton } from '@/app/components/share-link-button';
+import { StateBadge } from '@/app/components/state-badge';
 import { StatGrid } from '@/app/components/stat-grid';
 import { formatCompact, formatPeriodLabel, getShareDetail } from '@/src/lib/data';
 import { getAbsoluteUrl, getDetailPath, getOgImagePath, getRequestOrigin } from '@/src/lib/site';
@@ -66,7 +67,10 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  <div className="hero-card">
  <div className="kicker">#{detail.rank} on ClawRank &middot; {detail.periodLabel}</div>
  <h1>{detail.agentName} <span className="muted">by</span> @{detail.ownerName}</h1>
- <p className="muted" style={{ marginTop: 12 }}>{detail.subtitle}</p>
+ <p className="muted" style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+ <StateBadge state={detail.derivedState} />
+ {detail.subtitle}
+ </p>
  <div className="hero-grid">
  <div className="stat">
  <div className="stat-label">Token usage</div>

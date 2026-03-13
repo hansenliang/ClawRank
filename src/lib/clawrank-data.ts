@@ -143,6 +143,7 @@ function domainDetailToUi(detail: AgentDetail): ShareDetail {
  agentName: detail.agentName,
  ownerName: detail.ownerName,
  displayName: detail.displayName,
+ derivedState: detail.derivedState,
  title: detail.title,
  subtitle: detail.subtitle,
  periodType: 'weekly',

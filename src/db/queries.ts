@@ -12,6 +12,7 @@ import type {
  DailyAgentFact,
  DailyAgentFactInput,
  DailyFactSubmission,
+ DatePrecision,
  DerivedState,
  LeaderboardPeriod,
  LeaderboardResponse,
@@ -115,6 +116,7 @@ function mapFact(row: any): DailyAgentFact {
  modelsUsed: row.models_used ?? null,
  sourceType: (row.source_type ?? 'manual') as SourceType,
  sourceAdapter: row.source_adapter ?? null,
+ datePrecision: (row.date_precision ?? 'day') as DatePrecision,
  createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at),
  updatedAt: row.updated_at instanceof Date ? row.updated_at.toISOString() : String(row.updated_at),
  };
@@ -421,7 +423,7 @@ export async function dbUpsertFact(agentId: string, fact: DailyAgentFactInput, n
  cache_read_tokens, cache_write_tokens, session_count, longest_run_seconds,
  most_active_hour, top_model, estimated_cost_usd,
  user_message_count, assistant_message_count, tool_call_count, top_tools, models_used,
- source_type, source_adapter,
+ source_type, source_adapter, date_precision,
  created_at, updated_at
  ) VALUES (
  ${agentId}, ${fact.date}::date, ${fact.totalTokens}, ${fact.inputTokens ?? null}, ${fact.outputTokens ?? null},
@@ -429,7 +431,7 @@ export async function dbUpsertFact(agentId: string, fact: DailyAgentFactInput, n
  ${fact.mostActiveHour ?? null}, ${fact.topModel ?? null}, ${fact.estimatedCostUsd ?? null},
  ${fact.userMessageCount ?? null}, ${fact.assistantMessageCount ?? null}, ${fact.toolCallCount ?? null},
  ${topToolsJson}::jsonb, ${modelsUsedJson}::jsonb,
- ${fact.sourceType}, ${fact.sourceAdapter ?? null},
+ ${fact.sourceType}, ${fact.sourceAdapter ?? null}, ${fact.datePrecision ?? 'day'},
  ${now}, ${now}
  )
  ON CONFLICT (agent_id, date) DO UPDATE SET
@@ -450,6 +452,7 @@ export async function dbUpsertFact(agentId: string, fact: DailyAgentFactInput, n
  models_used = EXCLUDED.models_used,
  source_type = EXCLUDED.source_type,
  source_adapter = EXCLUDED.source_adapter,
+ date_precision = EXCLUDED.date_precision,
  updated_at = ${now}
  RETURNING *
  `;
@@ -567,9 +570,10 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
  // Filter facts to period for metric aggregation
  const rows: LeaderboardRow[] = [...agentAllFacts.values()]
  .map(({ agent, facts: allFacts }) => {
- // Filter to period for metrics
- const facts = (range.start && range.endExclusive)
- ? allFacts.filter((f) => f.date >= range.start! && f.date < range.endExclusive!)
+ // Filter to period for metrics; exclude cumulative facts from period-filtered views
+ const isPeriodFiltered = !!(range.start && range.endExclusive);
+ const facts = isPeriodFiltered
+ ? allFacts.filter((f) => f.date >= range.start! && f.date < range.endExclusive! && f.datePrecision !== 'cumulative')
  : allFacts;
 
  if (facts.length === 0) return null; // No data in this period

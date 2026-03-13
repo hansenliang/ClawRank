@@ -5,8 +5,8 @@ import type { LeaderboardPeriod } from '@/src/contracts/clawrank-domain';
 
 const PERIODS: { value: LeaderboardPeriod; label: string }[] = [
  { value: 'alltime', label: 'All time' },
- { value: 'month', label: 'Last month' },
- { value: 'week', label: 'Last week' },
+ { value: 'month', label: '30 days' },
+ { value: 'week', label: '7 days' },
 ];
 
 export function PeriodSelector({ current }: { current: LeaderboardPeriod }) {

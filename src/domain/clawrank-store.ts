@@ -208,6 +208,7 @@ export function submitDailyFactSubmission(
  existing.estimatedCostUsd = fact.estimatedCostUsd ?? null;
  existing.sourceType = fact.sourceType;
  existing.sourceAdapter = fact.sourceAdapter ?? null;
+ existing.datePrecision = fact.datePrecision ?? 'day';
  existing.updatedAt = now;
  } else {
  const created: DailyAgentFact = {
@@ -226,6 +227,7 @@ export function submitDailyFactSubmission(
  estimatedCostUsd: fact.estimatedCostUsd ?? null,
  sourceType: fact.sourceType,
  sourceAdapter: fact.sourceAdapter ?? null,
+ datePrecision: fact.datePrecision ?? 'day',
  createdAt: now,
  updatedAt: now,
  };
@@ -358,7 +360,13 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[], al
 }
 
 export function getLeaderboardResponse(store: ClawRankStore, period: LeaderboardPeriod = 'alltime', now = new Date()): LeaderboardResponse {
- const filteredFacts = store.dailyAgentFacts.filter((fact) => withinPeriod(fact.date, period, now));
+ const isPeriodFiltered = period !== 'alltime';
+ const filteredFacts = store.dailyAgentFacts.filter((fact) => {
+ if (!withinPeriod(fact.date, period, now)) return false;
+ // Exclude cumulative facts from period-filtered views
+ if (isPeriodFiltered && fact.datePrecision === 'cumulative') return false;
+ return true;
+ });
  const factsByAgent = new Map<string, DailyAgentFact[]>();
 
  for (const fact of filteredFacts) {
@@ -449,6 +457,7 @@ export function getAgentDetail(store: ClawRankStore, slug: string, period: Leade
  ownerName: agent.ownerName,
  displayName: `${agent.agentName} by ${agent.ownerName}`,
  state: agent.state,
+ derivedState: deriveStateFromFacts({ userId: agent.userId }, facts, now),
  title: `${agent.agentName} on ClawRank`,
  subtitle: `${leaderboard.periodLabel} • ${agent.state}`,
  rank: row?.rank || 0,

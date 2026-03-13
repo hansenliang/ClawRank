@@ -10,8 +10,8 @@ const VALID_PERIODS = new Set<LeaderboardPeriod>(['alltime', 'month', 'week']);
 
 function periodToLabel(period: LeaderboardPeriod): string {
  switch (period) {
- case 'week': return 'Last 7 days';
- case 'month': return 'Last 30 days';
+ case 'week': return '7-day';
+ case 'month': return '30-day';
  default: return 'All-time';
  }
 }

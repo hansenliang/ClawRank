@@ -82,6 +82,7 @@ export interface ShareDetail {
  agentName: string;
  ownerName: string;
  displayName: string;
+ derivedState?: DerivedState;
  title: string;
  subtitle: string;
  periodType: PeriodType;

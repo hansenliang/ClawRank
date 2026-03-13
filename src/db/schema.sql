@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS daily_agent_facts (
   models_used JSONB,
   source_type TEXT NOT NULL DEFAULT 'manual' CHECK (source_type IN ('skill', 'manual', 'x_scrape')),
   source_adapter TEXT,
+  date_precision TEXT NOT NULL DEFAULT 'day' CHECK (date_precision IN ('day', 'cumulative')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(agent_id, date)
