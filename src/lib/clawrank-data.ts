@@ -67,11 +67,12 @@ function domainRowToUiRow(row: DomainLeaderboardRow, periodStart: string, period
  filesTouched: { value: 0, status: 'missing' },
  linesAdded: { value: 0, status: 'missing' },
  linesRemoved: { value: 0, status: 'missing' },
- toolCalls: { value: 0, status: 'missing' },
- messageCount: { value: 0, status: 'missing' },
+ toolCalls: row.toolCallCount > 0 ? { value: row.toolCallCount, status: 'verified' } : { value: 0, status: 'missing' },
+ messageCount: row.userMessageCount > 0 ? { value: row.userMessageCount, status: 'verified' } : { value: 0, status: 'missing' },
  sessionCount: { value: row.sessionCount, status: 'verified' },
  shareUrl: `${baseUrl}/a/${row.detailSlug}`,
  detailSlug: row.detailSlug,
+ topToolNames: row.topToolNames.length ? row.topToolNames : undefined,
  dataSources: row.sourceAdapters.length ? row.sourceAdapters : ['openclaw'],
  generatedAt: new Date().toISOString(),
  };
@@ -91,20 +92,22 @@ function domainLeaderboardToUi(domain: DomainLeaderboardResponse): LeaderboardRe
 }
 
 function domainStatToUiStat(stat: DomainShareStat): import('@/src/contracts/clawrank').ShareStat {
+ // Domain labels now map 1:1 to UI labels (union expanded)
  const labelMap: Record<string, import('@/src/contracts/clawrank').ShareStat['label']> = {
  'Tokens': 'Tokens',
  'Sessions': 'Sessions',
- 'Active days': 'Sessions', // mapped to Sessions for now
+ 'Active days': 'Active days',
  'Tool calls': 'Tool calls',
  'User messages': 'Messages',
- 'Assistant turns': 'Sessions', // fallback
- 'Top model': 'Tokens', // fallback — uses detail field
- 'Estimated cost': 'Tokens', // fallback — uses detail field
+ 'Assistant turns': 'Assistant turns',
+ 'Top model': 'Top model',
+ 'Estimated cost': 'Estimated cost',
  };
  return {
  label: labelMap[stat.label] || 'Tokens',
  value: stat.value,
  status: stat.status === 'verified' ? 'verified' : 'missing',
+ detail: stat.detail ?? null,
  };
 }
 
@@ -112,6 +115,24 @@ function domainDetailToUi(detail: AgentDetail): ShareDetail {
  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || SITE_URL;
  const shareUrl = `${baseUrl}/a/${detail.detailSlug}`;
  const shareText = `${detail.agentName} is #${detail.rank} on ClawRank with ${detail.tokenUsage.toLocaleString()} tokens this period. ${shareUrl}`;
+
+ // Extract real tool names from stats
+ const toolCallStat = detail.stats.find((s) => s.label === 'Tool calls');
+ const userMsgStat = detail.stats.find((s) => s.label === 'User messages');
+
+ // Build top tools list from daily facts aggregation
+ const toolTotals = new Map<string, number>();
+ for (const fact of detail.dailyFacts) {
+ if (fact.topTools && typeof fact.topTools === 'object') {
+ for (const [name, count] of Object.entries(fact.topTools)) {
+ toolTotals.set(name, (toolTotals.get(name) || 0) + (count as number));
+ }
+ }
+ }
+ const topToolNames = [...toolTotals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name]) => name);
+
+ // Filter out notable outputs panel data — empty means panel is hidden
+ const notableOutputs = (detail as unknown as { notableOutputs?: ShareDetail['notableOutputs'] }).notableOutputs || [];
 
  return {
  id: detail.id,
@@ -130,8 +151,8 @@ function domainDetailToUi(detail: AgentDetail): ShareDetail {
  rank: detail.rank,
  tokenUsage: detail.tokenUsage,
  stats: detail.stats.map(domainStatToUiStat),
- topTools: [],
- notableOutputs: [],
+ topTools: topToolNames,
+ notableOutputs,
  methodologyNote: detail.methodologyNote || 'Data sourced from OpenClaw agent transcripts.',
  dataSources: detail.sourceAdapters.length ? detail.sourceAdapters : ['openclaw'],
  shareText,
@@ -141,8 +162,8 @@ function domainDetailToUi(detail: AgentDetail): ShareDetail {
  rankText: `#${detail.rank}`,
  tokenText: `${detail.tokenUsage.toLocaleString()} tokens`,
  statChips: [
- { label: 'Messages', value: String(detail.stats.find((s) => s.label === 'Sessions')?.value || 0) },
- { label: 'Files', value: String(detail.stats.find((s) => s.label === 'Active days')?.value || 0) },
+ { label: 'Tool calls', value: String(toolCallStat?.value || 0) },
+ { label: 'Messages', value: String(userMsgStat?.value || 0) },
  ],
  periodLabel: detail.periodLabel,
  theme: 'terminal',

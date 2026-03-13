@@ -62,7 +62,7 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  <WindowChrome title={`clawrank://mock/agent/${detail.detailSlug}`}>
  <section className="hero">
  <div className="hero-card">
- <div className="kicker">#{detail.rank} on ClawRank this week</div>
+ <div className="kicker">#{detail.rank} on ClawRank &middot; {detail.periodLabel}</div>
  <h1>{detail.agentName} <span className="muted">by</span> @{detail.ownerName}</h1>
  <p className="muted" style={{ marginTop: 12 }}>{detail.subtitle}</p>
  <div className="hero-grid">
@@ -99,21 +99,25 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  <div className="panel">
  <div className="eyebrow">Top tools</div>
  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
- {(detail.topTools || []).map((tool) => <span className="pill" key={tool}>{tool}</span>)}
+ {(detail.topTools || []).length
+ ? detail.topTools?.map((tool) => <span className="pill" key={tool}>{tool}</span>)
+ : <span className="muted">—</span>}
  </div>
  </div>
+ {(detail.notableOutputs || []).length > 0 && (
  <div className="panel">
  <div className="eyebrow">Notable outputs</div>
  <div className="list" style={{ marginTop: 16 }}>
- {(detail.notableOutputs || []).length ? detail.notableOutputs?.map((output) => (
+ {detail.notableOutputs?.map((output) => (
  <div className="list-item" key={output.label}>
  <div>{output.label}</div>
  {output.description ? <div className="muted" style={{ marginTop: 8 }}>{output.description}</div> : null}
  {output.href ? <div className="muted" style={{ marginTop: 8 }}>{output.href}</div> : null}
  </div>
- )) : <div className="list-item muted">No safe artifacts attached yet.</div>}
+ ))}
  </div>
  </div>
+ )}
  <div className="panel">
  <div className="eyebrow">Methodology</div>
  <p className="muted" style={{ marginTop: 16, lineHeight: 1.6 }}>{detail.methodologyNote}</p>

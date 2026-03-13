@@ -48,7 +48,11 @@ export interface ShareStat {
  | 'Lines removed'
  | 'Tool calls'
  | 'Messages'
- | 'Sessions';
+ | 'Sessions'
+ | 'Active days'
+ | 'Assistant turns'
+ | 'Top model'
+ | 'Estimated cost';
  value: number;
  status: MetricStatus;
  detail?: string | null;
@@ -60,7 +64,7 @@ export interface OgImagePayload {
  rankText: string;
  tokenText: string;
  statChips: Array<{
- label: 'Commits' | 'Files' | 'Tool calls' | 'Messages';
+ label: 'Commits' | 'Files' | 'Tool calls' | 'Messages' | 'Sessions';
  value: string;
  }>;
  periodLabel: string;

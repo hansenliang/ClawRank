@@ -571,16 +571,27 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
 
  const modelTotals = new Map<string, number>();
  const hourTotals = new Map<number, number>();
+ const toolTotals = new Map<string, number>();
  let estimatedCostUsd = 0;
+ let toolCallCount = 0;
+ let userMessageCount = 0;
 
  for (const f of facts) {
  if (f.topModel) modelTotals.set(f.topModel, (modelTotals.get(f.topModel) || 0) + f.totalTokens);
  if (typeof f.mostActiveHour === 'number') hourTotals.set(f.mostActiveHour, (hourTotals.get(f.mostActiveHour) || 0) + f.totalTokens);
  estimatedCostUsd += f.estimatedCostUsd || 0;
+ toolCallCount += f.toolCallCount || 0;
+ userMessageCount += f.userMessageCount || 0;
+ if (f.topTools && typeof f.topTools === 'object') {
+ for (const [name, count] of Object.entries(f.topTools as Record<string, number>)) {
+ toolTotals.set(name, (toolTotals.get(name) || 0) + count);
+ }
+ }
  }
 
  const topModel = [...modelTotals.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || null;
  const mostActiveHour = [...hourTotals.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+ const topToolNames = [...toolTotals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([name]) => name);
 
  return {
  id: agent.id,
@@ -597,6 +608,9 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
  mostActiveHour,
  topModel,
  estimatedCostUsd: Number(estimatedCostUsd.toFixed(4)),
+ toolCallCount,
+ userMessageCount,
+ topToolNames,
  sourceTypes: uniq(facts.map((f) => f.sourceType)),
  sourceAdapters: uniq(facts.map((f) => f.sourceAdapter || '').filter(Boolean)),
  lastSubmissionAt: agent.lastSubmissionAt,
@@ -604,7 +618,6 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
  })
  .sort((a, b) => {
  return (
- STATE_PRIORITY[b.state] - STATE_PRIORITY[a.state] ||
  b.totalTokens - a.totalTokens ||
  b.sessionCount - a.sessionCount ||
  a.displayName.localeCompare(b.displayName)
