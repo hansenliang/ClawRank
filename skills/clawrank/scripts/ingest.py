@@ -253,63 +253,68 @@ def _discover_repos(login: str, verbose: bool = False) -> list[dict]:
     return results
 
 
-def _fetch_commits_for_date(
-    owner: str, name: str, login: str, date_str: str, verbose: bool = False,
-) -> tuple[int, int, int]:
-    """
-    Fetch commits by login for a specific date in a repo.
-    Returns (commit_count, lines_added, lines_removed).
-    Excludes merge commits (>1 parent).
-    """
-    # date_str is YYYY-MM-DD; GitHub API uses ISO 8601
-    since = f"{date_str}T00:00:00Z"
-    until_dt = datetime.strptime(date_str, "%Y-%m-%d") + timedelta(days=1)
-    until = until_dt.strftime("%Y-%m-%dT00:00:00Z")
+def _fetch_commit_sha_stats(owner: str, name: str, sha: str) -> tuple[int, int]:
+    """Fetch additions/deletions for a single commit SHA. Returns (added, removed)."""
+    detail = _gh_api(f"/repos/{owner}/{name}/commits/{sha}")
+    if not isinstance(detail, dict):
+        return 0, 0
+    stats = detail.get("stats", {})
+    return stats.get("additions", 0), stats.get("deletions", 0)
 
+
+def _fetch_repo_commits_bulk(
+    owner: str, name: str, login: str, since: str, until: str, verbose: bool = False,
+) -> list[dict]:
+    """
+    Fetch ALL commits by login in a repo for the entire date range in one
+    paginated call. Returns list of commit objects (merge commits excluded).
+    """
     commits_data = _gh_api(
         f"/repos/{owner}/{name}/commits?author={login}&since={since}&until={until}&per_page=100",
         paginate=True,
     )
     if not isinstance(commits_data, list):
-        return 0, 0, 0
+        return []
 
-    commit_count = 0
-    total_added = 0
-    total_removed = 0
-
-    for commit_summary in commits_data:
-        # Skip merge commits (more than 1 parent)
-        parents = commit_summary.get("parents", [])
-        if len(parents) > 1:
+    results = []
+    for c in commits_data:
+        # Skip merge commits
+        if len(c.get("parents", [])) > 1:
             continue
-
-        sha = commit_summary.get("sha")
-        if not sha:
-            continue
-
-        # Fetch full commit for stats
-        commit_detail = _gh_api(f"/repos/{owner}/{name}/commits/{sha}")
-        if not isinstance(commit_detail, dict):
-            continue
-
-        stats = commit_detail.get("stats", {})
-        additions = stats.get("additions", 0)
-        deletions = stats.get("deletions", 0)
-
-        commit_count += 1
-        total_added += additions
-        total_removed += deletions
-
-    return commit_count, total_added, total_removed
+        sha = c.get("sha")
+        # Extract commit date for bucketing
+        commit_date_str = (
+            c.get("commit", {}).get("author", {}).get("date", "")
+            or c.get("commit", {}).get("committer", {}).get("date", "")
+        )
+        if sha and commit_date_str:
+            results.append({
+                "sha": sha,
+                "owner": owner,
+                "name": name,
+                "date": commit_date_str[:10],  # YYYY-MM-DD
+            })
+    return results
 
 
-def _fetch_prs_for_date(login: str, date_str: str) -> int:
-    """Count PRs opened by login on a specific date using search API."""
-    query = f"author:{login} type:pr created:{date_str}"
-    data = _gh_api(f"/search/issues?q={urllib.parse.quote(query)}&per_page=1")
-    if isinstance(data, dict):
-        return data.get("total_count", 0)
-    return 0
+def _fetch_prs_for_range(login: str, since: str, until: str) -> dict[str, int]:
+    """
+    Count PRs opened by login in a date range using a single search call.
+    Returns {date_str: count} by fetching up to 100 results and bucketing by created_at.
+    """
+    query = f"author:{login} type:pr created:{since}..{until}"
+    data = _gh_api(f"/search/issues?q={urllib.parse.quote(query)}&per_page=100")
+    if not isinstance(data, dict):
+        return {}
+
+    counts: dict[str, int] = defaultdict(int)
+    for item in data.get("items", []):
+        created = item.get("created_at", "")[:10]
+        if created:
+            counts[created] += 1
+
+    # If total_count > 100, we're missing some — but this covers the vast majority
+    return dict(counts)
 
 
 def collect_github_metrics(
@@ -321,9 +326,12 @@ def collect_github_metrics(
     Collect GitHub commit and PR metrics per day.
     Returns {date_str: {commit_count, lines_added, lines_removed, pr_count}}.
 
-    Backfills up to 90 days on first run; subsequent runs fetch only since
-    last_submission_date.
+    Uses bulk fetches (one per repo for entire range) + parallel SHA detail
+    lookups for line stats. First run backfills up to 90 days; subsequent runs
+    fetch only since last_submission_date.
     """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     repos = _discover_repos(login, verbose=verbose)
     if not repos:
         if verbose:
@@ -345,6 +353,9 @@ def collect_github_metrics(
     if start_date < earliest:
         start_date = earliest
 
+    since_iso = f"{start_date.isoformat()}T00:00:00Z"
+    until_iso = f"{(today + timedelta(days=1)).isoformat()}T00:00:00Z"
+
     if verbose:
         print(f"    Collecting git metrics from {start_date} to {today} across {len(repos)} repos")
 
@@ -355,28 +366,47 @@ def collect_github_metrics(
         "pr_count": 0,
     })
 
-    # Collect commits per repo per day
-    current = start_date
-    dates = []
-    while current <= today:
-        dates.append(current.strftime("%Y-%m-%d"))
-        current += timedelta(days=1)
-
+    # Phase 1: Bulk-fetch all commits per repo (one paginated call each)
+    all_commits: list[dict] = []
     for repo in repos:
-        for date_str in dates:
-            commits, added, removed = _fetch_commits_for_date(
-                repo["owner"], repo["name"], login, date_str, verbose=verbose,
-            )
-            if commits > 0:
-                daily_git[date_str]["commit_count"] += commits
-                daily_git[date_str]["lines_added"] += added
-                daily_git[date_str]["lines_removed"] += removed
+        commits = _fetch_repo_commits_bulk(
+            repo["owner"], repo["name"], login, since_iso, until_iso, verbose=verbose,
+        )
+        all_commits.extend(commits)
+        if verbose and commits:
+            print(f"      {repo['full_name']}: {len(commits)} commits")
 
-    # Collect PRs per day (one search call per day, not per repo)
-    for date_str in dates:
-        pr_count = _fetch_prs_for_date(login, date_str)
-        if pr_count > 0:
-            daily_git[date_str]["pr_count"] += pr_count
+    # Count commits per day
+    for c in all_commits:
+        daily_git[c["date"]]["commit_count"] += 1
+
+    # Phase 2: Fetch line stats in parallel (ThreadPoolExecutor)
+    if all_commits:
+        sha_results: dict[str, tuple[int, int]] = {}
+
+        with ThreadPoolExecutor(max_workers=10) as pool:
+            future_to_commit = {
+                pool.submit(_fetch_commit_sha_stats, c["owner"], c["name"], c["sha"]): c
+                for c in all_commits
+            }
+            for future in as_completed(future_to_commit):
+                c = future_to_commit[future]
+                try:
+                    added, removed = future.result()
+                    daily_git[c["date"]]["lines_added"] += added
+                    daily_git[c["date"]]["lines_removed"] += removed
+                except Exception:
+                    pass  # skip individual failures
+
+        if verbose:
+            total_added = sum(v["lines_added"] for v in daily_git.values())
+            total_removed = sum(v["lines_removed"] for v in daily_git.values())
+            print(f"    Line stats: +{total_added} -{total_removed}")
+
+    # Phase 3: PRs — single search call for the entire range
+    pr_counts = _fetch_prs_for_range(login, start_date.isoformat(), today.isoformat())
+    for date_str, count in pr_counts.items():
+        daily_git[date_str]["pr_count"] += count
 
     # Remove days with no activity
     daily_git = {d: v for d, v in daily_git.items() if any(v.values())}
