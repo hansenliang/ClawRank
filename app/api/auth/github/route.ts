@@ -4,7 +4,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const clientId = process.env.GITHUB_CLIENT_ID;
+  const clientId = process.env.GITHUB_CLIENT_ID?.trim();
   if (!clientId) {
     return NextResponse.json({ error: 'GitHub OAuth not configured' }, { status: 500 });
   }
