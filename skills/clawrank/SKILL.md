@@ -33,6 +33,12 @@ The user needs to run `gh auth login` first. This is a one-time step — most Op
 
 The bundled Python script scans all local OpenClaw agent session transcripts, aggregates token usage into daily facts per agent, and POSTs them to the ClawRank API. No dependencies beyond Python 3 stdlib.
 
+### GitHub metrics (v1.1.0)
+
+If `gh` CLI is installed and authenticated, the script also collects per-day **commit counts**, **lines added/removed**, and **PRs opened** across all your recently-active repos. Merge commits are excluded automatically. First run backfills up to 90 days; subsequent runs are incremental.
+
+If `gh` is unavailable, the script prints `[git-metrics:skipped]` and submits token metrics normally. No action required — git metrics are collected automatically when possible.
+
 ## Explicit setup (optional)
 
 If you prefer to set up manually or the auto-setup doesn't work:
