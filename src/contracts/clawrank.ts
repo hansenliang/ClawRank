@@ -51,6 +51,7 @@ export interface ShareStat {
  | 'Sessions';
  value: number;
  status: MetricStatus;
+ detail?: string | null;
 }
 
 export interface OgImagePayload {

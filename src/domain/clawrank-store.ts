@@ -361,8 +361,8 @@ export function getLeaderboardResponse(store: ClawRankStore, period: Leaderboard
  };
 }
 
-function stat(label: ShareStat['label'], value: number): ShareStat {
- return { label, value, status: 'verified' };
+function stat(label: ShareStat['label'], value: number, detail?: string | null): ShareStat {
+ return { label, value, status: 'verified', detail: detail ?? null };
 }
 
 function getRollup(store: ClawRankStore, agentId: string, period: LeaderboardPeriod, now = new Date()) {
@@ -387,9 +387,21 @@ export function getAgentDetail(store: ClawRankStore, slug: string, period: Leade
  .sort((a, b) => b.date.localeCompare(a.date));
 
  const periodFacts = facts.filter((fact) => withinPeriod(fact.date, period, now));
- const longestRunSeconds = periodFacts.reduce((max, fact) => Math.max(max, fact.longestRunSeconds || 0), 0);
- const mostActiveHour = row?.mostActiveHour ?? null;
  const estimatedCostCents = Math.round((row?.estimatedCostUsd || 0) * 100);
+ const totalToolCalls = periodFacts.reduce((sum, fact) => sum + (fact.toolCallCount || 0), 0);
+ const totalUserMessages = periodFacts.reduce((sum, fact) => sum + (fact.userMessageCount || 0), 0);
+ const totalAssistantMessages = periodFacts.reduce((sum, fact) => sum + (fact.assistantMessageCount || 0), 0);
+
+ // Aggregate top tools across all period facts
+ const toolTotals = new Map<string, number>();
+ for (const fact of periodFacts) {
+ if (fact.topTools && typeof fact.topTools === 'object') {
+ for (const [name, count] of Object.entries(fact.topTools)) {
+ toolTotals.set(name, (toolTotals.get(name) || 0) + (count as number));
+ }
+ }
+ }
+ const topToolName = [...toolTotals.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || null;
 
  return {
  id: agent.id,
@@ -410,9 +422,11 @@ export function getAgentDetail(store: ClawRankStore, slug: string, period: Leade
  stat('Tokens', row?.totalTokens || 0),
  stat('Sessions', row?.sessionCount || 0),
  stat('Active days', row?.activeDays || 0),
- stat('Longest run (s)', longestRunSeconds),
- stat('Most active hour', mostActiveHour ?? 0),
- stat('Estimated cost (¢)', estimatedCostCents),
+ stat('Tool calls', totalToolCalls, topToolName ? `Top: ${topToolName}` : null),
+ stat('User messages', totalUserMessages),
+ stat('Assistant turns', totalAssistantMessages),
+ stat('Top model', 0, row?.topModel || null),
+ stat('Estimated cost', estimatedCostCents, '¢'),
  ],
  topModel: row?.topModel || null,
  lastSubmissionAt: agent.lastSubmissionAt || null,

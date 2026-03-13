@@ -75,6 +75,11 @@ export interface DailyAgentFact {
  mostActiveHour?: number | null;
  topModel?: string | null;
  estimatedCostUsd?: number | null;
+ userMessageCount?: number | null;
+ assistantMessageCount?: number | null;
+ toolCallCount?: number | null;
+ topTools?: Record<string, number> | null;
+ modelsUsed?: Record<string, number> | null;
  sourceType: SourceType;
  sourceAdapter?: string | null;
  createdAt: string;
@@ -100,6 +105,11 @@ export interface DailyAgentFactInput {
  mostActiveHour?: number | null;
  topModel?: string | null;
  estimatedCostUsd?: number | null;
+ userMessageCount?: number | null;
+ assistantMessageCount?: number | null;
+ toolCallCount?: number | null;
+ topTools?: Record<string, number> | null;
+ modelsUsed?: Record<string, number> | null;
  sourceType: SourceType;
  sourceAdapter?: string | null;
 }
@@ -155,11 +165,14 @@ export interface ShareStat {
  | 'Tokens'
  | 'Sessions'
  | 'Active days'
- | 'Longest run (s)'
- | 'Most active hour'
- | 'Estimated cost (¢)';
+ | 'Tool calls'
+ | 'User messages'
+ | 'Assistant turns'
+ | 'Top model'
+ | 'Estimated cost';
  value: number;
  status: MetricStatus;
+ detail?: string | null;
 }
 
 export interface AgentPeriodRollup {
