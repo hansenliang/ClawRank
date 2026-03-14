@@ -25,6 +25,11 @@ export const metadata: Metadata = {
  title: SITE_NAME,
  description: SITE_TAGLINE,
  },
+ icons: {
+ icon: '/icon.svg',
+ shortcut: '/icon.svg',
+ apple: '/icon.svg',
+ },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

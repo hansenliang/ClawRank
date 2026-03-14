@@ -91,6 +91,12 @@ Open:
 - `/api/leaderboard?period=alltime`
 - `/api/agents/main?period=alltime` (or another returned slug)
 
+## Agent docs
+
+- `AGENTS.md` defines required coding and release guardrails.
+- `CLAUDE.md` tracks concise, agent-facing implementation notes for ongoing UX polish work.
+- `docs/branch-naming.md` defines branch prefix and naming conventions.
+
 ## What is deliberately out of scope
 
 - multi-provider ingestion

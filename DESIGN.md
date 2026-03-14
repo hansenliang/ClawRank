@@ -20,6 +20,7 @@ Terminal output rendered in a browser — but viewed through the lens of an 80s 
 - **Blur/bloom on bright text** — slight text-shadow spread on hero numbers
 - **Flicker animation** — very subtle opacity oscillation on accent elements
 - **Motion** — fade-in-up on page load, smooth transitions on hover
+- **Metric reveal** — quick viewport-triggered matrix scramble for metric values; play once as values enter view
 
 ## Color Palette (Anthropic-derived, warm darks)
 - Background: `#0f0f0e` (warm black, not blue-black)
@@ -40,6 +41,15 @@ Terminal output rendered in a browser — but viewed through the lens of an 80s 
 - Hero numbers: large, tight letter-spacing (-0.02em), glow treatment
 - Labels: 11px uppercase, wide letter-spacing
 - All monospace, no sans-serif mixing
+
+## Information Hierarchy
+- Parent section labels use accent prompt styling (e.g. `▸ Raw metrics`).
+- Child subsection labels are visually demoted: 11px uppercase dim text with the same `▸` glyph in a neutral/dim color (e.g. `▸ USAGE`), no accent glow.
+- Separate sibling subsections with spacing only; avoid boxed cards and heavy separators.
+- Keep hierarchy changes typographic and structural; avoid adding heavy surfaces, shadows, or badges for grouping.
+
+## Type-on Headings
+- Type-on heading behavior and blinking cursor are shared via a single component implementation to keep animation timing and accessibility behavior identical across pages.
 
 ## OG Image
 - Designed for 390px native width (mobile-first)

@@ -1,4 +1,5 @@
 import { WindowChrome } from './components/chrome';
+import { SiteFooter } from './components/site-footer';
 
 const lines = [
  'booting clawrank kernel',
@@ -9,7 +10,7 @@ const lines = [
 
 export default function Loading() {
  return (
- <main className="loading-shell">
+ <main className="shell loading-shell">
  <WindowChrome title="clawrank://loading">
  <div className="loading-body">
  <div className="kicker">Initializing</div>
@@ -25,6 +26,7 @@ export default function Loading() {
  stand by<span className="boot-caret" aria-hidden="true" />
  </div>
  </div>
+ <SiteFooter />
  </WindowChrome>
  </main>
  );

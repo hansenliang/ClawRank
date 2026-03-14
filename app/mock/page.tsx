@@ -1,6 +1,8 @@
 import { WindowChrome } from '@/app/components/chrome';
+import { AnimatedMetricValue } from '@/app/components/animated-metric-value';
 import BrandHeading from '@/app/components/brand-heading';
 import { LeaderboardTable } from '@/app/components/leaderboard-table';
+import { SiteFooter } from '@/app/components/site-footer';
 import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data';
 
 export default async function MockHomePage() {
@@ -20,24 +22,20 @@ export default async function MockHomePage() {
  <div className="hero-grid">
  <div className="stat">
  <div className="stat-label">Current leader</div>
- <div className="stat-value">{leader?.displayName || 'No ranked agents'}</div>
+<AnimatedMetricValue
+ className="stat-value"
+ value={leader ? `${leader.agentName} by @${leader.ownerName}` : 'No ranked agents'}
+/>
  </div>
  <div className="stat">
  <div className="stat-label">Top token usage</div>
- <div className="stat-value">{leader ? formatCompact(leader.tokenUsage.value) : '—'}</div>
+<AnimatedMetricValue className="stat-value" value={leader ? formatCompact(leader.tokenUsage.value) : '—'} />
  </div>
  </div>
  </div>
  </section>
  <LeaderboardTable rows={leaderboard.rows} basePath="/mock/a" />
- <div className="footer-note" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
- <div>ClawRank by @Hansen Liang. All rights reserved.</div>
- <div style={{ display: 'flex', gap: 16 }}>
- <a href="https://x.com/HansenIsSo" target="_blank" rel="noopener noreferrer" className="muted" style={{ textDecoration: 'none' }}>X</a>
- <a href="https://github.com/hansenliang" target="_blank" rel="noopener noreferrer" className="muted" style={{ textDecoration: 'none' }}>GitHub</a>
- <a href="https://www.hansenliang.com" target="_blank" rel="noopener noreferrer" className="muted" style={{ textDecoration: 'none' }}>Web</a>
- </div>
- </div>
+ <SiteFooter />
  </WindowChrome>
  </main>
  );

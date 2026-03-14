@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { SiteFooter } from '@/app/components/site-footer';
 
 interface LinkedAccount {
   provider: string;
@@ -570,6 +571,7 @@ export function RegisterClient() {
           )}
         </div>
       )}
+      <SiteFooter />
     </main>
   );
 }
