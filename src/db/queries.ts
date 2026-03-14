@@ -579,6 +579,18 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
 
  // Fetch ALL facts with their agent data (we need full history for state derivation)
  const allFactRows = await sql`
+ WITH best_avatar AS (
+   SELECT DISTINCT ON (user_id)
+     user_id,
+     avatar_url
+   FROM linked_accounts
+   WHERE avatar_url IS NOT NULL
+   ORDER BY
+     user_id,
+     (provider = 'github') DESC,
+     verified DESC,
+     updated_at DESC
+ )
  SELECT
    f.*,
    a.slug,
@@ -587,20 +599,10 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
    a.state,
    a.user_id as a_user_id,
    a.last_submission_at,
-   COALESCE(a.avatar_url, la.avatar_url) as resolved_avatar_url
+   COALESCE(a.avatar_url, ba.avatar_url) as resolved_avatar_url
  FROM daily_agent_facts f
  JOIN agents a ON f.agent_id = a.id
- LEFT JOIN LATERAL (
-   SELECT avatar_url
-   FROM linked_accounts
-   WHERE user_id = a.user_id
-     AND avatar_url IS NOT NULL
-   ORDER BY
-     (provider = 'github') DESC,
-     verified DESC,
-     updated_at DESC
-   LIMIT 1
- ) la ON TRUE
+ LEFT JOIN best_avatar ba ON ba.user_id = a.user_id
  ORDER BY a.slug, f.date
  `;
 
