@@ -56,7 +56,7 @@ button { font: inherit; }
 
 /* ─── Shell ─── */
 .shell {
- width: min(960px, calc(100% - 32px));
+ width: min(1080px, calc(100% - 32px));
  margin: 0 auto;
  padding: 0 0 48px;
 }
@@ -186,6 +186,39 @@ gap: 0.1em;
  display: grid;
  grid-template-columns: repeat(4, minmax(0, 1fr));
  gap: 0;
+}
+
+.stat-sections {
+ display: grid;
+ gap: 12px;
+}
+
+.stat-section + .stat-section {
+ border-top: 1px solid var(--border);
+ padding-top: 16px;
+}
+
+.stat-subheading {
+ color: var(--text-4);
+ font-size: 11px;
+ font-weight: 500;
+ letter-spacing: 0.06em;
+ text-transform: uppercase;
+}
+
+.stat-subheading::before {
+ content: '▸ ';
+ color: var(--text-3);
+}
+
+.stat-section-grid {
+ margin-top: 12px;
+}
+
+/* Detail metrics should align flush with surrounding panel content. */
+.stat-section-grid .metric-card {
+ padding-left: 0;
+ padding-right: 0;
 }
 
 .detail-grid {

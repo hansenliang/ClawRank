@@ -41,6 +41,12 @@ Terminal output rendered in a browser — but viewed through the lens of an 80s 
 - Labels: 11px uppercase, wide letter-spacing
 - All monospace, no sans-serif mixing
 
+## Information Hierarchy
+- Parent section labels use accent prompt styling (e.g. `▸ Raw metrics`).
+- Child subsection labels are visually demoted: 11px uppercase dim text with the same `▸` glyph in a neutral/dim color (e.g. `▸ USAGE`), no accent glow.
+- Separate sibling subsections with a single hairline divider (`1px var(--border)`), not boxed cards.
+- Keep hierarchy changes typographic and structural; avoid adding heavy surfaces, shadows, or badges for grouping.
+
 ## OG Image
 - Designed for 390px native width (mobile-first)
 - Single column, vertically stacked
