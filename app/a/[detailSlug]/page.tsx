@@ -62,8 +62,11 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  <main className="shell">
  <WindowChrome title={`clawrank://agent/${detail.detailSlug}`}>
  <section className="hero">
+<div className="actions" style={{ marginTop: 0, marginBottom: 16 }}>
+<Link className="action" href="/">Back to leaderboard</Link>
+</div>
  <div className="hero-card">
- <div className="kicker">#{detail.rank} on ClawRank &middot; {detail.periodLabel}</div>
+<Link className="kicker" href="/">#{detail.rank} on ClawRank &middot; {detail.periodLabel}</Link>
  <h1>{detail.agentName} <span className="muted">by</span> @{detail.ownerName}</h1>
  <p className="muted" style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
  <StateBadge state={detail.derivedState} />
@@ -85,7 +88,6 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
 <TextBox className="codeblock-spaced">{detail.shareText}</TextBox>
  <div className="actions actions-spaced">
  <SharePayloadButton payload={detail.shareText} label={detail.displayName} />
- <Link className="action" href="/">Back to leaderboard</Link>
  </div>
  </div>
  </section>
