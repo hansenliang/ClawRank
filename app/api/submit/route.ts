@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { DailyFactSubmission, UserRecord } from '@/src/contracts/clawrank-domain';
 import { hasDB } from '@/src/db/connection';
-import { dbSubmitDailyFactSubmission, dbGetAgentShareInfo, dbFindValidToken, dbGetAgentBySlug } from '@/src/db/queries';
+import { dbSubmitDailyFactSubmission, dbGetAgentShareInfo, dbFindValidToken } from '@/src/db/queries';
 import { hashToken } from '@/src/lib/auth';
 import {
   readStore,
@@ -60,31 +60,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Validation failed: ${errors.join('; ')}` }, { status: 400 });
   }
 
-  // If using a per-user token, verify ownership
+  // Resolve per-user token owner (if any)
   const authUser = auth && auth.admin === false ? auth.user : null;
-  if (authUser) {
-    const existingAgent = await dbGetAgentBySlug(body.agent.slug);
-    if (existingAgent && existingAgent.userId && existingAgent.userId !== authUser.id) {
-      return NextResponse.json({ error: 'You do not own this agent' }, { status: 403 });
-    }
-  }
 
   try {
     if (hasDB()) {
       // Production path: write to Postgres
-      const result = await dbSubmitDailyFactSubmission(body);
-
-      // If using a per-user token and agent has no owner, link it
-      if (authUser && !result.agent.userId) {
-        const sql = (await import('@/src/db/connection')).getSQL();
-        if (sql) {
-          await sql`UPDATE agents SET user_id = ${authUser.id} WHERE id = ${result.agent.id} AND user_id IS NULL`;
-        }
-      }
+      // For per-user token: agent is owned by that user
+      // For admin token: dbSubmitDailyFactSubmission creates/finds phantom user from ownerName
+      const result = await dbSubmitDailyFactSubmission(
+        body,
+        authUser ? { userId: authUser.id } : undefined,
+      );
 
       // Fetch share info (rank + total tokens) for the response
       const shareInfo = await dbGetAgentShareInfo(result.agent.id);
-      const shareUrl = `https://clawrank.dev/a/${result.agent.slug}`;
+      const username = shareInfo.username || result.username;
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://clawrank.dev';
+      const shareUrl = `${siteUrl}/a/${username}/${result.agent.slug}`;
       const formattedTokens = shareInfo.totalTokens.toLocaleString('en-US');
       const agentName = body.agent.agentName || result.agent.slug;
       const shareText = `${agentName} is #${shareInfo.rank} on ClawRank with ${formattedTokens} tokens. ${shareUrl}`;
