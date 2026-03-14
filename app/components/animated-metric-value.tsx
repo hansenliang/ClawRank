@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
+import { getMetricRevealDurationMs } from './motion-timing';
 
 const SCRAMBLE_GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*';
 
@@ -61,7 +62,7 @@ export function AnimatedMetricValue({ value, className, style }: AnimatedMetricV
       return;
     }
 
-    const durationMs = Math.min(760, Math.max(720, value.length * 108));
+    const durationMs = getMetricRevealDurationMs(value.length);
     const chars = Array.from(value);
     const startTime = performance.now();
     let frameId = 0;

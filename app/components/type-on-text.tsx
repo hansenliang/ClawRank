@@ -1,6 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import {
+  HEADING_STAGGER_BASE_DELAY_MS,
+  HEADING_STAGGER_JITTER_MAX_MS,
+  HEADING_STAGGER_JITTER_MIN_MS,
+} from './motion-timing';
 
 type TypeOnTextProps = {
   text: string;
@@ -50,7 +55,9 @@ export function TypeOnText({
     };
 
     let typingTimer: number | undefined;
-    const startDelayMs = randomBetween(70, 140);
+    const startDelayMs =
+      HEADING_STAGGER_BASE_DELAY_MS +
+      randomBetween(HEADING_STAGGER_JITTER_MIN_MS, HEADING_STAGGER_JITTER_MAX_MS);
     let typedCount = 0;
 
     const typeNext = () => {
