@@ -6,6 +6,10 @@ Concise, agent-facing implementation log and workflow notes for this repository.
 ## Active Branch
 - `feat/ux-polish`
 
+## Recent Updates
+- Added a lobster emoji favicon via `app/icon.svg`.
+- Wired explicit metadata icon declarations in `app/layout.tsx` for standard, shortcut, and Apple icon tags.
+
 ## Branch Naming Rules
 - Use lowercase kebab-case branch names.
 - Prefix by intent:
