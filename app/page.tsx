@@ -3,6 +3,7 @@ import { WindowChrome } from './components/chrome';
 import { LeaderboardTable } from './components/leaderboard-table';
 import { PeriodSelector } from './components/period-selector';
 import { PromptCopyButton } from './components/prompt-copy-button';
+import { TextBox } from './components/text-box';
 import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data';
 
 export const dynamic = 'force-dynamic';
@@ -52,12 +53,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
  </div>
  </section>
  <div className="period-bar">
-      <div className="cta-bar cta-bar-no-top cta-openclaw">
+      <div className="cta-bar ">
  <span className="muted">▸ Running OpenClaw? Tell your agent:</span>
-<code className="inline-code inline-code-with-copy">
+<TextBox variant="inline" className="inline-code-with-copy">
   <span className="inline-code-text">&ldquo;{OPENCLAW_PROMPT}&rdquo;</span>
   <PromptCopyButton text={OPENCLAW_PROMPT} />
-</code>
+</TextBox>
  </div>
  <PeriodSelector current={period} />
  </div>

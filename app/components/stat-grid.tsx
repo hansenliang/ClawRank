@@ -1,12 +1,6 @@
 import type { ShareStat } from '@/src/contracts/clawrank';
 import { formatCompact, formatStandard } from '@/src/lib/data';
 
-function badgeClass(status: ShareStat['status']) {
- if (status === 'partial') return 'status-badge status-partial';
- if (status === 'missing') return 'status-badge status-missing';
- return 'status-badge';
-}
-
 export function StatGrid({ stats }: { stats: ShareStat[] }) {
  return (
  <div className="stats-grid">
@@ -27,12 +21,9 @@ export function StatGrid({ stats }: { stats: ShareStat[] }) {
  <div key={stat.label} className="metric-card">
  <div className="metric-label">{stat.label}</div>
  <div className="metric-value">{display}</div>
- {stat.detail && stat.label !== 'Top model' && !isMissing && (
+      {stat.detail && stat.label !== 'Top model' && stat.label !== 'Tool calls' && !isMissing && (
  <div className="metric-detail muted" style={{ marginTop: 4, fontSize: 13 }}>{stat.detail}</div>
  )}
- <div style={{ marginTop: 10 }}>
- <span className={badgeClass(stat.status)}>{stat.status}</span>
- </div>
  </div>
  );
  })}

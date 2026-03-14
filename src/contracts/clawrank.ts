@@ -30,6 +30,7 @@ export interface LeaderboardRow {
  shareUrl: string;
  detailSlug: string;
  avatarSeed?: string;
+ avatarUrl?: string | null;
  topToolNames?: string[];
  notableOutputCount?: number;
  dataSources: string[];

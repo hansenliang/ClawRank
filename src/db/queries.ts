@@ -579,14 +579,33 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
 
  // Fetch ALL facts with their agent data (we need full history for state derivation)
  const allFactRows = await sql`
- SELECT f.*, a.slug, a.agent_name, a.owner_name, a.state, a.user_id as a_user_id, a.last_submission_at
+ SELECT
+   f.*,
+   a.slug,
+   a.agent_name,
+   a.owner_name,
+   a.state,
+   a.user_id as a_user_id,
+   a.last_submission_at,
+   COALESCE(a.avatar_url, la.avatar_url) as resolved_avatar_url
  FROM daily_agent_facts f
  JOIN agents a ON f.agent_id = a.id
+ LEFT JOIN LATERAL (
+   SELECT avatar_url
+   FROM linked_accounts
+   WHERE user_id = a.user_id
+     AND avatar_url IS NOT NULL
+   ORDER BY
+     (provider = 'github') DESC,
+     verified DESC,
+     updated_at DESC
+   LIMIT 1
+ ) la ON TRUE
  ORDER BY a.slug, f.date
  `;
 
  // Group ALL facts by agent (for state derivation)
- const agentAllFacts = new Map<string, { agent: { id: string; userId: string | null; slug: string; agentName: string; ownerName: string; state: AgentState; lastSubmissionAt: string | null }; facts: DailyAgentFact[] }>();
+ const agentAllFacts = new Map<string, { agent: { id: string; userId: string | null; slug: string; agentName: string; ownerName: string; avatarUrl: string | null; state: AgentState; lastSubmissionAt: string | null }; facts: DailyAgentFact[] }>();
  for (const row of allFactRows) {
  const agentId = row.agent_id as string;
  if (!agentAllFacts.has(agentId)) {
@@ -597,6 +616,7 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
  slug: row.slug as string,
  agentName: row.agent_name as string,
  ownerName: row.owner_name as string,
+     avatarUrl: (row.resolved_avatar_url as string) ?? null,
  state: row.state as AgentState,
  lastSubmissionAt: row.last_submission_at ? String(row.last_submission_at) : null,
  },
@@ -664,6 +684,7 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
  agentName: agent.agentName,
  ownerName: agent.ownerName,
  displayName: `${agent.agentName} by ${agent.ownerName}`,
+   avatarUrl: agent.avatarUrl,
  state: agent.state,
  derivedState,
  totalTokens,

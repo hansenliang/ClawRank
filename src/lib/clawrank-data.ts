@@ -60,6 +60,7 @@ function domainRowToUiRow(row: DomainLeaderboardRow, periodStart: string, period
  agentName: row.agentName,
  ownerName: row.ownerName,
  displayName: row.displayName,
+ avatarUrl: row.avatarUrl ?? null,
  derivedState: row.derivedState,
  periodType: 'weekly',
  periodStart,

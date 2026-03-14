@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { WindowChrome } from '@/app/components/chrome';
-import { ShareLinkButton } from '@/app/components/share-link-button';
+import { SharePayloadButton } from '@/app/components/share-payload-button';
 import { StatGrid } from '@/app/components/stat-grid';
 import { formatCompact, formatPeriodLabel, getShareDetail } from '@/src/lib/data';
 import { getAbsoluteUrl, getDetailPath, getOgImagePath, getRequestOrigin } from '@/src/lib/site';
@@ -53,10 +53,6 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  const detail = await getShareDetail(detailSlug, 'baked');
  if (!detail) notFound();
 
- const origin = getRequestOrigin(await headers());
- const shareUrl = getAbsoluteUrl(`/mock${getDetailPath(detailSlug)}`, origin);
- const imageUrl = getAbsoluteUrl(getOgImagePath(detailSlug, 'baked'), origin);
-
  return (
  <main className="shell">
  <WindowChrome title={`clawrank://mock/agent/${detail.detailSlug}`}>
@@ -80,9 +76,7 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  <div className="eyebrow">Share payload</div>
  <div className="codeblock" style={{ marginTop: 16 }}>{detail.shareText}</div>
  <div className="actions actions-spaced">
- <a className="action" href={shareUrl}>Share URL</a>
- <a className="action" href={imageUrl}>OG image</a>
- <ShareLinkButton path={getDetailPath(detail.detailSlug)} label={detail.displayName} />
+ <SharePayloadButton payload={detail.shareText} label={detail.displayName} />
  <Link className="action" href="/mock">Back to mock leaderboard</Link>
  </div>
  </div>
