@@ -21,6 +21,12 @@ export function getOgImagePath(detailSlug: string, mode: 'baked' | 'live' = 'liv
  return mode === 'baked' ? `/api/og/mock/${detailSlug}` : `/api/og/${detailSlug}`;
 }
 
+export function getLeaderboardOgImagePath(period: string, mode: 'baked' | 'live' = 'live') {
+ const basePath = mode === 'baked' ? '/api/og/mock/leaderboard' : '/api/og/leaderboard';
+ const params = new URLSearchParams({ period });
+ return `${basePath}?${params.toString()}`;
+}
+
 export function getRequestOrigin(headers?: HeaderReader) {
  const forwardedProto = firstHeaderValue(headers?.get('x-forwarded-proto'));
  const forwardedHost = firstHeaderValue(headers?.get('x-forwarded-host'));
