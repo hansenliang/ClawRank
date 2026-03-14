@@ -9,7 +9,7 @@ const lines = [
 
 export default function Loading() {
  return (
- <main className="loading-shell">
+ <main className="shell loading-shell">
  <WindowChrome title="clawrank://loading">
  <div className="loading-body">
  <div className="kicker">Initializing</div>

@@ -153,9 +153,25 @@ h1, h2, h3, p { margin: 0; }
 }
 
 .brand-heading-inner {
+ display: inline-grid;
+ align-items: end;
+ min-height: 1.15em;
+}
+
+.type-on-reserve,
+.type-on-live {
+ grid-area: 1 / 1;
+}
+
+.type-on-reserve {
+ visibility: hidden;
+ white-space: nowrap;
+}
+
+.type-on-live {
  display: inline-flex;
  align-items: flex-end;
-gap: 0.1em;
+ gap: 0.1em;
 }
 
 .brand-heading-text {
@@ -435,10 +451,11 @@ gap: 0.1em;
 /* ─── Loading — terminal boot sequence ─── */
 .loading-shell {
  min-height: 100vh;
- display: flex;
- align-items: flex-start;
- justify-content: center;
- padding: 48px 16px;
+ padding-top: 48px;
+}
+
+.loading-shell .window {
+ width: 100%;
 }
 
 .loading-body {

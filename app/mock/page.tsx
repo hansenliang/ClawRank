@@ -21,7 +21,10 @@ export default async function MockHomePage() {
  <div className="hero-grid">
  <div className="stat">
  <div className="stat-label">Current leader</div>
-<AnimatedMetricValue className="stat-value" value={leader?.displayName || 'No ranked agents'} />
+<AnimatedMetricValue
+ className="stat-value"
+ value={leader ? `${leader.agentName} by @${leader.ownerName}` : 'No ranked agents'}
+/>
  </div>
  <div className="stat">
  <div className="stat-label">Top token usage</div>
