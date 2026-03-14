@@ -1,6 +1,7 @@
 import React from 'react';
 import { ImageResponse } from 'next/og';
-import { formatCompact, getShareDetail } from '@/src/lib/data';
+import type { LeaderboardPeriod } from '@/src/contracts/clawrank-domain';
+import { formatCompact, formatPeriodLabel, getLeaderboard, getShareDetail } from '@/src/lib/data';
 
 const h = React.createElement;
 
@@ -62,18 +63,62 @@ const T = {
  },
 };
 
+function periodToCliFlag(period: LeaderboardPeriod): string {
+ switch (period) {
+ case 'today':
+ return 'today';
+ case 'week':
+ return '7d';
+ case 'month':
+ return '30d';
+ default:
+ return 'alltime';
+ }
+}
+
+function periodToMetadataLabel(period: LeaderboardPeriod): string {
+ switch (period) {
+ case 'today':
+ return '24h';
+ case 'week':
+ return '7-day';
+ case 'month':
+ return '30-day';
+ default:
+ return 'All-time';
+ }
+}
+
 let fontData: ArrayBuffer | null = null;
 let fontBoldData: ArrayBuffer | null = null;
+let attemptedFontLoad = false;
+let reportedFontLoadFailure = false;
 
 async function loadFonts() {
- if (!fontData) {
+ if (attemptedFontLoad) return;
+ attemptedFontLoad = true;
+ try {
  const [regular, bold] = await Promise.all([
  fetch('https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.ttf').then((r) => r.arrayBuffer()),
  fetch('https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8L6tjPQ.ttf').then((r) => r.arrayBuffer()),
  ]);
  fontData = regular;
  fontBoldData = bold;
+ } catch (error) {
+ // Keep OG endpoints working in environments where remote fonts cannot be fetched.
+ if (!reportedFontLoadFailure) {
+ reportedFontLoadFailure = true;
+ console.warn('ClawRank OG font fetch failed; using runtime fallback font.', error);
  }
+ }
+}
+
+function getOgFonts() {
+ if (!fontData || !fontBoldData) return [];
+ return [
+ { name: 'JetBrains Mono', data: fontData, weight: 400 as const, style: 'normal' as const },
+ { name: 'JetBrains Mono', data: fontBoldData, weight: 700 as const, style: 'normal' as const },
+ ];
 }
 
 export async function renderOgImage(detailSlug: string, mode: 'baked' | 'live' = 'live') {
@@ -107,7 +152,7 @@ export async function renderOgImage(detailSlug: string, mode: 'baked' | 'live' =
  flexDirection: 'column',
  background: C.bg,
  color: C.text,
- fontFamily: 'JetBrains Mono',
+ fontFamily: 'JetBrains Mono, monospace',
  padding: 0,
  },
  },
@@ -319,10 +364,189 @@ export async function renderOgImage(detailSlug: string, mode: 'baked' | 'live' =
  {
  width: 1200,
  height: 630,
- fonts: [
- { name: 'JetBrains Mono', data: fontData!, weight: 400, style: 'normal' as const },
- { name: 'JetBrains Mono', data: fontBoldData!, weight: 700, style: 'normal' as const },
- ],
+ fonts: getOgFonts(),
+ },
+ );
+}
+
+export async function renderLeaderboardOgImage(period: LeaderboardPeriod = 'alltime', mode: 'baked' | 'live' = 'live') {
+ const leaderboard = await getLeaderboard(mode, period);
+ const leader = leaderboard.rows[0];
+ const tokenText = leader ? formatCompact(leader.tokenUsage.value) : '0';
+ const agentName = leader?.displayName || 'No ranked agents';
+ const periodLabel = periodToMetadataLabel(period);
+ const dateRange = formatPeriodLabel(leaderboard.periodStart, leaderboard.periodEnd);
+ const generatedAt = leaderboard.generatedAt
+ ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(leaderboard.generatedAt))
+ : '—';
+ const totalAgents = leaderboard.rows.length.toLocaleString();
+ const cliPeriod = periodToCliFlag(period);
+
+ await loadFonts();
+
+ return new ImageResponse(
+ h(
+ 'div',
+ {
+ style: {
+ position: 'relative',
+ height: '100%',
+ width: '100%',
+ display: 'flex',
+ flexDirection: 'column',
+ background: C.bg,
+ color: C.text,
+ fontFamily: 'JetBrains Mono, monospace',
+ padding: 0,
+ overflow: 'hidden',
+ },
+ },
+ h('div', {
+ style: {
+ position: 'absolute',
+ inset: 0,
+ background: 'radial-gradient(1200px 630px at 50% 50%, rgba(216,119,86,0.06), rgba(15,15,14,0.88) 70%)',
+ },
+ }),
+ h('div', {
+ style: {
+ position: 'absolute',
+ inset: 0,
+ backgroundImage: 'repeating-linear-gradient(to bottom, rgba(193,191,181,0.03) 0px, rgba(193,191,181,0.03) 1px, transparent 2px, transparent 5px)',
+ },
+ }),
+ h(
+ 'div',
+ {
+ style: {
+ position: 'relative',
+ display: 'flex',
+ alignItems: 'center',
+ padding: '26px 42px',
+ borderBottom: `1px solid ${C.border}`,
+ color: C.text3,
+ fontSize: 24,
+ letterSpacing: 0.4,
+ },
+ },
+ `▸ clawrank leaderboard --period=${cliPeriod}`,
+ ),
+ h(
+ 'div',
+ {
+ style: {
+ position: 'relative',
+ display: 'flex',
+ flexDirection: 'column',
+ justifyContent: 'center',
+ flex: 1,
+ padding: '34px 42px 28px',
+ gap: 12,
+ },
+ },
+ h(
+ 'div',
+ {
+ style: {
+ display: 'flex',
+ color: C.text3,
+ fontSize: 24,
+ letterSpacing: 3,
+ textTransform: 'uppercase',
+ },
+ },
+ `${periodLabel} leaderboard`,
+ ),
+ h(
+ 'div',
+ {
+ style: {
+ display: 'flex',
+ color: C.text,
+ fontSize: 70,
+ letterSpacing: -1.8,
+ fontWeight: 700,
+ lineHeight: 1,
+ maxWidth: '100%',
+ },
+ },
+ `#1 ${agentName}`,
+ ),
+ h(
+ 'div',
+ {
+ style: {
+ display: 'flex',
+ alignItems: 'baseline',
+ gap: 20,
+ marginTop: 6,
+ },
+ },
+ h(
+ 'span',
+ {
+ style: {
+ display: 'flex',
+ color: C.accent,
+ fontSize: 154,
+ fontWeight: 700,
+ letterSpacing: -6,
+ lineHeight: 0.86,
+ textShadow: '0 0 18px rgba(216,119,86,0.32)',
+ },
+ },
+ tokenText,
+ ),
+ h(
+ 'span',
+ {
+ style: {
+ display: 'flex',
+ color: C.text2,
+ fontSize: 46,
+ letterSpacing: -1,
+ lineHeight: 1,
+ },
+ },
+ 'tokens',
+ ),
+ ),
+ h(
+ 'div',
+ {
+ style: {
+ display: 'flex',
+ color: C.text2,
+ fontSize: 24,
+ marginTop: 14,
+ letterSpacing: 0.2,
+ },
+ },
+ `${dateRange} | ${totalAgents} agents | updated ${generatedAt} UTC`,
+ ),
+ ),
+ h(
+ 'div',
+ {
+ style: {
+ position: 'relative',
+ display: 'flex',
+ justifyContent: 'space-between',
+ alignItems: 'center',
+ padding: '22px 42px',
+ borderTop: `1px solid ${C.border}`,
+ color: C.text3,
+ fontSize: 23,
+ },
+ },
+ h('span', { style: { display: 'flex', letterSpacing: 1.4 } }, '[view full leaderboard]'),
+ h('span', { style: { display: 'flex', color: C.accent, letterSpacing: 0.2 } }, 'clawrank.dev'),
+ ),
+ ),
+ {
+ width: 1200,
+ height: 630,
+ fonts: getOgFonts(),
  },
  );
 }

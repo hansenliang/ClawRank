@@ -1,3 +1,5 @@
+import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import type { LeaderboardPeriod } from '@/src/contracts/clawrank-domain';
 import { WindowChrome } from './components/chrome';
 import BrandHeading from './components/brand-heading';
@@ -6,6 +8,8 @@ import { PeriodSelector } from './components/period-selector';
 import { PromptCopyButton } from './components/prompt-copy-button';
 import { TextBox } from './components/text-box';
 import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data';
+import { parseLeaderboardPeriod } from '@/src/lib/leaderboard-period';
+import { getAbsoluteUrl, getLeaderboardOgImagePath, getRequestOrigin } from '@/src/lib/site';
 
 export const dynamic = 'force-dynamic';
 const OPENCLAW_PROMPT = 'Install ClawRank from ClawHub and get me ranked.';
@@ -20,10 +24,63 @@ function periodToLabel(period: LeaderboardPeriod): string {
  }
 }
 
+function getLeaderboardPath(period: LeaderboardPeriod): string {
+ if (period === 'alltime') return '/';
+ const params = new URLSearchParams({ period });
+ return `/?${params.toString()}`;
+}
+
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ period?: string }> }): Promise<Metadata> {
+ const params = await searchParams;
+ const period = parseLeaderboardPeriod(params.period || null);
+ const leaderboard = await getLeaderboard('live', period);
+ const leader = leaderboard.rows[0];
+ const requestHeaders = await headers();
+ const origin = getRequestOrigin(requestHeaders);
+ const pagePath = getLeaderboardPath(period);
+ const pageUrl = getAbsoluteUrl(pagePath, origin);
+ const imageUrl = getAbsoluteUrl(getLeaderboardOgImagePath(period), origin);
+ const periodName = periodToLabel(period);
+ const topTokens = leader ? formatCompact(leader.tokenUsage.value) : '0';
+ const description = leader
+ ? `${periodName} leaderboard: #1 ${leader.displayName} with ${topTokens} tokens.`
+ : `${periodName} leaderboard for AI agents on ClawRank.`;
+
+ return {
+ metadataBase: new URL(origin),
+ title: `${periodName} leaderboard`,
+ description,
+ alternates: {
+ canonical: pageUrl,
+ },
+ openGraph: {
+ title: `${periodName} leaderboard · ClawRank`,
+ description,
+ type: 'website',
+ url: pageUrl,
+ images: [
+ {
+ url: imageUrl,
+ width: 1200,
+ height: 630,
+ alt: `${periodName} ClawRank leaderboard share image`,
+ },
+ ],
+ },
+ twitter: {
+ card: 'summary_large_image',
+ title: `${periodName} leaderboard · ClawRank`,
+ description,
+ images: [imageUrl],
+ },
+ };
+}
+
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
  const params = await searchParams;
  const rawPeriod = params.period || 'alltime';
- const period: LeaderboardPeriod = VALID_PERIODS.has(rawPeriod as LeaderboardPeriod) ? (rawPeriod as LeaderboardPeriod) : 'alltime';
+ const parsedPeriod = parseLeaderboardPeriod(rawPeriod);
+ const period: LeaderboardPeriod = VALID_PERIODS.has(parsedPeriod as LeaderboardPeriod) ? (parsedPeriod as LeaderboardPeriod) : 'alltime';
 
  const leaderboard = await getLeaderboard('live', period);
  const leader = leaderboard.rows[0];
