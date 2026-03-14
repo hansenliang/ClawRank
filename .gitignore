@@ -12,3 +12,4 @@ tsconfig.tsbuildinfo
 .DS_Store
 .env*.local
 .env.local
+package-lock.json
