@@ -8,15 +8,16 @@ type BrandHeadingProps = {
 
 export default function BrandHeading({ text }: BrandHeadingProps) {
   const chars = useMemo(() => Array.from(text), [text]);
-  const [visibleCount, setVisibleCount] = useState(0);
+  // Start with full text so SSR and no-JS renders show the complete heading.
+  // On mount, a useEffect schedules a reset to 0 via setTimeout before the
+  // typing animation begins (reduced-motion users stay at full length).
+  const [visibleCount, setVisibleCount] = useState(() => chars.length);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) {
-      const reducedMotionTimer = window.setTimeout(() => {
-        setVisibleCount(chars.length);
-      }, 0);
-      return () => window.clearTimeout(reducedMotionTimer);
+      // Already at full length; nothing to do.
+      return;
     }
 
     const resetTimer = window.setTimeout(() => {
@@ -65,7 +66,10 @@ export default function BrandHeading({ text }: BrandHeadingProps) {
 
   return (
     <h1 className="brand-heading">
-      <span className="brand-heading-text">{chars.slice(0, visibleCount).join('')}</span>
+      {/* Screen-reader / no-JS always sees the full text */}
+      <span className="sr-only">{text}</span>
+      {/* Animated span is decorative; hidden from assistive tech */}
+      <span className="brand-heading-text" aria-hidden="true">{chars.slice(0, visibleCount).join('')}</span>
     </h1>
   );
 }
