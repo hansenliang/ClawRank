@@ -13,3 +13,4 @@ tsconfig.tsbuildinfo
 .env*.local
 .env.local
 package-lock.json
+scripts/run-migration-v7.ts
