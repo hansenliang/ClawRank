@@ -46,6 +46,7 @@ Read this before writing any code. Violations get reverted.
 - **Rebase onto `origin/main`, not local `main`.** When creating feature branches or cleaning up, always use `git rebase origin/main` to ensure you're building on top of the latest pushed state.
 - **Verify your diff against `origin/main` before pushing.** Run `git diff origin/main --stat` and review what changed. If you see modifications to files you didn't intend to touch, something went wrong. The diff should only contain files relevant to your task.
 - **Never push directly to main.** Create a feature branch, push there, open a PR. The orchestrator or QA reviews before merging. This is non-negotiable for multi-agent work.
+- **Use branch prefixes consistently.** Name branches as `<prefix>/<short-kebab-name>` (for example `feat/ux-polish`, `fix/input-validation`, `docs/agent-notes`) and follow `docs/branch-naming.md`.
 - **Atomic commits.** One logical change per commit. Don't lump "fixed bug + added feature + cleaned up" into one commit.
 - **No secrets in commits.** No API keys, tokens, paths with usernames, or PII. Use `.env.local` (gitignored).
 - **CI must pass.** GitHub Actions runs build + typecheck + lint on every push/PR. Don't merge red CI.
