@@ -163,6 +163,31 @@ def _get_git_first_name() -> str | None:
     return None
 
 
+def _resolve_names_from_cli() -> dict[str, str]:
+    """
+    Call `openclaw agents list --json` and return a mapping of
+    agent_id → identityName for agents that have an identity set.
+    Returns empty dict if the CLI is unavailable or fails.
+    """
+    try:
+        result = subprocess.run(
+            ["openclaw", "agents", "list", "--json"],
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode != 0:
+            return {}
+        agents = json.loads(result.stdout)
+        if not isinstance(agents, list):
+            return {}
+        return {
+            a["id"]: a["identityName"]
+            for a in agents
+            if isinstance(a, dict) and a.get("id") and a.get("identityName")
+        }
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError, json.JSONDecodeError):
+        return {}
+
+
 # ── GitHub Metrics Ingestion ────────────────────────────────────────────────
 
 def _gh_available() -> bool:
@@ -507,7 +532,10 @@ def discover_agents(agents_dir: Path) -> list[tuple[str, Path, str | None]]:
     if not agents_dir.is_dir():
         return results
 
-    # Try to find workspace paths from openclaw config
+    # Priority 1: ask OpenClaw CLI for authoritative identity names
+    cli_names = _resolve_names_from_cli()
+
+    # Priority 2 fallback: find workspace paths from openclaw config → IDENTITY.md
     workspace_map = _load_workspace_map(agents_dir)
 
     for agent_dir in sorted(agents_dir.iterdir()):
@@ -515,7 +543,7 @@ def discover_agents(agents_dir: Path) -> list[tuple[str, Path, str | None]]:
             continue
         index_path = agent_dir / "sessions" / "sessions.json"
         if index_path.is_file():
-            display_name = _resolve_agent_name(agent_dir.name, workspace_map)
+            display_name = cli_names.get(agent_dir.name) or _resolve_agent_name(agent_dir.name, workspace_map)
             results.append((agent_dir.name, index_path, display_name))
     return results
 
