@@ -7,6 +7,7 @@ import { AnimatedMetricValue } from './components/animated-metric-value';
 import { LeaderboardTable } from './components/leaderboard-table';
 import { PeriodSelector } from './components/period-selector';
 import { PromptCopyButton } from './components/prompt-copy-button';
+import { SiteFooter } from './components/site-footer';
 import { TextBox } from './components/text-box';
 import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data';
 import { parseLeaderboardPeriod } from '@/src/lib/leaderboard-period';
@@ -131,14 +132,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
  <span className="muted">·</span>
  <a href="/setup" className="cta-link">[setup guide]</a>
  </div>
- <div className="footer-note" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
- <div>ClawRank by @Hansen Liang. All rights reserved.</div>
- <div style={{ display: 'flex', gap: 16 }}>
- <a href="https://x.com/HansenIsSo" target="_blank" rel="noopener noreferrer" className="muted" style={{ textDecoration: 'none' }}>X</a>
- <a href="https://github.com/hansenliang" target="_blank" rel="noopener noreferrer" className="muted" style={{ textDecoration: 'none' }}>GitHub</a>
- <a href="https://www.hansenliang.com" target="_blank" rel="noopener noreferrer" className="muted" style={{ textDecoration: 'none' }}>Web</a>
- </div>
- </div>
+ <SiteFooter />
  </WindowChrome>
  </main>
  );

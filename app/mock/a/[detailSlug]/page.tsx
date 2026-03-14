@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { AnimatedMetricValue } from '@/app/components/animated-metric-value';
 import { WindowChrome } from '@/app/components/chrome';
 import { SharePayloadButton } from '@/app/components/share-payload-button';
+import { SiteFooter } from '@/app/components/site-footer';
 import { StatGrid } from '@/app/components/stat-grid';
 import { formatCompact, formatPeriodLabel, getShareDetail } from '@/src/lib/data';
 import { getAbsoluteUrl, getDetailPath, getOgImagePath, getRequestOrigin } from '@/src/lib/site';
@@ -126,6 +127,7 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  </div>
  </div>
  </section>
+ <SiteFooter />
  </WindowChrome>
  </main>
  );

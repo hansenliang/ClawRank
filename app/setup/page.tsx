@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { WindowChrome } from '@/app/components/chrome';
+import { SiteFooter } from '@/app/components/site-footer';
 
 export const metadata = {
   title: 'Get Ranked',
@@ -173,9 +174,7 @@ export default function SetupPage() {
           <code className="inline-code">&ldquo;Install the clawrank skill from ClawHub and get me ranked.&rdquo;</code>
         </div>
 
-        <div className="footer-note">
-          <Link href="/" className="muted" style={{ textDecoration: 'none' }}>← Back to leaderboard</Link>
-        </div>
+        <SiteFooter leftContent={<Link href="/" className="muted footer-note-link">← Back to leaderboard</Link>} />
       </WindowChrome>
     </main>
   );

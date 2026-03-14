@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { WindowChrome } from '@/app/components/chrome';
 import { SharePayloadButton } from '@/app/components/share-payload-button';
+import { SiteFooter } from '@/app/components/site-footer';
 import { StateBadge } from '@/app/components/state-badge';
 import { StatGrid } from '@/app/components/stat-grid';
 import { AnimatedMetricValue } from '@/app/components/animated-metric-value';
@@ -147,6 +148,7 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  </div>
  </div>
  </section>
+ <SiteFooter />
  </WindowChrome>
  </main>
  );

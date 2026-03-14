@@ -443,6 +443,21 @@ h1, h2, h3, p { margin: 0; }
  border-top: 1px solid var(--border);
 }
 
+.footer-note-row {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+}
+
+.footer-note-links {
+ display: flex;
+ gap: 16px;
+}
+
+.footer-note-link {
+ text-decoration: none;
+}
+
 .footer-note a:hover {
  color: var(--accent);
  text-decoration: underline !important;
@@ -535,11 +550,14 @@ h1, h2, h3, p { margin: 0; }
  .hero-grid { flex-direction: column; }
   .hero .stat { flex: 0 1 auto; }
   .stat { padding: 10px 0; }
- .stats-grid { grid-template-columns: 1fr; }
  .identity-row {
  align-items: flex-start;
  flex-direction: column;
  }
+}
+
+@media (max-width: 320px) {
+ .stats-grid { grid-template-columns: 1fr; }
 }
 
 /* ─── Mobile Leaderboard Cards ─── */
