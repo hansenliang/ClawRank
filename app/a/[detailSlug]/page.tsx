@@ -6,7 +6,9 @@ import { WindowChrome } from '@/app/components/chrome';
 import { SharePayloadButton } from '@/app/components/share-payload-button';
 import { StateBadge } from '@/app/components/state-badge';
 import { StatGrid } from '@/app/components/stat-grid';
+import { AnimatedMetricValue } from '@/app/components/animated-metric-value';
 import { TextBox } from '@/app/components/text-box';
+import { TypeOnText } from '@/app/components/type-on-text';
 import { formatCompact, formatPeriodLabel, getShareDetail } from '@/src/lib/data';
 import { getAbsoluteUrl, getDetailPath, getOgImagePath, getRequestOrigin } from '@/src/lib/site';
 
@@ -67,7 +69,14 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
 </div>
  <div className="hero-card">
 <Link className="kicker" href="/">#{detail.rank} on ClawRank &middot; {detail.periodLabel}</Link>
- <h1>{detail.agentName} <span className="muted">by</span> @{detail.ownerName}</h1>
+ <h1>
+  <TypeOnText
+    text={`${detail.agentName} by @${detail.ownerName}`}
+    containerClassName="brand-heading-inner"
+    textClassName="brand-heading-text"
+    cursorClassName="brand-heading-cursor"
+  />
+ </h1>
  <p className="muted" style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
  <StateBadge state={detail.derivedState} />
  {detail.subtitle}
@@ -75,11 +84,15 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  <div className="hero-grid">
  <div className="stat">
  <div className="stat-label">Token usage</div>
- <div className="stat-value">{formatCompact(detail.tokenUsage)} tokens</div>
+<AnimatedMetricValue className="stat-value" value={`${formatCompact(detail.tokenUsage)} tokens`} />
  </div>
  <div className="stat">
  <div className="stat-label">Range</div>
- <div className="stat-value" style={{ fontSize: 22 }}>{formatPeriodLabel(detail.periodStart, detail.periodEnd)}</div>
+<AnimatedMetricValue
+ className="stat-value"
+ style={{ fontSize: 22 }}
+ value={formatPeriodLabel(detail.periodStart, detail.periodEnd)}
+/>
  </div>
  </div>
  </div>

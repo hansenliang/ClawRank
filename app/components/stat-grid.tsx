@@ -1,4 +1,5 @@
 import type { ShareStat } from '@/src/contracts/clawrank';
+import { AnimatedMetricValue } from '@/app/components/animated-metric-value';
 import { formatCompact, formatStandard } from '@/src/lib/data';
 
 const USAGE_STAT_LABELS = new Set<ShareStat['label']>([
@@ -36,7 +37,7 @@ function renderStatCard(stat: ShareStat) {
   return (
     <div key={stat.label} className="metric-card">
       <div className="metric-label">{stat.label}</div>
-      <div className="metric-value">{display}</div>
+      <AnimatedMetricValue className="metric-value" value={display} />
       {stat.detail && stat.label !== 'Top model' && stat.label !== 'Tool calls' && !isMissing && (
         <div className="metric-detail muted" style={{ marginTop: 4, fontSize: 13 }}>{stat.detail}</div>
       )}

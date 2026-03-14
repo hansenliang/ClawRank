@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import type { LeaderboardPeriod } from '@/src/contracts/clawrank-domain';
 import { WindowChrome } from './components/chrome';
 import BrandHeading from './components/brand-heading';
+import { AnimatedMetricValue } from './components/animated-metric-value';
 import { LeaderboardTable } from './components/leaderboard-table';
 import { PeriodSelector } from './components/period-selector';
 import { PromptCopyButton } from './components/prompt-copy-button';
@@ -101,11 +102,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
  <div className="hero-grid">
  <div className="stat">
  <div className="stat-label">Current leader</div>
- <div className="stat-value">{leader?.displayName || 'No ranked agents'}</div>
+<AnimatedMetricValue className="stat-value" value={leader?.displayName || 'No ranked agents'} />
  </div>
  <div className="stat">
  <div className="stat-label">Top token usage</div>
- <div className="stat-value">{leader ? formatCompact(leader.tokenUsage.value) : '—'}</div>
+<AnimatedMetricValue className="stat-value" value={leader ? formatCompact(leader.tokenUsage.value) : '—'} />
  </div>
  </div>
  </div>

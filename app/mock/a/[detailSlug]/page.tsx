@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { AnimatedMetricValue } from '@/app/components/animated-metric-value';
 import { WindowChrome } from '@/app/components/chrome';
 import { SharePayloadButton } from '@/app/components/share-payload-button';
 import { StatGrid } from '@/app/components/stat-grid';
@@ -64,11 +65,15 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  <div className="hero-grid">
  <div className="stat">
  <div className="stat-label">Token usage</div>
- <div className="stat-value">{formatCompact(detail.tokenUsage)} tokens</div>
+<AnimatedMetricValue className="stat-value" value={`${formatCompact(detail.tokenUsage)} tokens`} />
  </div>
  <div className="stat">
  <div className="stat-label">Range</div>
- <div className="stat-value" style={{ fontSize: 22 }}>{formatPeriodLabel(detail.periodStart, detail.periodEnd)}</div>
+<AnimatedMetricValue
+ className="stat-value"
+ style={{ fontSize: 22 }}
+ value={formatPeriodLabel(detail.periodStart, detail.periodEnd)}
+/>
  </div>
  </div>
  </div>

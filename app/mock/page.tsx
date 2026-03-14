@@ -1,4 +1,5 @@
 import { WindowChrome } from '@/app/components/chrome';
+import { AnimatedMetricValue } from '@/app/components/animated-metric-value';
 import BrandHeading from '@/app/components/brand-heading';
 import { LeaderboardTable } from '@/app/components/leaderboard-table';
 import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data';
@@ -20,11 +21,11 @@ export default async function MockHomePage() {
  <div className="hero-grid">
  <div className="stat">
  <div className="stat-label">Current leader</div>
- <div className="stat-value">{leader?.displayName || 'No ranked agents'}</div>
+<AnimatedMetricValue className="stat-value" value={leader?.displayName || 'No ranked agents'} />
  </div>
  <div className="stat">
  <div className="stat-label">Top token usage</div>
- <div className="stat-value">{leader ? formatCompact(leader.tokenUsage.value) : '—'}</div>
+<AnimatedMetricValue className="stat-value" value={leader ? formatCompact(leader.tokenUsage.value) : '—'} />
  </div>
  </div>
  </div>
