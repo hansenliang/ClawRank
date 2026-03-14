@@ -27,6 +27,14 @@ Fallback chain: DB → pilot JSON → baked JSON.
 - `/api/agents/[detailSlug]?period=alltime|today|week|month`
 - `/api/submit`
 - `/api/ingest/openclaw`
+- `/api/og/[detailSlug]` and `/api/og/mock/[detailSlug]` (agent detail OG images)
+- `/api/og/leaderboard?period=alltime|today|week|month` and `/api/og/mock/leaderboard?period=alltime|today|week|month` (leaderboard OG images)
+
+## Open Graph image contract
+
+- Leaderboard OG images are CLI-first single-column compositions using JetBrains Mono and the warm terminal palette from `DESIGN.md`.
+- Leaderboard OG cards are period-aware: the homepage metadata points to `/api/og/leaderboard` with the active `?period=` query.
+- Detail-page OG cards remain slug-based and unchanged: `/api/og/[detailSlug]` (or `/api/og/mock/[detailSlug]` for baked mock pages).
 
 ## Environment
 
