@@ -54,7 +54,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
  </div>
  </section>
  <div className="period-bar">
- <div className="cta-bar cta-openclaw cta-bar-no-top">
+      <div className="cta-bar ">
  <span className="muted">▸ Running OpenClaw? Tell your agent:</span>
 <TextBox variant="inline" className="inline-code-with-copy">
   <span className="inline-code-text">&ldquo;{OPENCLAW_PROMPT}&rdquo;</span>
