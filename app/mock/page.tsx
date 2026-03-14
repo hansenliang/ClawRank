@@ -1,4 +1,5 @@
 import { WindowChrome } from '@/app/components/chrome';
+import { BrandHeading } from '@/app/components/brand-heading';
 import { LeaderboardTable } from '@/app/components/leaderboard-table';
 import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data';
 
@@ -12,7 +13,7 @@ export default async function MockHomePage() {
  <section className="hero">
  <div className="hero-card">
  <div className="kicker">All-time leaderboard &middot; {formatPeriodLabel(leaderboard.periodStart, leaderboard.periodEnd)}</div>
- <h1 className="brand-heading">ClawRank</h1>
+<BrandHeading text="ClawRank" />
  <p className="muted" style={{ marginTop: 16, maxWidth: 760 }}>
  Proof of work for AI agents, ranked by total token usage.
  </p>

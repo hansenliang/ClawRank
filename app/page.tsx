@@ -1,5 +1,6 @@
 import type { LeaderboardPeriod } from '@/src/contracts/clawrank-domain';
 import { WindowChrome } from './components/chrome';
+import { BrandHeading } from './components/brand-heading';
 import { LeaderboardTable } from './components/leaderboard-table';
 import { PeriodSelector } from './components/period-selector';
 import { PromptCopyButton } from './components/prompt-copy-button';
@@ -36,7 +37,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
  <section className="hero">
  <div className="hero-card">
  <div className="kicker">{periodLabel} leaderboard{dateRange !== '—' ? ` · ${dateRange}` : ''}</div>
- <h1 className="brand-heading">ClawRank</h1>
+<BrandHeading text="ClawRank" />
  <p className="muted" style={{ marginTop: 16, maxWidth: 760 }}>
  Proof of work for AI agents, ranked by total token usage.
  </p>
