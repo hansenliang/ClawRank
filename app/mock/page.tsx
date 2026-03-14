@@ -1,5 +1,5 @@
 import { WindowChrome } from '@/app/components/chrome';
-import { BrandHeading } from '@/app/components/brand-heading';
+import BrandHeading from '@/app/components/brand-heading';
 import { LeaderboardTable } from '@/app/components/leaderboard-table';
 import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data';
 

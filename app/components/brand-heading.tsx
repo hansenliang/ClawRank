@@ -6,24 +6,21 @@ type BrandHeadingProps = {
   text: string;
 };
 
-export function BrandHeading({ text }: BrandHeadingProps) {
+export default function BrandHeading({ text }: BrandHeadingProps) {
   const chars = useMemo(() => Array.from(text), [text]);
   const [visibleCount, setVisibleCount] = useState(0);
-  const [isRevealed, setIsRevealed] = useState(false);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) {
       const reducedMotionTimer = window.setTimeout(() => {
         setVisibleCount(chars.length);
-        setIsRevealed(true);
       }, 0);
       return () => window.clearTimeout(reducedMotionTimer);
     }
 
     const resetTimer = window.setTimeout(() => {
       setVisibleCount(0);
-      setIsRevealed(false);
     }, 0);
 
     return () => window.clearTimeout(resetTimer);
@@ -53,10 +50,7 @@ export function BrandHeading({ text }: BrandHeadingProps) {
       typedCount += 1;
       setVisibleCount(typedCount);
 
-      if (typedCount >= chars.length) {
-        setIsRevealed(true);
-        return;
-      }
+      if (typedCount >= chars.length) return;
 
       typingTimer = window.setTimeout(typeNext, getNextDelayMs(typedCount));
     };
@@ -70,7 +64,7 @@ export function BrandHeading({ text }: BrandHeadingProps) {
   }, [chars]);
 
   return (
-    <h1 className={`brand-heading${isRevealed ? ' brand-heading-glitch' : ''}`}>
+    <h1 className="brand-heading">
       <span className="brand-heading-text">{chars.slice(0, visibleCount).join('')}</span>
     </h1>
   );

@@ -1,6 +1,6 @@
 import type { LeaderboardPeriod } from '@/src/contracts/clawrank-domain';
 import { WindowChrome } from './components/chrome';
-import { BrandHeading } from './components/brand-heading';
+import BrandHeading from './components/brand-heading';
 import { LeaderboardTable } from './components/leaderboard-table';
 import { PeriodSelector } from './components/period-selector';
 import { PromptCopyButton } from './components/prompt-copy-button';
