@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { WindowChrome } from '@/app/components/chrome';
 import { SharePayloadButton } from '@/app/components/share-payload-button';
 import { SiteFooter } from '@/app/components/site-footer';
@@ -59,6 +59,11 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  const { detailSlug } = await params;
  const detail = await getShareDetail(detailSlug, 'live');
  if (!detail) notFound();
+
+ // If the data layer returned a canonical username/slug, 301-redirect to the new URL
+ if (detail.detailSlug.includes('/') && detail.detailSlug !== detailSlug) {
+  permanentRedirect(`/a/${detail.detailSlug}`);
+ }
  const allMetricsVerified = detail.stats.length > 0 && detail.stats.every((stat) => stat.status === 'verified');
 
  return (

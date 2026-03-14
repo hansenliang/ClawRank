@@ -8,6 +8,7 @@ export type AuthProvider = 'github' | 'x' | 'google' | 'discord';
 
 export interface UserRecord {
  id: string;
+ username: string;
  displayName?: string | null;
  avatarUrl?: string | null;
  isAdmin: boolean;

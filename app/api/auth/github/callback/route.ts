@@ -5,6 +5,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSessionToken } from '@/src/lib/auth';
 import { dbFindLinkedAccount, dbUpsertLinkedAccount, dbCreateUser } from '@/src/db/queries';
+import { allocateUsername } from '@/src/lib/slugify';
 
 const COOKIE_NAME = 'clawrank_session';
 
@@ -90,8 +91,9 @@ export async function GET(request: NextRequest) {
         verified: true,
       });
     } else {
-      // New user — create user + linked account
-      const user = await dbCreateUser(ghUser.name || ghUser.login, ghUser.avatar_url);
+      // New user — allocate username from GitHub login, create user + linked account
+      const username = await allocateUsername(ghUser.login);
+      const user = await dbCreateUser(ghUser.name || ghUser.login, ghUser.avatar_url, username);
       userId = user.id;
       await dbUpsertLinkedAccount({
         userId,

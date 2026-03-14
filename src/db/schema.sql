@@ -1,10 +1,11 @@
--- ClawRank Postgres schema (v4)
+-- ClawRank Postgres schema (v7)
 -- Tables mirror src/contracts/clawrank-domain.ts types
 -- Provider-agnostic auth: external identities in linked_accounts, not users
 
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   display_name TEXT,
+  username TEXT UNIQUE NOT NULL,
   avatar_url TEXT,
   is_admin BOOLEAN NOT NULL DEFAULT false,
   default_agent_id UUID,
@@ -45,8 +46,8 @@ CREATE INDEX IF NOT EXISTS idx_api_tokens_hash ON api_tokens(token_hash);
 
 CREATE TABLE IF NOT EXISTS agents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id),
-  slug TEXT NOT NULL UNIQUE,
+  user_id UUID NOT NULL REFERENCES users(id),
+  slug TEXT NOT NULL,
   agent_name TEXT NOT NULL,
   owner_name TEXT NOT NULL,
   state TEXT NOT NULL DEFAULT 'estimated' CHECK (state IN ('live', 'verified', 'estimated')),
@@ -57,10 +58,13 @@ CREATE TABLE IF NOT EXISTS agents (
   source_of_truth TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  last_submission_at TIMESTAMPTZ
+  last_submission_at TIMESTAMPTZ,
+  UNIQUE(user_id, slug)
 );
 
+-- Keep slug index for legacy single-slug lookups / ORDER BY
 CREATE INDEX IF NOT EXISTS idx_agents_slug ON agents(slug);
+CREATE INDEX IF NOT EXISTS idx_agents_user_slug ON agents(user_id, slug);
 
 CREATE TABLE IF NOT EXISTS daily_agent_facts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
