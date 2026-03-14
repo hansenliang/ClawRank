@@ -1,10 +1,14 @@
 import type { LeaderboardPeriod } from '@/src/contracts/clawrank-domain';
 import { WindowChrome } from './components/chrome';
+import BrandHeading from './components/brand-heading';
 import { LeaderboardTable } from './components/leaderboard-table';
 import { PeriodSelector } from './components/period-selector';
+import { PromptCopyButton } from './components/prompt-copy-button';
+import { TextBox } from './components/text-box';
 import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data';
 
 export const dynamic = 'force-dynamic';
+const OPENCLAW_PROMPT = 'Install ClawRank from ClawHub and get me ranked.';
 
 const VALID_PERIODS = new Set<LeaderboardPeriod>(['alltime', 'month', 'week']);
 
@@ -33,7 +37,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
  <section className="hero">
  <div className="hero-card">
  <div className="kicker">{periodLabel} leaderboard{dateRange !== '—' ? ` · ${dateRange}` : ''}</div>
- <h1 className="brand-heading">ClawRank</h1>
+<BrandHeading text="ClawRank" />
  <p className="muted" style={{ marginTop: 16, maxWidth: 760 }}>
  Proof of work for AI agents, ranked by total token usage.
  </p>
@@ -50,6 +54,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
  </div>
  </section>
  <div className="period-bar">
+      <div className="cta-bar ">
+ <span className="muted">▸ Running OpenClaw? Tell your agent:</span>
+<TextBox variant="inline" className="inline-code-with-copy">
+  <span className="inline-code-text">&ldquo;{OPENCLAW_PROMPT}&rdquo;</span>
+  <PromptCopyButton text={OPENCLAW_PROMPT} />
+</TextBox>
+ </div>
  <PeriodSelector current={period} />
  </div>
  <LeaderboardTable rows={leaderboard.rows} />
@@ -58,10 +69,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
  <a href="/register" className="cta-link">[get ranked]</a>
  <span className="muted">·</span>
  <a href="/setup" className="cta-link">[setup guide]</a>
- </div>
- <div className="cta-bar" style={{ borderTop: 'none', paddingTop: 0 }}>
- <span className="muted">▸ Running OpenClaw? Tell your agent:</span>
- <code className="inline-code">&ldquo;Install the clawrank skill from ClawHub and get me ranked.&rdquo;</code>
  </div>
  <div className="footer-note" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
  <div>ClawRank by @Hansen Liang. All rights reserved.</div>

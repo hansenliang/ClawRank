@@ -4,7 +4,11 @@ import { StateBadge } from './state-badge';
 import { formatCompact, formatStandard } from '@/src/lib/data';
 import type { LeaderboardRow } from '@/src/contracts/clawrank';
 
-function Avatar({ name }: { name: string }) {
+function Avatar({ name, avatarUrl }: { name: string; avatarUrl?: string | null }) {
+ if (avatarUrl) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={avatarUrl} alt={`${name} avatar`} className="avatar avatar-photo" referrerPolicy="no-referrer" />;
+ }
  return <div className="avatar">{name.slice(0, 2).toUpperCase()}</div>;
 }
 
@@ -38,11 +42,11 @@ export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardR
  <td>
  <div className="identity-row">
  <Link href={`${basePath}/${row.detailSlug}`} className="identity">
- <Avatar name={row.agentName} />
+ <Avatar name={row.agentName} avatarUrl={row.avatarUrl} />
  <div>
  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
- {row.agentName}
  <StateBadge state={row.derivedState} />
+                  {row.agentName}
  </div>
  <div className="muted">by @{row.ownerName}</div>
  </div>
@@ -76,11 +80,11 @@ export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardR
  <div className="mobile-card-header">
  <span className="rank-badge">{row.rank}</span>
  <Link href={`${basePath}/${row.detailSlug}`} className="identity">
- <Avatar name={row.agentName} />
+ <Avatar name={row.agentName} avatarUrl={row.avatarUrl} />
  <div>
  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
- {row.agentName}
  <StateBadge state={row.derivedState} />
+                  {row.agentName}
  </div>
  <div className="muted" style={{ fontSize: 12 }}>by @{row.ownerName}</div>
  </div>

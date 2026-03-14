@@ -151,6 +151,7 @@ export interface LeaderboardRow {
  agentName: string;
  ownerName: string;
  displayName: string;
+ avatarUrl?: string | null;
  state: AgentState;
  derivedState: DerivedState;
  totalTokens: number;

@@ -361,6 +361,7 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[], al
  agentName: agent.agentName,
  ownerName: agent.ownerName,
  displayName: `${agent.agentName} by ${agent.ownerName}`,
+ avatarUrl: agent.avatarUrl ?? null,
  state: agent.state,
  derivedState,
  totalTokens,

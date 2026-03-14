@@ -1,6 +1,6 @@
 import React from 'react';
 import { ImageResponse } from 'next/og';
-import { formatCompact, formatPeriodLabel, getShareDetail } from '@/src/lib/data';
+import { formatCompact, getShareDetail } from '@/src/lib/data';
 
 const h = React.createElement;
 
@@ -86,14 +86,14 @@ export async function renderOgImage(detailSlug: string, mode: 'baked' | 'live' =
  await loadFonts();
 
  const tokenText = formatCompact(detail.tokenUsage);
- const periodText = formatPeriodLabel(detail.periodStart, detail.periodEnd);
+ const periodText = detail.periodLabel || 'All time';
  const toolCalls = detail.stats.find((stat) => stat.label === 'Tool calls');
  const messages = detail.stats.find((stat) => stat.label === 'Messages');
- const sessions = detail.stats.find((stat) => stat.label === 'Sessions');
+ const commits = detail.stats.find((stat) => stat.label === 'Commits');
  const railStats = [
  { label: 'Tool calls', value: toolCalls ? formatCompact(toolCalls.value) : '—' },
  { label: 'Messages', value: messages ? formatCompact(messages.value) : '—' },
- { label: 'Sessions', value: sessions ? formatCompact(sessions.value) : '—' },
+ { label: 'Commits', value: commits ? formatCompact(commits.value) : '—' },
  ];
 
  return new ImageResponse(
@@ -164,7 +164,7 @@ export async function renderOgImage(detailSlug: string, mode: 'baked' | 'live' =
  marginBottom: 18,
  },
  },
- `#${detail.rank} this week`,
+ `#${detail.rank} on ClawRank · ${periodText}`,
  ),
  h(
  'div',

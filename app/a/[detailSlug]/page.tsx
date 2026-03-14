@@ -3,9 +3,10 @@ import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { WindowChrome } from '@/app/components/chrome';
-import { ShareLinkButton } from '@/app/components/share-link-button';
+import { SharePayloadButton } from '@/app/components/share-payload-button';
 import { StateBadge } from '@/app/components/state-badge';
 import { StatGrid } from '@/app/components/stat-grid';
+import { TextBox } from '@/app/components/text-box';
 import { formatCompact, formatPeriodLabel, getShareDetail } from '@/src/lib/data';
 import { getAbsoluteUrl, getDetailPath, getOgImagePath, getRequestOrigin } from '@/src/lib/site';
 
@@ -55,17 +56,17 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  const { detailSlug } = await params;
  const detail = await getShareDetail(detailSlug, 'live');
  if (!detail) notFound();
-
- const origin = getRequestOrigin(await headers());
- const shareUrl = getAbsoluteUrl(getDetailPath(detailSlug), origin);
- const imageUrl = getAbsoluteUrl(getOgImagePath(detailSlug), origin);
+ const allMetricsVerified = detail.stats.length > 0 && detail.stats.every((stat) => stat.status === 'verified');
 
  return (
  <main className="shell">
  <WindowChrome title={`clawrank://agent/${detail.detailSlug}`}>
  <section className="hero">
+<div className="actions" style={{ marginTop: 0, marginBottom: 16 }}>
+<Link className="action" href="/">Back to leaderboard</Link>
+</div>
  <div className="hero-card">
- <div className="kicker">#{detail.rank} on ClawRank &middot; {detail.periodLabel}</div>
+<Link className="kicker" href="/">#{detail.rank} on ClawRank &middot; {detail.periodLabel}</Link>
  <h1>{detail.agentName} <span className="muted">by</span> @{detail.ownerName}</h1>
  <p className="muted" style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
  <StateBadge state={detail.derivedState} />
@@ -84,19 +85,19 @@ export default async function DetailPage({ params }: { params: Promise<{ detailS
  </div>
  <div className="hero-card">
  <div className="eyebrow">Share payload</div>
- <div className="codeblock" style={{ marginTop: 16 }}>{detail.shareText}</div>
+<TextBox className="codeblock-spaced">{detail.shareText}</TextBox>
  <div className="actions actions-spaced">
- <a className="action" href={shareUrl}>Share URL</a>
- <a className="action" href={imageUrl}>OG image</a>
- <ShareLinkButton path={getDetailPath(detail.detailSlug)} label={detail.displayName} />
- <Link className="action" href="/">Back to leaderboard</Link>
+ <SharePayloadButton payload={detail.shareText} label={detail.displayName} />
  </div>
  </div>
  </section>
 
  <section className="detail-grid">
  <div className="panel">
+ <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
  <div className="eyebrow">Raw metrics</div>
+ {allMetricsVerified ? <span className="status-badge">verified</span> : null}
+ </div>
  <div style={{ marginTop: 16 }}>
  <StatGrid stats={detail.stats} />
  </div>
