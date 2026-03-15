@@ -82,8 +82,7 @@ export function TypeOnText({
       <span className="sr-only">{text}</span>
       <span className="type-on-reserve" aria-hidden="true">{text}</span>
       <span className="type-on-live" aria-hidden="true">
-        <span className={textClassName}>{chars.slice(0, visibleCount).join('')}</span>
-        <span className={cursorClassName} />
+        <span className={`${textClassName} ${cursorClassName}`}>{chars.slice(0, visibleCount).join('')}</span>
       </span>
     </span>
   );
