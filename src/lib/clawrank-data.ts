@@ -80,7 +80,7 @@ function domainRowToUiRow(row: DomainLeaderboardRow, periodStart: string, period
   periodEnd,
   tokenUsage: { value: row.totalTokens, status: 'verified' },
   commits: hasGitMetrics ? { value: row.commitCount, status: 'verified' } : { value: 0, status: 'missing' },
-  filesTouched: { value: 0, status: 'missing' },
+  filesTouched: hasGitMetrics ? { value: row.filesTouched, status: 'verified' } : { value: 0, status: 'missing' },
   linesAdded: hasGitMetrics ? { value: row.linesAdded, status: 'verified' } : { value: 0, status: 'missing' },
   linesRemoved: hasGitMetrics ? { value: row.linesRemoved, status: 'verified' } : { value: 0, status: 'missing' },
   toolCalls: row.toolCallCount > 0 ? { value: row.toolCallCount, status: 'verified' } : { value: 0, status: 'missing' },

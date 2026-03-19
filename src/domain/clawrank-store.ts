@@ -124,6 +124,7 @@ export function validateDailyFactSubmission(submission: DailyFactSubmission): st
  ['mostActiveHour', fact.mostActiveHour],
  ['estimatedCostUsd', fact.estimatedCostUsd],
  ['commitCount', fact.commitCount],
+ ['filesTouched', fact.filesTouched],
  ['linesAdded', fact.linesAdded],
  ['linesRemoved', fact.linesRemoved],
  ['prCount', fact.prCount],
@@ -211,6 +212,7 @@ export function submitDailyFactSubmission(
  existing.topModel = fact.topModel ?? null;
  existing.estimatedCostUsd = fact.estimatedCostUsd ?? null;
  existing.commitCount = fact.commitCount ?? existing.commitCount ?? null;
+ existing.filesTouched = fact.filesTouched ?? existing.filesTouched ?? null;
  existing.linesAdded = fact.linesAdded ?? existing.linesAdded ?? null;
  existing.linesRemoved = fact.linesRemoved ?? existing.linesRemoved ?? null;
  existing.prCount = fact.prCount ?? existing.prCount ?? null;
@@ -234,6 +236,7 @@ export function submitDailyFactSubmission(
  topModel: fact.topModel ?? null,
  estimatedCostUsd: fact.estimatedCostUsd ?? null,
  commitCount: fact.commitCount ?? null,
+ filesTouched: fact.filesTouched ?? null,
  linesAdded: fact.linesAdded ?? null,
  linesRemoved: fact.linesRemoved ?? null,
  prCount: fact.prCount ?? null,
@@ -323,6 +326,7 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[], al
  let toolCallCount = 0;
  let userMessageCount = 0;
  let commitCount = 0;
+ let filesTouched = 0;
  let linesAdded = 0;
  let linesRemoved = 0;
  let prCount = 0;
@@ -337,6 +341,7 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[], al
  toolCallCount += fact.toolCallCount || 0;
  userMessageCount += fact.userMessageCount || 0;
  commitCount += fact.commitCount || 0;
+ filesTouched += fact.filesTouched || 0;
  linesAdded += fact.linesAdded || 0;
  linesRemoved += fact.linesRemoved || 0;
  prCount += fact.prCount || 0;
@@ -374,6 +379,7 @@ function aggregateLeaderboardRow(agent: AgentRecord, facts: DailyAgentFact[], al
  toolCallCount,
  userMessageCount,
  commitCount,
+ filesTouched,
  linesAdded,
  linesRemoved,
  prCount,

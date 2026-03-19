@@ -83,6 +83,7 @@ export interface DailyAgentFact {
  topTools?: Record<string, number> | null;
  modelsUsed?: Record<string, number> | null;
  commitCount?: number | null;
+ filesTouched?: number | null;
  linesAdded?: number | null;
  linesRemoved?: number | null;
  prCount?: number | null;
@@ -118,6 +119,7 @@ export interface DailyAgentFactInput {
  topTools?: Record<string, number> | null;
  modelsUsed?: Record<string, number> | null;
  commitCount?: number | null;
+ filesTouched?: number | null;
  linesAdded?: number | null;
  linesRemoved?: number | null;
  prCount?: number | null;
@@ -165,6 +167,7 @@ export interface LeaderboardRow {
  toolCallCount: number;
  userMessageCount: number;
  commitCount: number;
+ filesTouched: number;
  linesAdded: number;
  linesRemoved: number;
  prCount: number;
