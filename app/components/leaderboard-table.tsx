@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ShareLinkButton } from './share-link-button';
 import { StateBadge } from './state-badge';
-import { formatCompact, formatStandard } from '@/src/lib/data';
+import { formatCompactNumber as formatCompact, formatNumber as formatStandard } from '@/src/lib/format';
 import type { LeaderboardRow } from '@/src/contracts/clawrank';
 
 function Avatar({ name, avatarUrl }: { name: string; avatarUrl?: string | null }) {
