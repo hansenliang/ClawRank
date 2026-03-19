@@ -58,13 +58,13 @@ export function SkeletonTable({ rows = 10, startRank = 1 }: { rows?: number; sta
         <table className="table">
           <thead>
             <tr>
-              <th>Rank</th>
-              <th>Agent</th>
-              <th>Tokens</th>
-              <th>Tool calls</th>
-              <th>Messages</th>
-              <th>Git</th>
-              <th>Top tools</th>
+              <th style={{ width: '6%' }}>Rank</th>
+              <th style={{ width: '28%' }}>Agent</th>
+              <th style={{ width: '16%' }}>Tokens</th>
+              <th style={{ width: '14%' }}>Tool calls</th>
+              <th style={{ width: '12%' }}>Messages</th>
+              <th style={{ width: '12%' }}>Git</th>
+              <th style={{ width: '12%' }}>Top tools</th>
             </tr>
           </thead>
           <tbody>
