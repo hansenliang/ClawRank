@@ -58,7 +58,7 @@ export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardR
  <td>{metricDisplay(row.toolCalls)}</td>
  <td>{metricDisplay(row.messageCount)}</td>
  <td className="muted">
- {row.commits.status === 'missing' ? '—' : `${formatStandard(row.commits.value)} commits · ${formatStandard(row.filesTouched.value)} files`}
+ {row.commits.status === 'missing' ? '—' : `${formatStandard(row.commits.value)} commits${row.filesTouched.value ? ` · ${formatStandard(row.filesTouched.value)} files` : ''}`}
  </td>
  <td>
  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -110,7 +110,7 @@ export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardR
  </div>
 
  <div className="mobile-card-git muted">
- {row.commits.status === 'missing' ? '—' : `${formatStandard(row.commits.value)} commits · ${formatStandard(row.filesTouched.value)} files modified`}
+ {row.commits.status === 'missing' ? '—' : `${formatStandard(row.commits.value)} commits${row.filesTouched.value ? ` · ${formatStandard(row.filesTouched.value)} files modified` : ''}`}
  </div>
 
  <div className="mobile-card-tools">
