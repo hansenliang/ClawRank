@@ -117,6 +117,7 @@ function mapFact(row: any): DailyAgentFact {
   topTools: row.top_tools ?? null,
   modelsUsed: row.models_used ?? null,
   commitCount: row.commit_count != null ? Number(row.commit_count) : null,
+  filesTouched: row.files_touched != null ? Number(row.files_touched) : null,
   linesAdded: row.lines_added != null ? Number(row.lines_added) : null,
   linesRemoved: row.lines_removed != null ? Number(row.lines_removed) : null,
   prCount: row.pr_count != null ? Number(row.pr_count) : null,
@@ -545,7 +546,7 @@ export async function dbUpsertFact(agentId: string, fact: DailyAgentFactInput, n
      cache_read_tokens, cache_write_tokens, session_count, longest_run_seconds,
      most_active_hour, top_model, estimated_cost_usd,
      user_message_count, assistant_message_count, tool_call_count, top_tools, models_used,
-     commit_count, lines_added, lines_removed, pr_count,
+     commit_count, files_touched, lines_added, lines_removed, pr_count,
      source_type, source_adapter, date_precision,
      created_at, updated_at
    ) VALUES (
@@ -554,7 +555,7 @@ export async function dbUpsertFact(agentId: string, fact: DailyAgentFactInput, n
      ${fact.mostActiveHour ?? null}, ${fact.topModel ?? null}, ${fact.estimatedCostUsd ?? null},
      ${fact.userMessageCount ?? null}, ${fact.assistantMessageCount ?? null}, ${fact.toolCallCount ?? null},
      ${topToolsJson}::jsonb, ${modelsUsedJson}::jsonb,
-     ${fact.commitCount ?? null}, ${fact.linesAdded ?? null}, ${fact.linesRemoved ?? null}, ${fact.prCount ?? null},
+     ${fact.commitCount ?? null}, ${fact.filesTouched ?? null}, ${fact.linesAdded ?? null}, ${fact.linesRemoved ?? null}, ${fact.prCount ?? null},
      ${fact.sourceType}, ${fact.sourceAdapter ?? null}, ${fact.datePrecision ?? 'day'},
      ${now}, ${now}
    )
@@ -575,6 +576,7 @@ export async function dbUpsertFact(agentId: string, fact: DailyAgentFactInput, n
      top_tools = EXCLUDED.top_tools,
      models_used = EXCLUDED.models_used,
      commit_count = COALESCE(EXCLUDED.commit_count, daily_agent_facts.commit_count),
+     files_touched = COALESCE(EXCLUDED.files_touched, daily_agent_facts.files_touched),
      lines_added = COALESCE(EXCLUDED.lines_added, daily_agent_facts.lines_added),
      lines_removed = COALESCE(EXCLUDED.lines_removed, daily_agent_facts.lines_removed),
      pr_count = COALESCE(EXCLUDED.pr_count, daily_agent_facts.pr_count),
@@ -793,6 +795,7 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
    let toolCallCount = 0;
    let userMessageCount = 0;
    let commitCount = 0;
+   let filesTouched = 0;
    let linesAdded = 0;
    let linesRemoved = 0;
    let prCount = 0;
@@ -804,6 +807,7 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
     toolCallCount += f.toolCallCount || 0;
     userMessageCount += f.userMessageCount || 0;
     commitCount += f.commitCount || 0;
+    filesTouched += f.filesTouched || 0;
     linesAdded += f.linesAdded || 0;
     linesRemoved += f.linesRemoved || 0;
     prCount += f.prCount || 0;
@@ -844,6 +848,7 @@ export async function dbGetLeaderboard(period: LeaderboardPeriod = 'alltime', no
     toolCallCount,
     userMessageCount,
     commitCount,
+    filesTouched,
     linesAdded,
     linesRemoved,
     prCount,
