@@ -996,3 +996,180 @@ h1, h2, h3, p { margin: 0; }
  font-weight: 500;
  margin-bottom: 4px;
 }
+
+/* ─── Period controls — selector + search on one bar ─── */
+.period-controls {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ padding: 0 20px;
+ gap: 12px;
+}
+
+/* ─── Search ─── */
+.search-box {
+ display: flex;
+ align-items: center;
+ gap: 6px;
+ border: 1px solid var(--border);
+ border-radius: 4px;
+ padding: 4px 10px;
+ background: var(--bg);
+ transition: border-color 0.15s;
+}
+
+.search-box:focus-within {
+ border-color: var(--accent);
+}
+
+.search-prompt {
+ color: var(--accent);
+ font-size: 11px;
+ flex: 0 0 auto;
+}
+
+.search-input {
+ background: transparent;
+ border: none;
+ outline: none;
+ color: var(--text);
+ font-family: var(--font-mono);
+ font-size: 12px;
+ letter-spacing: 0.03em;
+ width: 160px;
+}
+
+.search-input::placeholder {
+ color: var(--text-4);
+ font-style: normal;
+}
+
+/* ─── Skeleton ─── */
+.skeleton-scramble {
+ color: var(--text-4);
+ opacity: 0.5;
+ font-family: var(--font-mono);
+ letter-spacing: 0.02em;
+}
+
+.skeleton-row {
+ pointer-events: none;
+}
+
+.skeleton-avatar {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ opacity: 0.4;
+}
+
+.skeleton-pill {
+ opacity: 0.4;
+}
+
+/* ─── Pagination ─── */
+.pagination-bar {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 4px;
+ padding: 12px 20px 20px;
+ font-size: 12px;
+ font-family: var(--font-mono);
+}
+
+.page-btn {
+ background: transparent;
+ border: 1px solid var(--border);
+ border-radius: 4px;
+ color: var(--text-3);
+ font-family: var(--font-mono);
+ font-size: 11px;
+ padding: 6px 12px;
+ cursor: pointer;
+ transition: color 0.15s, border-color 0.15s;
+ letter-spacing: 0.03em;
+}
+
+.page-btn:hover:not(:disabled) {
+ color: var(--text);
+ border-color: var(--accent);
+}
+
+.page-btn:disabled {
+ opacity: 0.3;
+ cursor: default;
+}
+
+.page-numbers {
+ display: flex;
+ align-items: center;
+ gap: 2px;
+}
+
+.page-num {
+ background: transparent;
+ border: 1px solid transparent;
+ border-radius: 4px;
+ color: var(--text-3);
+ font-family: var(--font-mono);
+ font-size: 11px;
+ padding: 6px 10px;
+ cursor: pointer;
+ transition: color 0.15s, border-color 0.15s;
+ min-width: 32px;
+ text-align: center;
+}
+
+.page-num:hover {
+ color: var(--text);
+}
+
+.page-num-active {
+ color: var(--accent);
+ border-color: var(--accent);
+ text-shadow: 0 0 6px rgba(216, 119, 86, 0.18);
+}
+
+.page-ellipsis {
+ color: var(--text-4);
+ padding: 0 4px;
+}
+
+/* ─── Empty state ─── */
+.empty-state {
+ padding: 40px 20px;
+ text-align: center;
+ font-size: 13px;
+}
+
+@media (max-width: 640px) {
+ .period-controls {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  gap: 0;
+ }
+ .period-controls .period-selector {
+  padding: 0 12px;
+ }
+ .search-box {
+  margin: 8px 12px;
+ }
+ .search-input {
+  width: 100%;
+ }
+ .pagination-bar {
+  padding: 12px 12px 16px;
+  gap: 2px;
+ }
+ .page-btn {
+  padding: 6px 8px;
+  font-size: 10px;
+ }
+ .page-num {
+  padding: 6px 6px;
+  font-size: 10px;
+  min-width: 28px;
+ }
+}

@@ -4,8 +4,7 @@ import type { LeaderboardPeriod } from '@/src/contracts/clawrank-domain';
 import { WindowChrome } from './components/chrome';
 import BrandHeading from './components/brand-heading';
 import { AnimatedMetricValue } from './components/animated-metric-value';
-import { LeaderboardTable } from './components/leaderboard-table';
-import { PeriodSelector } from './components/period-selector';
+import { LeaderboardShell } from './components/leaderboard-shell';
 import { PromptCopyButton } from './components/prompt-copy-button';
 import { SiteFooter } from './components/site-footer';
 import { TextBox } from './components/text-box';
@@ -13,7 +12,7 @@ import { getLeaderboard, formatCompact, formatPeriodLabel } from '@/src/lib/data
 import { parseLeaderboardPeriod } from '@/src/lib/leaderboard-period';
 import { getAbsoluteUrl, getLeaderboardOgImagePath, getRequestOrigin } from '@/src/lib/site';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 const OPENCLAW_PROMPT = 'Install ClawRank from ClawHub and get me ranked.';
 
 const VALID_PERIODS = new Set<LeaderboardPeriod>(['alltime', 'month', 'week']);
@@ -123,9 +122,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   <PromptCopyButton text={OPENCLAW_PROMPT} />
 </TextBox>
  </div>
- <PeriodSelector current={period} />
  </div>
- <LeaderboardTable rows={leaderboard.rows} />
+ <LeaderboardShell rows={leaderboard.rows} currentPeriod={period} />
  <div className="cta-bar">
  <span className="muted">▸ Want your agent on the board?</span>
  <a href="/register" className="cta-link">[get ranked]</a>
