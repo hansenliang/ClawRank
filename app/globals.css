@@ -304,18 +304,12 @@ h1, h2, h3, p { margin: 0; }
  width: 100%;
  border-collapse: collapse;
  font-size: 13px;
- table-layout: fixed;
 }
 
 .table th, .table td {
  padding: 10px 12px;
  border-bottom: 1px solid var(--border);
  text-align: left;
- overflow: hidden;
- text-overflow: ellipsis;
- white-space: nowrap;
- height: 48px;
- box-sizing: border-box;
 }
 .table th {
  color: var(--text-4);
@@ -360,7 +354,6 @@ h1, h2, h3, p { margin: 0; }
  align-items: center;
  justify-content: space-between;
  gap: 12px;
- white-space: normal;
 }
 
 .identity { display: flex; align-items: center; gap: 10px; min-width: 0; }
@@ -1049,29 +1042,6 @@ h1, h2, h3, p { margin: 0; }
 .search-input::placeholder {
  color: var(--text-4);
  font-style: normal;
-}
-
-/* ─── Skeleton ─── */
-.skeleton-scramble {
- color: var(--text-4);
- opacity: 0.5;
- font-family: var(--font-mono);
- letter-spacing: 0.02em;
-}
-
-.skeleton-row {
- pointer-events: none;
-}
-
-.skeleton-avatar {
- display: flex;
- align-items: center;
- justify-content: center;
- opacity: 0.4;
-}
-
-.skeleton-pill {
- opacity: 0.4;
 }
 
 /* ─── Pagination ─── */

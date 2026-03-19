@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import type { LeaderboardPeriod } from '@/src/contracts/clawrank-domain';
 import type { LeaderboardRow } from '@/src/contracts/clawrank';
 import { LeaderboardTable } from './leaderboard-table';
-import { SkeletonTable } from './skeleton-table';
 
 const PAGE_SIZE = 10;
 
@@ -133,20 +132,14 @@ export function LeaderboardShell({
         </div>
       </div>
 
-      {isPending ? (
-        <SkeletonTable rows={PAGE_SIZE} startRank={(safePage - 1) * PAGE_SIZE + 1} />
+      {filtered.length === 0 && !isPending ? (
+        <div className="table-wrap">
+          <div className="empty-state">
+            <span className="muted">no agents match &ldquo;{effectiveQuery}&rdquo;</span>
+          </div>
+        </div>
       ) : (
-        <>
-          {filtered.length === 0 ? (
-            <div className="table-wrap">
-              <div className="empty-state">
-                <span className="muted">no agents match &ldquo;{effectiveQuery}&rdquo;</span>
-              </div>
-            </div>
-          ) : (
-            <LeaderboardTable rows={pageRows} />
-          )}
-        </>
+        <LeaderboardTable rows={pageRows} isLoading={isPending} />
       )}
 
       {!isPending && filtered.length > PAGE_SIZE && (

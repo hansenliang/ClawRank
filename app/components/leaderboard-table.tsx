@@ -27,20 +27,20 @@ function gitDisplay(row: LeaderboardRow): string {
  return parts.join(' · ');
 }
 
-export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardRow[]; basePath?: string }) {
+export function LeaderboardTable({ rows, basePath = '/a', isLoading = false }: { rows: LeaderboardRow[]; basePath?: string; isLoading?: boolean }) {
  return (
  <div className="table-wrap">
  <div className="desktop-only">
  <table className="table">
  <thead>
  <tr>
- <th style={{ width: '6%' }}>Rank</th>
- <th style={{ width: '28%' }}>Agent</th>
- <th style={{ width: '16%' }}>Tokens</th>
- <th style={{ width: '14%' }}>Tool calls</th>
- <th style={{ width: '12%' }}>Messages</th>
- <th style={{ width: '12%' }}>Git</th>
- <th style={{ width: '12%' }}>Top tools</th>
+ <th>Rank</th>
+ <th>Agent</th>
+ <th>Tokens</th>
+ <th>Tool calls</th>
+ <th>Messages</th>
+ <th>Git</th>
+ <th>Top tools</th>
  </tr>
  </thead>
  <tbody>
@@ -56,18 +56,18 @@ export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardR
  <div>
  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
  <StateBadge state={row.derivedState} />
-                  <AnimatedMetricValue value={row.agentName} />
+                  <AnimatedMetricValue isLoading={isLoading} value={row.agentName} />
  </div>
- <div className="muted"><AnimatedMetricValue value={`by @${row.ownerName}`} style={{ fontSize: 12 }} /></div>
+ <div className="muted"><AnimatedMetricValue isLoading={isLoading} value={`by @${row.ownerName}`} style={{ fontSize: 12 }} /></div>
  </div>
  </Link>
  <ShareLinkButton path={`${basePath}/${row.detailSlug}`} label={row.displayName} />
  </div>
  </td>
- <td><AnimatedMetricValue value={formatCompact(row.tokenUsage.value)} /></td>
- <td><AnimatedMetricValue value={metricDisplay(row.toolCalls)} /></td>
- <td><AnimatedMetricValue value={metricDisplay(row.messageCount)} /></td>
- <td className="muted"><AnimatedMetricValue value={gitDisplay(row)} /></td>
+ <td><AnimatedMetricValue isLoading={isLoading} value={formatCompact(row.tokenUsage.value)} /></td>
+ <td><AnimatedMetricValue isLoading={isLoading} value={metricDisplay(row.toolCalls)} /></td>
+ <td><AnimatedMetricValue isLoading={isLoading} value={metricDisplay(row.messageCount)} /></td>
+ <td className="muted"><AnimatedMetricValue isLoading={isLoading} value={gitDisplay(row)} /></td>
  <td>
  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
  {(row.topToolNames || []).map((tool) => (
@@ -92,9 +92,9 @@ export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardR
  <div>
  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
  <StateBadge state={row.derivedState} />
-                  <AnimatedMetricValue value={row.agentName} />
+                  <AnimatedMetricValue isLoading={isLoading} value={row.agentName} />
  </div>
- <div className="muted"><AnimatedMetricValue value={`by @${row.ownerName}`} style={{ fontSize: 12 }} /></div>
+ <div className="muted"><AnimatedMetricValue isLoading={isLoading} value={`by @${row.ownerName}`} style={{ fontSize: 12 }} /></div>
  </div>
  </Link>
  <div style={{ marginLeft: 'auto' }}>
@@ -105,20 +105,20 @@ export function LeaderboardTable({ rows, basePath = '/a' }: { rows: LeaderboardR
  <div className="mobile-card-metrics">
  <div className="mobile-metric">
  <span className="mobile-metric-label">Tokens</span>
- <span className="mobile-metric-value"><AnimatedMetricValue value={formatCompact(row.tokenUsage.value)} /></span>
+ <span className="mobile-metric-value"><AnimatedMetricValue isLoading={isLoading} value={formatCompact(row.tokenUsage.value)} /></span>
  </div>
  <div className="mobile-metric">
  <span className="mobile-metric-label">Calls</span>
- <span className="mobile-metric-value"><AnimatedMetricValue value={metricDisplay(row.toolCalls)} /></span>
+ <span className="mobile-metric-value"><AnimatedMetricValue isLoading={isLoading} value={metricDisplay(row.toolCalls)} /></span>
  </div>
  <div className="mobile-metric">
  <span className="mobile-metric-label">Msgs</span>
- <span className="mobile-metric-value"><AnimatedMetricValue value={metricDisplay(row.messageCount)} /></span>
+ <span className="mobile-metric-value"><AnimatedMetricValue isLoading={isLoading} value={metricDisplay(row.messageCount)} /></span>
  </div>
  </div>
 
  <div className="mobile-card-git muted">
- <AnimatedMetricValue value={gitDisplay(row)} />
+ <AnimatedMetricValue isLoading={isLoading} value={gitDisplay(row)} />
  </div>
 
  <div className="mobile-card-tools">
