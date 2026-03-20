@@ -1,0 +1,33 @@
+/* Import the app's global CSS for visual fidelity.
+   Path is relative to the remotion/src/ directory. */
+@import '../../app/globals.css';
+
+/* Import JetBrains Mono */
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/600.css';
+@import '@fontsource/jetbrains-mono/700.css';
+
+/* Remotion overrides — force desktop layout */
+.mobile-only {
+  display: none !important;
+}
+
+.desktop-only {
+  display: block !important;
+}
+
+.shell {
+  width: 100%;
+  max-width: 1600px;
+  animation: none;
+}
+
+/* Allow 3D rows to extend outside the window chrome */
+.window {
+  overflow: visible !important;
+}
+
+.table-wrap {
+  overflow: visible !important;
+}

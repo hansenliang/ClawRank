@@ -4,9 +4,11 @@
 Concise, agent-facing implementation log and workflow notes for this repository.
 
 ## Active Branch
-- `feat/ux-polish`
+- `feat/sizzle-reel` (Remotion video work; **do not merge into `main`** — see `remotion/README.md`)
 
 ## Recent Updates
+- Tracked `remotion/` on this branch with `.gitignore` + `remotion/README.md` (source-control rules for video-only work).
+- Remotion sizzle reel uses a 5-scene beat timeline (15f crossfades, CTA padded to 30s); see `remotion/CURSOR_CONTEXT.md`.
 - Added a lobster emoji favicon via `app/icon.svg`.
 - Wired explicit metadata icon declarations in `app/layout.tsx` for standard, shortcut, and Apple icon tags.
 

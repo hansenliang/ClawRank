@@ -1,0 +1,22 @@
+{
+  "name": "clawrank-sizzle-reel",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion render SizzleReel out/clawrank-sizzle-4k.mp4",
+    "render": "remotion render SizzleReel out/clawrank-sizzle-4k.mp4"
+  },
+  "dependencies": {
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@remotion/cli": "4.0.261",
+    "@remotion/player": "4.0.261",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.261"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "typescript": "5.9.3"
+  }
+}
