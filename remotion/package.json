@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "remotion studio",
-    "build": "remotion render SizzleReel out/clawrank-sizzle-4k.mp4",
-    "render": "remotion render SizzleReel out/clawrank-sizzle-4k.mp4"
+    "build": "remotion render src/index.ts SizzleReel out/clawrank-sizzle.mp4",
+    "render": "remotion render src/index.ts SizzleReel out/clawrank-sizzle.mp4",
+    "render:4k-hevc": "remotion render src/index.ts SizzleReel out/clawrank-sizzle-3840x2160-hevc.mp4 --codec h265 --crf 0 --scale 3 --concurrency 2 --overwrite"
   },
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.2.8",

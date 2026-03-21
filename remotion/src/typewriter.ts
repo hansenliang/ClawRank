@@ -1,7 +1,10 @@
 /** Shared Remotion typewriter timing (matches Hook / CLI captions). */
 
+import { FRAMES_PER_BEAT_INT } from './beat-sync';
+
 export const REMOTION_FPS = 30;
-export const CURSOR_BLINK_INTERVAL = 15;
+/** One beat @ 130 BPM @ 30fps — cursor blink on the musical grid. */
+export const CURSOR_BLINK_INTERVAL = FRAMES_PER_BEAT_INT;
 
 export function typewriterRevealedCount(
   frame: number,

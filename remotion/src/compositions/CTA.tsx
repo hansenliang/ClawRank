@@ -2,6 +2,7 @@ import React from 'react';
 import { AbsoluteFill, useCurrentFrame } from 'remotion';
 import { CTA_DURATION_FRAMES, FRAMES_PER_BEAT_INT } from '../beat-sync';
 import '../styles.css';
+import { Mascot } from '../components/Mascot';
 
 const PROMPT_LINE = 'Install ClawRank from ClawHub and get me ranked.';
 const CHARS_PER_SECOND = 15;
@@ -46,39 +47,50 @@ export const CTA: React.FC = () => {
           flexDirection: 'column',
           alignItems: 'center',
           gap: 20,
-          maxWidth: 920,
+          maxWidth: 1080,
           padding: '0 40px',
         }}
       >
-        <div style={{ position: 'relative' }}>
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              fontSize: 44,
-              fontWeight: 700,
-              color: '#d87756',
-              opacity: 0.2,
-              filter: 'blur(12px)',
-              letterSpacing: '-0.03em',
-              pointerEvents: 'none',
-            }}
-          >
-            ClawRank
-          </div>
-          <div
-            style={{
-              fontSize: 44,
-              fontWeight: 700,
-              color: '#faf9f5',
-              letterSpacing: '-0.03em',
-              textShadow: '0 0 14px rgba(216, 119, 86, 0.12)',
-            }}
-          >
-            ClawRank
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 18,
+          }}
+        >
+          <Mascot size={52} animation="snap" />
+          <div style={{ position: 'relative' }}>
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                fontSize: 44,
+                fontWeight: 700,
+                color: '#d87756',
+                opacity: 0.2,
+                filter: 'blur(12px)',
+                letterSpacing: '-0.03em',
+                pointerEvents: 'none',
+              }}
+            >
+              ClawRank
+            </div>
+            <div
+              style={{
+                fontSize: 44,
+                fontWeight: 700,
+                color: '#faf9f5',
+                letterSpacing: '-0.03em',
+                textShadow: '0 0 14px rgba(216, 119, 86, 0.12)',
+              }}
+            >
+              ClawRank
+            </div>
           </div>
         </div>
 
@@ -127,8 +139,7 @@ export const CTA: React.FC = () => {
                 fontSize: 16,
                 fontWeight: 500,
                 lineHeight: 1.45,
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
+                whiteSpace: 'nowrap',
                 visibility: 'hidden',
               }}
             >
@@ -145,8 +156,7 @@ export const CTA: React.FC = () => {
                 fontWeight: 500,
                 color: '#faf9f5',
                 lineHeight: 1.45,
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
+                whiteSpace: 'nowrap',
               }}
             >
               {typed}

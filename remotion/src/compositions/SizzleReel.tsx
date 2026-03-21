@@ -1,31 +1,48 @@
 import React from 'react';
-import { AbsoluteFill, Sequence, useCurrentFrame, interpolate } from 'remotion';
+import {
+  AbsoluteFill,
+  Audio,
+  Sequence,
+  staticFile,
+  useCurrentFrame,
+} from 'remotion';
+import {
+  CLOSEUP_MASTER_DURATION_FRAMES,
+  CTA_DURATION_FRAMES,
+  DETAIL_SCENE_FRAMES,
+  HOOK_DURATION_FRAMES,
+  LEADERBOARD_CLOSEUP_START_FRAMES,
+  SIZZLE_AUDIO_PUBLIC_FILE,
+  ZOOM_SCENE_FRAMES,
+} from '../beat-sync';
 import { Hook } from './Hook';
 import { LeaderboardCloseup } from './LeaderboardCloseup';
 import { AgentDetailScene } from './AgentDetailScene';
 import { LeaderboardZoomOut } from './LeaderboardZoomOut';
 import { CTA } from './CTA';
 
-const CROSSFADE = 15;
-
+/**
+ * Soundtrack length from **`beat-sync`** — hard cuts; close-up may cut before the **3s** grid anchor
+ * (see **`LEADERBOARD_CLOSEUP_START_FRAMES`** / **`MASTER_HOOK_GRID_FRAMES`**).
+ * @see `../beat-sync.ts`
+ */
 const HOOK_START = 0;
-const HOOK_DURATION = 120;
+const HOOK_DURATION = HOOK_DURATION_FRAMES;
 
-const CLOSEUP_START = HOOK_DURATION - CROSSFADE; // 105
-/** 180f: 3s UI-only + CLI sidecar + type-on (beat stretch). */
-const CLOSEUP_DURATION = 180;
+const CLOSEUP_START = LEADERBOARD_CLOSEUP_START_FRAMES;
+const CLOSEUP_DURATION = CLOSEUP_MASTER_DURATION_FRAMES;
 
-const DETAIL_START = CLOSEUP_START + CLOSEUP_DURATION - CROSSFADE; // 270
-const DETAIL_DURATION = 120;
+const DETAIL_START = CLOSEUP_START + CLOSEUP_DURATION;
+const DETAIL_DURATION = DETAIL_SCENE_FRAMES;
 
-const ZOOMOUT_START = DETAIL_START + DETAIL_DURATION - CROSSFADE; // 375
-const ZOOMOUT_DURATION = 120;
+const ZOOMOUT_START = DETAIL_START + DETAIL_DURATION;
+const ZOOMOUT_DURATION = ZOOM_SCENE_FRAMES;
 
-const CTA_START = ZOOMOUT_START + ZOOMOUT_DURATION - CROSSFADE; // 480
-const TOTAL = 900;
-const CTA_DURATION = TOTAL - CTA_START; // 420 — long hold after prompt finishes
+const CTA_START = ZOOMOUT_START + ZOOMOUT_DURATION;
+const CTA_DURATION = CTA_DURATION_FRAMES;
 
-function CrossfadeScene({
+/** Hard cut: full opacity for `[from, from + duration)`. */
+function TimedScene({
   children,
   from,
   duration,
@@ -36,26 +53,10 @@ function CrossfadeScene({
   duration: number;
   frame: number;
 }) {
-  const fadeIn =
-    from === 0
-      ? 1
-      : interpolate(frame, [from, from + CROSSFADE], [0, 1], {
-          extrapolateLeft: 'clamp',
-          extrapolateRight: 'clamp',
-        });
-
-  const end = from + duration;
-  const fadeOut = interpolate(frame, [end - CROSSFADE, end], [1, 0], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  });
-
-  const opacity = Math.min(fadeIn, fadeOut);
-
-  if (frame < from - 1 || frame > end + 1) return null;
+  if (frame < from || frame >= from + duration) return null;
 
   return (
-    <AbsoluteFill style={{ opacity }}>
+    <AbsoluteFill style={{ opacity: 1 }}>
       <Sequence from={from} durationInFrames={duration}>
         {children}
       </Sequence>
@@ -68,25 +69,26 @@ export const SizzleReel: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#0f0f0e' }}>
-      <CrossfadeScene from={HOOK_START} duration={HOOK_DURATION} frame={frame}>
+      <Audio src={staticFile(SIZZLE_AUDIO_PUBLIC_FILE)} />
+      <TimedScene from={HOOK_START} duration={HOOK_DURATION} frame={frame}>
         <Hook />
-      </CrossfadeScene>
+      </TimedScene>
 
-      <CrossfadeScene from={CLOSEUP_START} duration={CLOSEUP_DURATION} frame={frame}>
+      <TimedScene from={CLOSEUP_START} duration={CLOSEUP_DURATION} frame={frame}>
         <LeaderboardCloseup />
-      </CrossfadeScene>
+      </TimedScene>
 
-      <CrossfadeScene from={DETAIL_START} duration={DETAIL_DURATION} frame={frame}>
+      <TimedScene from={DETAIL_START} duration={DETAIL_DURATION} frame={frame}>
         <AgentDetailScene />
-      </CrossfadeScene>
+      </TimedScene>
 
-      <CrossfadeScene from={ZOOMOUT_START} duration={ZOOMOUT_DURATION} frame={frame}>
+      <TimedScene from={ZOOMOUT_START} duration={ZOOMOUT_DURATION} frame={frame}>
         <LeaderboardZoomOut />
-      </CrossfadeScene>
+      </TimedScene>
 
-      <CrossfadeScene from={CTA_START} duration={CTA_DURATION} frame={frame}>
+      <TimedScene from={CTA_START} duration={CTA_DURATION} frame={frame}>
         <CTA />
-      </CrossfadeScene>
+      </TimedScene>
     </AbsoluteFill>
   );
 };

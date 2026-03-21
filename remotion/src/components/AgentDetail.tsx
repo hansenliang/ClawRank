@@ -3,7 +3,8 @@
  * Matches the layout and CSS classes from app/a/[...segments]/page.tsx.
  */
 import React from 'react';
-import { useCurrentFrame } from 'remotion';
+import { useCurrentFrame, useVideoConfig } from 'remotion';
+import { FRAMES_PER_BEAT_INT, legacy120ToFrame } from '../beat-sync';
 import type { LeaderboardRow } from '../types';
 import { ScrambleText } from './ScrambleText';
 import { formatCompact } from '../format';
@@ -45,12 +46,14 @@ export function AgentDetail({
   instantHeading = false,
 }: AgentDetailProps) {
   const frame = useCurrentFrame();
+  const { durationInFrames } = useVideoConfig();
   const stats = buildStats(row);
+  const L = (legacy: number) => legacy120ToFrame(legacy, durationInFrames);
 
   // Typing animation for the heading — character by character (skippable)
   const headingText = row.agentName;
   const headingChars = Array.from(headingText);
-  const typingStart = revealOffset + 12;
+  const typingStart = L(revealOffset + 12);
   const charsPerFrame = 0.4; // ~12 chars/sec, deliberate pace
   const localTypingFrame = frame - typingStart;
   const visibleHeadingChars = instantHeading
@@ -62,7 +65,7 @@ export function AgentDetail({
   const cursorBlink = instantHeading
     ? false
     : headingDone
-      ? Math.floor(frame / 15) % 2 === 0
+      ? Math.floor(frame / FRAMES_PER_BEAT_INT) % 2 === 0
       : true;
 
   return (
@@ -80,7 +83,7 @@ export function AgentDetail({
           <div className="kicker">
             <ScrambleText
               value={`#${row.rank} on ClawRank · 7d`}
-              revealStart={revealOffset + 4}
+              revealStart={L(revealOffset + 4)}
               revealDuration={16}
             />
           </div>
@@ -109,7 +112,7 @@ export function AgentDetail({
             <span className={`state-dot state-${row.derivedState || 'estimated'}`} />
             <ScrambleText
               value={`by @${row.ownerName}`}
-              revealStart={revealOffset + 8}
+              revealStart={L(revealOffset + 8)}
               revealDuration={14}
             />
           </div>
@@ -121,7 +124,7 @@ export function AgentDetail({
               <div className="stat-value">
                 <ScrambleText
                   value={formatCompact(row.tokenUsage.value)}
-                  revealStart={revealOffset + 2}
+                  revealStart={L(revealOffset + 2)}
                   revealDuration={20}
                 />
               </div>
@@ -131,7 +134,7 @@ export function AgentDetail({
               <div className="stat-value">
                 <ScrambleText
                   value={`${row.periodStart} — ${row.periodEnd}`}
-                  revealStart={revealOffset + 4}
+                  revealStart={L(revealOffset + 4)}
                   revealDuration={22}
                 />
               </div>
@@ -155,7 +158,7 @@ export function AgentDetail({
                       <div className="metric-value">
                         <ScrambleText
                           value={stat.value}
-                          revealStart={revealOffset + 6 + i * 3}
+                          revealStart={L(revealOffset + 6 + i * 3)}
                           revealDuration={18}
                         />
                       </div>
@@ -176,7 +179,7 @@ export function AgentDetail({
                       <div className="metric-value">
                         <ScrambleText
                           value={stat.value}
-                          revealStart={revealOffset + 14 + i * 3}
+                          revealStart={L(revealOffset + 14 + i * 3)}
                           revealDuration={18}
                         />
                       </div>

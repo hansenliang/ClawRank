@@ -8,15 +8,16 @@ import {
 } from 'remotion';
 import { AgentDetail } from '../components/AgentDetail';
 import { ReelTypeCaption } from '../components/ReelTypeCaption';
+import { DETAIL_SCENE_FRAMES, legacy120ToFrame } from '../beat-sync';
 import { VIDEO_ROWS } from '../video-rows';
 import '../styles.css';
 
 /** Demo: detail beat follows rank-3 row (Claudius Maximus) when baked data has ≥3 rows. */
 const TOP_ROW = VIDEO_ROWS.length >= 3 ? VIDEO_ROWS[2] : VIDEO_ROWS[0];
 
-const CAPTION_SHOW = 10;
-const CAPTION_FADE = 12;
-const TYPE_START = CAPTION_SHOW + CAPTION_FADE;
+const CAPTION_SHOW = legacy120ToFrame(10, DETAIL_SCENE_FRAMES);
+const TYPE_START = legacy120ToFrame(22, DETAIL_SCENE_FRAMES);
+const CAPTION_FADE = TYPE_START - CAPTION_SHOW;
 const CAPTION_TEXT = 'Detailed analytics and insights.';
 const EMPHASIS = 'insights.';
 
@@ -24,7 +25,7 @@ const EMPHASIS = 'insights.';
 const WINDOW_UI_SCALE = 1.44;
 
 /**
- * Scene 3 — 120f — Featured agent detail (baked rank #3 / fallback #1), metrics scramble, side caption.
+ * Scene 3 — **7s** block (~0:10–0:17 on soundtrack).
  */
 export const AgentDetailScene: React.FC = () => {
   const frame = useCurrentFrame();
@@ -42,7 +43,7 @@ export const AgentDetailScene: React.FC = () => {
     setPanMaxPx(Math.max(0, visualH - vh));
   }, [TOP_ROW.agentName, TOP_ROW.detailSlug]);
 
-  const masterOpacity = interpolate(frame, [0, 10], [0, 1], {
+  const masterOpacity = interpolate(frame, [0, legacy120ToFrame(10, DETAIL_SCENE_FRAMES)], [0, 1], {
     extrapolateRight: 'clamp',
   });
 

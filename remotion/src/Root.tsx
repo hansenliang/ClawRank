@@ -1,4 +1,12 @@
 import { Composition } from "remotion";
+import {
+  CLOSEUP_SCENE_FRAMES,
+  CTA_DURATION_FRAMES,
+  DETAIL_SCENE_FRAMES,
+  HOOK_DURATION_FRAMES,
+  SIZZLE_TOTAL_FRAMES,
+  ZOOM_SCENE_FRAMES,
+} from "./beat-sync";
 import { Hook } from "./compositions/Hook";
 import { LeaderboardCloseup } from "./compositions/LeaderboardCloseup";
 import { AgentDetailScene } from "./compositions/AgentDetailScene";
@@ -14,7 +22,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="SizzleReel"
         component={SizzleReel}
-        durationInFrames={900}
+        durationInFrames={SIZZLE_TOTAL_FRAMES}
         fps={30}
         width={1280}
         height={720}
@@ -23,7 +31,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="Hook"
         component={Hook}
-        durationInFrames={120}
+        durationInFrames={HOOK_DURATION_FRAMES}
         fps={30}
         width={1280}
         height={720}
@@ -31,7 +39,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="LeaderboardCloseup"
         component={LeaderboardCloseup}
-        durationInFrames={180}
+        durationInFrames={CLOSEUP_SCENE_FRAMES}
         fps={30}
         width={1280}
         height={720}
@@ -39,7 +47,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="AgentDetailScene"
         component={AgentDetailScene}
-        durationInFrames={120}
+        durationInFrames={DETAIL_SCENE_FRAMES}
         fps={30}
         width={1280}
         height={720}
@@ -47,7 +55,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="LeaderboardZoomOut"
         component={LeaderboardZoomOut}
-        durationInFrames={120}
+        durationInFrames={ZOOM_SCENE_FRAMES}
         fps={30}
         width={1280}
         height={720}
@@ -63,7 +71,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="CTA"
         component={CTA}
-        durationInFrames={480}
+        durationInFrames={CTA_DURATION_FRAMES}
         fps={30}
         width={1280}
         height={720}

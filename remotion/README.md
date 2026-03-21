@@ -14,12 +14,42 @@ Suggested branch name: `feat/sizzle-reel` (or `production/sizzle`).
 
 ## Run
 
+From the **repo root** (the folder that contains `remotion/`):
+
 ```bash
 cd remotion
-npm install
+pnpm install   # or npm install
 npx remotion studio
-# npx remotion render SizzleReel out/sizzle.mp4 --scale=2
+# Master, 1280×720 (entry must be the file that calls registerRoot):
+# npx remotion render src/index.ts SizzleReel out/sizzle.mp4
 ```
+
+**3840×2160 HEVC (max quality CRF 0):** from `remotion/`, with Chrome set if Headless Shell download fails (see below):
+
+```bash
+pnpm run render:4k-hevc
+# → out/clawrank-sizzle-3840x2160-hevc.mp4  (gitignored)
+```
+
+Uses **`--scale 3`** (720×3 = 2160p), **`--codec h265`**, **`--crf 0`**, and **`--concurrency 2`** so **Google Chrome** as `REMOTION_BROWSER_EXECUTABLE` stays stable under parallel tabs.
+
+### Chrome download fails (`unable to get local issuer certificate`)
+
+Remotion downloads **Chrome Headless Shell** over HTTPS. If Node’s TLS trust fails (common behind SSL-inspecting proxies), either:
+
+1. **Point Node at a real CA bundle** — `NODE_EXTRA_CA_CERTS` must be an **existing** `.pem` file (not a placeholder path). IT often provides this; on macOS you can export roots from Keychain Access to PEM.
+2. **Skip the download** — install **Google Chrome** normally, then set **`REMOTION_BROWSER_EXECUTABLE`** to the executable (shell or `.env`, not committed):
+
+   ```bash
+   export REMOTION_BROWSER_EXECUTABLE="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+   cd remotion && npx remotion studio
+   ```
+
+   `remotion/remotion.config.ts` reads this env var and calls `Config.setBrowserExecutable` when set.
+
+**Soundtrack:** Master length **34.102s** (**1023f** @ 30fps; matches **`remotion/public/ghost-in-the-kernel-edit.mp3`**). The file includes **`SOUNDTRACK_HOOK_PREFIX_SEC`** (**1.846s**) before the original downbeat — **Hook** is that much longer; **`FIRST_BEAT_AT_SEC`** and **`MASTER_HOOK_GRID_FRAMES`** shift together so **detail / zoom / CTA** stay on the same beats (**`CLOSEUP_POSTROLL_FRAMES`** unchanged). Three **~7.38s** blocks + **CTA** (derived in `beat-sync.ts`). See **`CURSOR_CONTEXT.md`**.
+
+**Music file:** **`ghost-in-the-kernel-edit.mp3`** in **`remotion/public/`** (e.g. from repo-root *Ghost in the Kernel (Edit) (1).mp3*). **`SizzleReel`** mounts **`<Audio src={staticFile(SIZZLE_AUDIO_PUBLIC_FILE)} />`**.
 
 ## Production leaderboard data (Neon)
 
