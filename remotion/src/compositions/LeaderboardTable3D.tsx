@@ -174,22 +174,19 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
     ? interpolate(periodSpring, [0, 0.4], [0, 1], { extrapolateRight: 'clamp' })
     : 1;
 
+  const headerDelay =
+    cinematicAssembly && animateRows ? closeupLegacyToFrame(54) : 12;
+  const headerSpring = spring({
+    frame,
+    fps: FPS,
+    delay: headerDelay,
+    config: cinematicAssembly && animateRows
+      ? { mass: 0.7, stiffness: 64, damping: 15 }
+      : { mass: 0.6, stiffness: 90, damping: 14 },
+  });
+  const headerX = animateRows ? interpolate(headerSpring, [0, 1], [-50, 0]) : 0;
   const headerOpacity = animateRows
-    ? interpolate(
-        spring(
-          cinematicAssembly
-            ? {
-                frame,
-                fps: FPS,
-                delay: closeupLegacyToFrame(72),
-                config: { mass: 0.55, stiffness: 88, damping: 16 },
-              }
-            : { frame, fps: FPS, delay: 12, config: { damping: 16 } },
-        ),
-        [0, 0.5],
-        [0, 1],
-        { extrapolateRight: 'clamp' },
-      )
+    ? interpolate(headerSpring, [0, 0.4], [0, 1], { extrapolateRight: 'clamp' })
     : 1;
 
   const glowOpacity = showAmbientGlow
@@ -304,7 +301,7 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
               <div className="desktop-only">
                 <table className="table">
                   <thead>
-                    <tr style={{ opacity: headerOpacity }}>
+                    <tr style={{ opacity: headerOpacity, transform: `translateX(${headerX}px)` }}>
                       <th>Rank</th>
                       <th>Agent</th>
                       <th>Tokens</th>
