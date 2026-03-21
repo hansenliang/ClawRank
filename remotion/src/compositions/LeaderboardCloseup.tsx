@@ -1,133 +1,180 @@
 import React from 'react';
-import { AbsoluteFill, Easing, interpolate, useCurrentFrame } from 'remotion';
-import { LeaderboardTable3D, type LeaderboardCamera } from './LeaderboardTable3D';
+import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame } from 'remotion';
+import {
+  closeupLegacyToFrame,
+  CLOSEUP_SCENE_FRAMES,
+  REMOTION_FPS,
+} from '../beat-sync';
+import {
+  CINEMATIC_HERO_ROW_DELAY,
+  LeaderboardTable3D,
+  ROW_SPRING_HERO,
+  type LeaderboardCamera,
+} from './LeaderboardTable3D';
 import { ReelTypeCaption } from '../components/ReelTypeCaption';
-import { REMOTION_FPS } from '../typewriter';
 import '../styles.css';
 
-/** Ease-out-heavy curve — slow settle like product-film camera moves. */
-const CINEMATIC = Easing.bezier(0.22, 0.09, 0.2, 1);
+/** Phase 1 “pass-through” dolly — smooth; depth from hero Z + scale, not big tilt swings. */
+const PHASE_1_PASS_THROUGH = Easing.bezier(0.26, 0.06, 0.2, 1);
+/** Phase 2 pullback — stronger ease-out so the wide shot settles before hold. */
+const CINEMATIC_PULLBACK = Easing.bezier(0.12, 0, 0.18, 1);
 
-/** First phase: extreme macro on rank #1 identity; second: pull back to show full stack. */
-const CAMERA_TIGHT_END = 88;
-const CAMERA_WIDE_END = 154;
+/** Phase boundaries on the beat grid (legacy 88f / 154f @ 180f → nearest beat). */
+const CAMERA_TIGHT_END = closeupLegacyToFrame(88);
+const CAMERA_WIDE_END = closeupLegacyToFrame(154);
 
-/** End of phase 1 = start of phase 2 (same object — avoids a jump at `CAMERA_TIGHT_END`). */
+/**
+ * End of phase 1 = start of phase 2 (same object — avoids a jump at `CAMERA_TIGHT_END`).
+ * Narrow tilt band in phase 1 keeps the move flat — depth comes from hero Z + dolly, not pitch swing.
+ */
 const CAMERA_AT_TIGHT_END: LeaderboardCamera = {
   scale: 3,
   panX: 94,
-  panY: 200,
-  tiltX: 50,
+  panY: 120,
+  tiltX: 44,
   tiltY: 0,
 };
+
+/** Same spring as hero row — drives pan/tilt “follow” during phase 1 only. */
+function closeupHeroLandProgress(frame: number): number {
+  return spring({
+    frame,
+    fps: REMOTION_FPS,
+    delay: CINEMATIC_HERO_ROW_DELAY,
+    config: { ...ROW_SPRING_HERO },
+  });
+}
 
 const CAMERA_WIDE: LeaderboardCamera = {
   scale: 1.42,
   panX: 100,
-  panY: 252,
+  panY: 200,
   tiltX: 9,
   tiltY: -6,
 };
 
 function closeupCameraForFrame(frame: number): LeaderboardCamera {
-  const scale =
-    frame < CAMERA_TIGHT_END
-      ? interpolate(frame, [0, CAMERA_TIGHT_END], [10, CAMERA_AT_TIGHT_END.scale], {
-          extrapolateRight: 'clamp',
-          easing: CINEMATIC,
-        })
-      : interpolate(
-          frame,
-          [CAMERA_TIGHT_END, CAMERA_WIDE_END],
-          [CAMERA_AT_TIGHT_END.scale, CAMERA_WIDE.scale],
-          {
-            extrapolateLeft: 'clamp',
-            extrapolateRight: 'clamp',
-            easing: CINEMATIC,
-          },
-        );
+  if (frame < CAMERA_TIGHT_END) {
+    const h = closeupHeroLandProgress(frame);
 
-  const panX =
-    frame < CAMERA_TIGHT_END
-      ? interpolate(frame, [0, CAMERA_TIGHT_END], [200, CAMERA_AT_TIGHT_END.panX], {
-          extrapolateRight: 'clamp',
-          easing: CINEMATIC,
-        })
-      : interpolate(
-          frame,
-          [CAMERA_TIGHT_END, CAMERA_WIDE_END],
-          [CAMERA_AT_TIGHT_END.panX, CAMERA_WIDE.panX],
-          {
-            extrapolateLeft: 'clamp',
-            extrapolateRight: 'clamp',
-            easing: CINEMATIC,
-          },
-        );
+    // Dolly back while the hero row recedes in Z — reads like type “passes through” a small lens.
+    const scale = interpolate(
+      frame,
+      [0, CAMERA_TIGHT_END],
+      [11.35, CAMERA_AT_TIGHT_END.scale],
+      { extrapolateRight: 'clamp', easing: PHASE_1_PASS_THROUGH },
+    );
 
-  const panY =
-    frame < CAMERA_TIGHT_END
-      ? interpolate(frame, [0, CAMERA_TIGHT_END], [500, CAMERA_AT_TIGHT_END.panY], {
-          extrapolateRight: 'clamp',
-          easing: CINEMATIC,
-        })
-      : interpolate(
-          frame,
-          [CAMERA_TIGHT_END, CAMERA_WIDE_END],
-          [CAMERA_AT_TIGHT_END.panY, CAMERA_WIDE.panY],
-          {
-            extrapolateLeft: 'clamp',
-            extrapolateRight: 'clamp',
-            easing: CINEMATIC,
-          },
-        );
+    const panXBase = interpolate(
+      frame,
+      [0, CAMERA_TIGHT_END],
+      [400, CAMERA_AT_TIGHT_END.panX],
+      { extrapolateRight: 'clamp', easing: PHASE_1_PASS_THROUGH },
+    );
+    const panYBase = interpolate(
+      frame,
+      [0, CAMERA_TIGHT_END],
+      [580, CAMERA_AT_TIGHT_END.panY],
+      { extrapolateRight: 'clamp', easing: PHASE_1_PASS_THROUGH },
+    );
 
-  const tiltX =
-    frame < CAMERA_TIGHT_END
-      ? interpolate(frame, [0, CAMERA_TIGHT_END], [80, CAMERA_AT_TIGHT_END.tiltX], {
-          extrapolateRight: 'clamp',
-          easing: CINEMATIC,
-        })
-      : interpolate(
-          frame,
-          [CAMERA_TIGHT_END, CAMERA_WIDE_END],
-          [CAMERA_AT_TIGHT_END.tiltX, CAMERA_WIDE.tiltX],
-          {
-            extrapolateLeft: 'clamp',
-            extrapolateRight: 'clamp',
-            easing: CINEMATIC,
-          },
-        );
+    // Light compensation as Z collapses — small range so the path doesn’t arc up/down like a crane.
+    const followPanX = interpolate(h, [0, 0.55, 1], [-12, -4, 0], {
+      extrapolateRight: 'clamp',
+    });
+    const followPanY = interpolate(h, [0, 0.5, 1], [20, 7, 0], {
+      extrapolateRight: 'clamp',
+    });
 
-  const tiltY =
-    frame < CAMERA_TIGHT_END
-      ? interpolate(frame, [0, CAMERA_TIGHT_END], [0, CAMERA_AT_TIGHT_END.tiltY], {
-          extrapolateRight: 'clamp',
-          easing: CINEMATIC,
-        })
-      : interpolate(
-          frame,
-          [CAMERA_TIGHT_END, CAMERA_WIDE_END],
-          [CAMERA_AT_TIGHT_END.tiltY, CAMERA_WIDE.tiltY],
-          {
-            extrapolateLeft: 'clamp',
-            extrapolateRight: 'clamp',
-            easing: CINEMATIC,
-          },
-        );
+    const tiltX = interpolate(
+      frame,
+      [0, CAMERA_TIGHT_END],
+      [50, CAMERA_AT_TIGHT_END.tiltX],
+      { extrapolateRight: 'clamp', easing: PHASE_1_PASS_THROUGH },
+    );
+
+    return {
+      scale,
+      panX: panXBase + followPanX,
+      panY: panYBase + followPanY,
+      tiltX,
+      tiltY: 0,
+    };
+  }
+
+  const scale = interpolate(
+    frame,
+    [CAMERA_TIGHT_END, CAMERA_WIDE_END],
+    [CAMERA_AT_TIGHT_END.scale, CAMERA_WIDE.scale],
+    {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp',
+      easing: CINEMATIC_PULLBACK,
+    },
+  );
+
+  const panX = interpolate(
+    frame,
+    [CAMERA_TIGHT_END, CAMERA_WIDE_END],
+    [CAMERA_AT_TIGHT_END.panX, CAMERA_WIDE.panX],
+    {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp',
+      easing: CINEMATIC_PULLBACK,
+    },
+  );
+
+  const panY = interpolate(
+    frame,
+    [CAMERA_TIGHT_END, CAMERA_WIDE_END],
+    [CAMERA_AT_TIGHT_END.panY, CAMERA_WIDE.panY],
+    {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp',
+      easing: CINEMATIC_PULLBACK,
+    },
+  );
+
+  const tiltX = interpolate(
+    frame,
+    [CAMERA_TIGHT_END, CAMERA_WIDE_END],
+    [CAMERA_AT_TIGHT_END.tiltX, CAMERA_WIDE.tiltX],
+    {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp',
+      easing: CINEMATIC_PULLBACK,
+    },
+  );
+
+  const tiltY = interpolate(
+    frame,
+    [CAMERA_TIGHT_END, CAMERA_WIDE_END],
+    [CAMERA_AT_TIGHT_END.tiltY, CAMERA_WIDE.tiltY],
+    {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp',
+      easing: CINEMATIC_PULLBACK,
+    },
+  );
 
   return { scale, panX, panY, tiltX, tiltY };
 }
 
-/** UI alone before caption (3s). */
-const CAPTION_SHOW = REMOTION_FPS * 1;
-const CAPTION_FADE = 10;
-const TYPE_START = CAPTION_SHOW + CAPTION_FADE;
+/**
+ * Type-on when pullback starts; caption fade scaled from legacy 10f @ 180f → 210f scene.
+ */
+const TYPE_START = CAMERA_TIGHT_END;
+const CAPTION_FADE = Math.max(
+  1,
+  Math.round((10 / 180) * CLOSEUP_SCENE_FRAMES),
+);
+const CAPTION_SHOW = TYPE_START - CAPTION_FADE;
 
-const CAPTION_TEXT = 'Your OpenClaw agents, ranked.';
+const CAPTION_TEXT = 'Top OpenClaw agents, ranked.';
 const EMPHASIS = 'ranked.';
 
 /**
- * Scene 2 — 180f — Cinematic assembly: macro on #1 row landing, camera pulls back, remaining rows stack in.
+ * Scene 2 — **7s** block after 3s Hook; cinematic assembly (soundtrack @ ~0:03).
  */
 export const LeaderboardCloseup: React.FC = () => {
   const frame = useCurrentFrame();
@@ -174,7 +221,7 @@ export const LeaderboardCloseup: React.FC = () => {
             masterFadeIn
             showAmbientGlow
             cinematicAssembly
-            perspectivePx={720}
+            perspectivePx={640}
           />
         </div>
       </div>

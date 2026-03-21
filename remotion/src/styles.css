@@ -70,3 +70,9 @@
   min-width: 200px;
   flex: 1 1 auto;
 }
+
+/* Video-only: Top-tools column (7th) — wide enough so 3 pills sit on a single row */
+.window .table th:nth-child(7),
+.window .table td:nth-child(7) {
+  min-width: 260px;
+}

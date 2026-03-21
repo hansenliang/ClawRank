@@ -1,5 +1,12 @@
 import React from 'react';
-import { AbsoluteFill, useCurrentFrame, interpolate, spring } from 'remotion';
+import {
+  AbsoluteFill,
+  useCurrentFrame,
+  useVideoConfig,
+  interpolate,
+  spring,
+} from 'remotion';
+import { closeupLegacyToFrame } from '../beat-sync';
 import { VIDEO_ROWS } from '../video-rows';
 import { ScrambleText } from '../components/ScrambleText';
 import { formatCompact } from '../format';
@@ -16,12 +23,16 @@ const ROW_SPRING_CRUISE = {
   overshootClamping: true,
 } as const;
 
-const ROW_SPRING_HERO = {
+/** Close-up hero row — keep in sync with `LeaderboardCloseup` `closeupHeroLandProgress`. */
+export const ROW_SPRING_HERO = {
   mass: 1.55,
   stiffness: 30,
   damping: 22,
   overshootClamping: true,
 } as const;
+
+/** Hero row spring delay — exported for camera follow in `LeaderboardCloseup`. */
+export const CINEMATIC_HERO_ROW_DELAY = closeupLegacyToFrame(12);
 
 export type LeaderboardCamera = {
   scale: number;
@@ -56,11 +67,12 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
   perspectivePx = 600,
 }) => {
   const frame = useCurrentFrame();
+  const { durationInFrames } = useVideoConfig();
 
   const getRowSpring = (rowIndex: number) => {
     if (cinematicAssembly && animateRows) {
       if (rowIndex === 0) {
-        const delay = 16;
+        const delay = CINEMATIC_HERO_ROW_DELAY;
         const progress = spring({
           frame,
           fps: FPS,
@@ -69,21 +81,22 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
         });
         const z = Math.max(
           0,
-          interpolate(progress, [0, 1], [340, 0], { extrapolateRight: 'clamp' }),
+          interpolate(progress, [0, 1], [720, 0], { extrapolateRight: 'clamp' }),
         );
-        const rowScale = interpolate(progress, [0, 1], [1.28, 1], {
+        const rowScale = interpolate(progress, [0, 1], [1.62, 1], {
           extrapolateRight: 'clamp',
         });
-        const rotX = interpolate(progress, [0, 1], [24, 0], {
+        // Subtle pitch — mostly Z “flies past” the camera, not a big tumble.
+        const rotX = interpolate(progress, [0, 1], [12, 0], {
           extrapolateRight: 'clamp',
         });
-        const opacity = interpolate(progress, [0, 0.32], [0, 1], {
+        const opacity = interpolate(progress, [0, 0.18], [0, 1], {
           extrapolateRight: 'clamp',
         });
         return { z, scale: rowScale, rotX, opacity };
       }
-      /** Tight cascade after hero row (was 76 + 12 per row). */
-      const delay = 36 + (rowIndex - 1) * 5;
+      /** Cascade after hero — legacy delays beat-snapped (was 33 + (i−1)×6 @ 180f). */
+      const delay = closeupLegacyToFrame(33 + (rowIndex - 1) * 6);
       const progress = spring({
         frame,
         fps: FPS,
@@ -92,7 +105,7 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
       });
       const z = Math.max(
         0,
-        interpolate(progress, [0, 1], [220, 0], { extrapolateRight: 'clamp' }),
+        interpolate(progress, [0, 1], [252, 0], { extrapolateRight: 'clamp' }),
       );
       const rowScale = interpolate(progress, [0, 1], [1.22, 1], {
         extrapolateRight: 'clamp',
@@ -131,7 +144,8 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
 
   const settled = { z: 0, scale: 1, rotX: 0, opacity: 1 };
 
-  const chromeDelay = cinematicAssembly && animateRows ? 4 : 0;
+  const chromeDelay =
+    cinematicAssembly && animateRows ? closeupLegacyToFrame(2) : 0;
   const chromeSpring = spring({
     frame,
     fps: FPS,
@@ -146,7 +160,7 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
     : 1;
 
   const periodDelay =
-    cinematicAssembly && animateRows ? 38 : 6;
+    cinematicAssembly && animateRows ? closeupLegacyToFrame(46) : 6;
   const periodSpring = spring({
     frame,
     fps: FPS,
@@ -167,7 +181,7 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
             ? {
                 frame,
                 fps: FPS,
-                delay: 64,
+                delay: closeupLegacyToFrame(72),
                 config: { mass: 0.55, stiffness: 88, damping: 16 },
               }
             : { frame, fps: FPS, delay: 12, config: { damping: 16 } },
@@ -181,14 +195,16 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
   const glowOpacity = showAmbientGlow
     ? interpolate(
         frame,
-        cinematicAssembly ? [0, 52] : [0, 40],
+        cinematicAssembly ? [0, closeupLegacyToFrame(58)] : [0, 40],
         [0, 0.7],
         { extrapolateRight: 'clamp' },
       )
     : 0;
 
   const masterOpacity = masterFadeIn
-    ? interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' })
+    ? interpolate(frame, [0, closeupLegacyToFrame(8)], [0, 1], {
+        extrapolateRight: 'clamp',
+      })
     : 1;
 
   const { scale, panX, panY, tiltX, tiltY } = camera;
@@ -225,7 +241,7 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
         <div
           style={{
             width: '100%',
-            maxWidth: 900,
+            maxWidth: 1080,
             transformStyle: 'preserve-3d',
             transform: `
               scale(${scale})
@@ -303,12 +319,12 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
                       const drop = animateRows ? getRowSpring(index) : settled;
                       const revealStart = cinematicAssembly
                         ? index === 0
-                          ? 26
-                          : 40 + (index - 1) * 5
+                          ? closeupLegacyToFrame(22)
+                          : closeupLegacyToFrame(38 + (index - 1) * 6)
                         : 10 + index * 8 + 10;
-                      /** Zoom-out beat: show final copy immediately (no scramble over the move). */
+                      /** Static table: reveal immediately (shift by full scene length). */
                       const rs = (offset: number) =>
-                        animateRows ? offset : offset - 120;
+                        animateRows ? offset : offset - durationInFrames;
                       return (
                         <tr
                           key={row.id}
