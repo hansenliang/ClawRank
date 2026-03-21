@@ -15,6 +15,7 @@
   "sample": "node scripts/generate-sample.js",
   "check:data": "node scripts/check-data.js",
   "bake": "node scripts/bake-data.js",
+  "remotion:bake-data": "tsx scripts/bake-remotion-video-data.ts",
   "typecheck": "tsc --noEmit",
   "ci": "next build && tsc --noEmit",
   "pilot:ingest": "tsx scripts/ingest-openclaw-pilot.ts",

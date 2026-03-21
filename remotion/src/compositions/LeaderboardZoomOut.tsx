@@ -9,8 +9,8 @@ const CINEMATIC = Easing.bezier(0.25, 0.1, 0.25, 1.0);
 const CAPTION_SHOW = 8;
 const CAPTION_FADE = 12;
 const TYPE_START = CAPTION_SHOW + CAPTION_FADE;
-const CAPTION_TEXT = 'Open metrics. Track your whole fleet in one place.';
-const EMPHASIS = 'fleet';
+const CAPTION_TEXT = 'See how your agents stack up.';
+const EMPHASIS = 'stack up.';
 
 /**
  * Scene 4 — 120f — Pull back 3× → 1× with cinematic easing; full table beauty shot.

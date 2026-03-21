@@ -28,6 +28,45 @@
   overflow: visible !important;
 }
 
+/*
+ * 3D row transforms: keep `preserve-3d` on the window → table chain so `translateZ` on `<tr>`
+ * can still read as depth under a tilted camera. Layout stays a normal `<table>` (no per-row grid).
+ */
+.leaderboard-3d-scene {
+  transform-style: preserve-3d !important;
+}
+
+.leaderboard-3d-scene .table-wrap,
+.leaderboard-3d-scene .desktop-only {
+  transform-style: preserve-3d !important;
+}
+
+.leaderboard-3d-scene .table,
+.leaderboard-3d-scene .table tbody {
+  transform-style: preserve-3d !important;
+}
+
 .table-wrap {
   overflow: visible !important;
+}
+
+/*
+ * Remotion Studio/preview iframes are often <640px wide; globals column-stack `.identity-row`.
+ * Keep one row: avatar + name + Share (same as desktop site).
+ */
+.leaderboard-3d-scene .identity-row {
+  flex-direction: row !important;
+  align-items: center !important;
+}
+
+/* Video-only: Agent column (2nd) — wide enough for long names + Share on one row */
+.window .table th:nth-child(2),
+.window .table td:nth-child(2) {
+  min-width: 200px;
+}
+
+/* Override globals `min-width: 0` so the identity flex block won’t shrink until the name wraps */
+.window .table .identity {
+  min-width: 200px;
+  flex: 1 1 auto;
 }

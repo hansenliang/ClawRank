@@ -1,12 +1,27 @@
 import React from 'react';
 import { AbsoluteFill, useCurrentFrame, interpolate, spring } from 'remotion';
-import { MOCK_ROWS } from '../mock-data';
+import { VIDEO_ROWS } from '../video-rows';
 import { ScrambleText } from '../components/ScrambleText';
 import { formatCompact } from '../format';
 import '../styles.css';
 
 const FPS = 30;
-const ROWS = MOCK_ROWS.slice(0, 10);
+const ROWS = VIDEO_ROWS.slice(0, 10);
+
+/** Overdamped row landings: no bounce / no dip past the table plane in Z. */
+const ROW_SPRING_CRUISE = {
+  mass: 1.15,
+  stiffness: 38,
+  damping: 24,
+  overshootClamping: true,
+} as const;
+
+const ROW_SPRING_HERO = {
+  mass: 1.55,
+  stiffness: 30,
+  damping: 22,
+  overshootClamping: true,
+} as const;
 
 export type LeaderboardCamera = {
   scale: number;
@@ -23,6 +38,13 @@ type LeaderboardTable3DProps = {
   /** Fade entire board in over first frames (close-up intro). */
   masterFadeIn?: boolean;
   showAmbientGlow?: boolean;
+  /**
+   * Apple-style assembly: hero row lands first under an extreme camera, chrome/period/header
+   * stagger, then remaining rows drop in as the shot widens. Only used with `animateRows`.
+   */
+  cinematicAssembly?: boolean;
+  /** Perspective on the 3D stage (px). Higher = flatter / less dramatic depth. */
+  perspectivePx?: number;
 };
 
 export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
@@ -30,49 +52,108 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
   animateRows,
   masterFadeIn = true,
   showAmbientGlow = true,
+  cinematicAssembly = false,
+  perspectivePx = 600,
 }) => {
   const frame = useCurrentFrame();
 
   const getRowSpring = (rowIndex: number) => {
+    if (cinematicAssembly && animateRows) {
+      if (rowIndex === 0) {
+        const delay = 16;
+        const progress = spring({
+          frame,
+          fps: FPS,
+          delay,
+          config: { ...ROW_SPRING_HERO },
+        });
+        const z = Math.max(
+          0,
+          interpolate(progress, [0, 1], [340, 0], { extrapolateRight: 'clamp' }),
+        );
+        const rowScale = interpolate(progress, [0, 1], [1.28, 1], {
+          extrapolateRight: 'clamp',
+        });
+        const rotX = interpolate(progress, [0, 1], [24, 0], {
+          extrapolateRight: 'clamp',
+        });
+        const opacity = interpolate(progress, [0, 0.32], [0, 1], {
+          extrapolateRight: 'clamp',
+        });
+        return { z, scale: rowScale, rotX, opacity };
+      }
+      /** Tight cascade after hero row (was 76 + 12 per row). */
+      const delay = 36 + (rowIndex - 1) * 5;
+      const progress = spring({
+        frame,
+        fps: FPS,
+        delay,
+        config: { ...ROW_SPRING_CRUISE },
+      });
+      const z = Math.max(
+        0,
+        interpolate(progress, [0, 1], [220, 0], { extrapolateRight: 'clamp' }),
+      );
+      const rowScale = interpolate(progress, [0, 1], [1.22, 1], {
+        extrapolateRight: 'clamp',
+      });
+      const rotX = interpolate(progress, [0, 1], [16, 0], {
+        extrapolateRight: 'clamp',
+      });
+      const opacity = interpolate(progress, [0, 0.38], [0, 1], {
+        extrapolateRight: 'clamp',
+      });
+      return { z, scale: rowScale, rotX, opacity };
+    }
+
     const delay = 10 + rowIndex * 8;
     const progress = spring({
       frame,
       fps: FPS,
-      config: {
-        mass: 0.8,
-        stiffness: 80,
-        damping: 12,
-        overshootClamping: false,
-      },
+      config: { ...ROW_SPRING_CRUISE },
       delay,
     });
-    const z = interpolate(progress, [0, 1], [200, 0]);
-    const scale = interpolate(progress, [0, 1], [1.3, 1]);
-    const rotX = interpolate(progress, [0, 1], [18, 0]);
+    const z = Math.max(
+      0,
+      interpolate(progress, [0, 1], [200, 0], { extrapolateRight: 'clamp' }),
+    );
+    const rowScale = interpolate(progress, [0, 1], [1.3, 1], {
+      extrapolateRight: 'clamp',
+    });
+    const rotX = interpolate(progress, [0, 1], [18, 0], {
+      extrapolateRight: 'clamp',
+    });
     const opacity = interpolate(progress, [0, 0.4], [0, 1], {
       extrapolateRight: 'clamp',
     });
-    return { z, scale, rotX, opacity };
+    return { z, scale: rowScale, rotX, opacity };
   };
 
   const settled = { z: 0, scale: 1, rotX: 0, opacity: 1 };
 
+  const chromeDelay = cinematicAssembly && animateRows ? 4 : 0;
   const chromeSpring = spring({
     frame,
     fps: FPS,
-    delay: 0,
-    config: { mass: 0.6, stiffness: 100, damping: 14 },
+    delay: chromeDelay,
+    config: cinematicAssembly && animateRows
+      ? { mass: 0.75, stiffness: 72, damping: 15 }
+      : { mass: 0.6, stiffness: 100, damping: 14 },
   });
   const chromeY = animateRows ? interpolate(chromeSpring, [0, 1], [-20, 0]) : 0;
   const chromeOpacity = animateRows
     ? interpolate(chromeSpring, [0, 0.4], [0, 1], { extrapolateRight: 'clamp' })
     : 1;
 
+  const periodDelay =
+    cinematicAssembly && animateRows ? 38 : 6;
   const periodSpring = spring({
     frame,
     fps: FPS,
-    delay: 6,
-    config: { mass: 0.6, stiffness: 90, damping: 14 },
+    delay: periodDelay,
+    config: cinematicAssembly && animateRows
+      ? { mass: 0.7, stiffness: 64, damping: 15 }
+      : { mass: 0.6, stiffness: 90, damping: 14 },
   });
   const periodX = animateRows ? interpolate(periodSpring, [0, 1], [-50, 0]) : 0;
   const periodOpacity = animateRows
@@ -81,7 +162,16 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
 
   const headerOpacity = animateRows
     ? interpolate(
-        spring({ frame, fps: FPS, delay: 12, config: { damping: 16 } }),
+        spring(
+          cinematicAssembly
+            ? {
+                frame,
+                fps: FPS,
+                delay: 64,
+                config: { mass: 0.55, stiffness: 88, damping: 16 },
+              }
+            : { frame, fps: FPS, delay: 12, config: { damping: 16 } },
+        ),
         [0, 0.5],
         [0, 1],
         { extrapolateRight: 'clamp' },
@@ -89,7 +179,12 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
     : 1;
 
   const glowOpacity = showAmbientGlow
-    ? interpolate(frame, [0, 40], [0, 0.7], { extrapolateRight: 'clamp' })
+    ? interpolate(
+        frame,
+        cinematicAssembly ? [0, 52] : [0, 40],
+        [0, 0.7],
+        { extrapolateRight: 'clamp' },
+      )
     : 0;
 
   const masterOpacity = masterFadeIn
@@ -123,7 +218,7 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          perspective: 600,
+          perspective: perspectivePx,
           opacity: masterOpacity,
         }}
       >
@@ -141,7 +236,7 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
             transformOrigin: 'center center',
           }}
         >
-          <div className="window">
+          <div className="window leaderboard-3d-scene">
             <div
               className="window-bar"
               style={{
@@ -191,7 +286,7 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
 
             <div className="table-wrap">
               <div className="desktop-only">
-                <table className="table" style={{ transformStyle: 'preserve-3d' }}>
+                <table className="table">
                   <thead>
                     <tr style={{ opacity: headerOpacity }}>
                       <th>Rank</th>
@@ -203,10 +298,14 @@ export const LeaderboardTable3D: React.FC<LeaderboardTable3DProps> = ({
                       <th>Top tools</th>
                     </tr>
                   </thead>
-                  <tbody style={{ transformStyle: 'preserve-3d' }}>
+                  <tbody>
                     {ROWS.map((row, index) => {
                       const drop = animateRows ? getRowSpring(index) : settled;
-                      const revealStart = 10 + index * 8 + 10;
+                      const revealStart = cinematicAssembly
+                        ? index === 0
+                          ? 26
+                          : 40 + (index - 1) * 5
+                        : 10 + index * 8 + 10;
                       /** Zoom-out beat: show final copy immediately (no scramble over the move). */
                       const rs = (offset: number) =>
                         animateRows ? offset : offset - 120;

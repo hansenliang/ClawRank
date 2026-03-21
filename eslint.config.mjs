@@ -12,7 +12,14 @@ const eslintConfig = [
  },
  },
  {
- ignores: ["node_modules/", ".next/", "data/", "examples/", "scripts/"],
+ ignores: [
+  "node_modules/",
+  ".next/",
+  "data/",
+  "examples/",
+  "scripts/",
+  "remotion/src/video-leaderboard.generated.ts",
+ ],
  },
 ];
 

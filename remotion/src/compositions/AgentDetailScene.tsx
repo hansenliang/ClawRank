@@ -1,11 +1,18 @@
-import React from 'react';
-import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
-import { MOCK_ROWS } from '../mock-data';
+import React, { useLayoutEffect, useRef, useState } from 'react';
+import {
+  AbsoluteFill,
+  Easing,
+  interpolate,
+  useCurrentFrame,
+  useVideoConfig,
+} from 'remotion';
 import { AgentDetail } from '../components/AgentDetail';
 import { ReelTypeCaption } from '../components/ReelTypeCaption';
+import { VIDEO_ROWS } from '../video-rows';
 import '../styles.css';
 
-const TOP_ROW = MOCK_ROWS[0];
+/** Demo: detail beat follows rank-3 row (Claudius Maximus) when baked data has ≥3 rows. */
+const TOP_ROW = VIDEO_ROWS.length >= 3 ? VIDEO_ROWS[2] : VIDEO_ROWS[0];
 
 const CAPTION_SHOW = 10;
 const CAPTION_FADE = 12;
@@ -13,15 +20,38 @@ const TYPE_START = CAPTION_SHOW + CAPTION_FADE;
 const CAPTION_TEXT = 'Detailed analytics and insights.';
 const EMPHASIS = 'insights.';
 
+/** Matches the mocked browser window chrome; used before layout measures pan range. */
+const WINDOW_UI_SCALE = 1.44;
+
 /**
- * Scene 3 — 120f — #1 agent detail (nightowl-agent), metrics scramble, side caption.
+ * Scene 3 — 120f — Featured agent detail (baked rank #3 / fallback #1), metrics scramble, side caption.
  */
 export const AgentDetailScene: React.FC = () => {
   const frame = useCurrentFrame();
+  const { durationInFrames } = useVideoConfig();
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const scaledContentRef = useRef<HTMLDivElement>(null);
+  const [panMaxPx, setPanMaxPx] = useState(0);
+
+  useLayoutEffect(() => {
+    const vp = viewportRef.current;
+    const scaled = scaledContentRef.current;
+    if (!vp || !scaled) return;
+    const visualH = scaled.offsetHeight * WINDOW_UI_SCALE;
+    const vh = vp.clientHeight;
+    setPanMaxPx(Math.max(0, visualH - vh));
+  }, [TOP_ROW.agentName, TOP_ROW.detailSlug]);
 
   const masterOpacity = interpolate(frame, [0, 10], [0, 1], {
     extrapolateRight: 'clamp',
   });
+
+  const panT = interpolate(frame, [0, Math.max(1, durationInFrames - 1)], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: Easing.inOut(Easing.cubic),
+  });
+  const panPx = panT * panMaxPx;
 
   return (
     <AbsoluteFill
@@ -40,7 +70,7 @@ export const AgentDetailScene: React.FC = () => {
           height: '100%',
         }}
       >
-        <div style={{ width: '40%', height: '100%', position: 'relative' }}>
+        <div style={{ width: '34%', height: '100%', position: 'relative' }}>
           <ReelTypeCaption
             frame={frame}
             showFromFrame={CAPTION_SHOW}
@@ -52,36 +82,59 @@ export const AgentDetailScene: React.FC = () => {
         </div>
         <div
           style={{
-            width: '60%',
+            width: '66%',
             height: '100%',
+            minHeight: 0,
             display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingLeft: 16,
-            paddingRight: 8,
+            flexDirection: 'column',
+            paddingLeft: 12,
+            paddingRight: 16,
+            paddingTop: 24,
+            paddingBottom: 24,
             boxSizing: 'border-box',
             opacity: masterOpacity,
-            overflow: 'auto',
+            overflow: 'hidden',
           }}
         >
           <div
+            ref={viewportRef}
             style={{
+              flex: 1,
+              minHeight: 0,
               width: '100%',
-              maxWidth: 720,
-              transform: 'scale(0.92)',
-              transformOrigin: 'center center',
+              overflow: 'hidden',
+              display: 'flex',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
             }}
           >
-            <div className="window">
-              <div className="window-bar">
-                <div className="window-dots" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
+            <div
+              style={{
+                width: '100%',
+                transform: `translateY(${-panPx}px)`,
+                willChange: 'transform',
+              }}
+            >
+              <div
+                ref={scaledContentRef}
+                style={{
+                  width: '100%',
+                  transform: `scale(${WINDOW_UI_SCALE})`,
+                  transformOrigin: 'top left',
+                }}
+              >
+                <div className="window">
+                  <div className="window-bar">
+                    <div className="window-dots" aria-hidden="true">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                    <div className="window-title">clawrank.dev — {TOP_ROW.agentName}</div>
+                  </div>
+                  <AgentDetail row={TOP_ROW} revealOffset={1} instantHeading />
                 </div>
-                <div className="window-title">clawrank.dev — {TOP_ROW.agentName}</div>
               </div>
-              <AgentDetail row={TOP_ROW} revealOffset={12} />
             </div>
           </div>
         </div>

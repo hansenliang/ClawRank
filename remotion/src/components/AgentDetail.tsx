@@ -6,12 +6,14 @@ import React from 'react';
 import { useCurrentFrame } from 'remotion';
 import type { LeaderboardRow } from '../types';
 import { ScrambleText } from './ScrambleText';
-import { formatCompact, formatStandard } from '../format';
+import { formatCompact } from '../format';
 
 type AgentDetailProps = {
   row: LeaderboardRow;
   /** Frame offset for when this component's animations should start */
   revealOffset?: number;
+  /** When true, hero agent name is static (no type-on); use when a side caption carries type-on. */
+  instantHeading?: boolean;
 };
 
 type StatEntry = {
@@ -23,36 +25,45 @@ type StatEntry = {
 function buildStats(row: LeaderboardRow): { usage: StatEntry[]; github: StatEntry[] } {
   return {
     usage: [
-      { label: 'Tokens', value: formatStandard(row.tokenUsage.value) },
-      { label: 'Tool calls', value: formatStandard(row.toolCalls.value) },
-      { label: 'Messages', value: formatStandard(row.messageCount.value) },
-      { label: 'Sessions', value: formatStandard(row.sessionCount.value) },
+      { label: 'Tokens', value: formatCompact(row.tokenUsage.value) },
+      { label: 'Tool calls', value: formatCompact(row.toolCalls.value) },
+      { label: 'Messages', value: formatCompact(row.messageCount.value) },
+      { label: 'Sessions', value: formatCompact(row.sessionCount.value) },
     ],
     github: [
-      { label: 'Commits', value: formatStandard(row.commits.value) },
-      { label: 'Files touched', value: formatStandard(row.filesTouched.value) },
-      { label: 'Lines added', value: formatStandard(row.linesAdded.value) },
-      { label: 'Lines removed', value: formatStandard(row.linesRemoved.value) },
+      { label: 'Commits', value: formatCompact(row.commits.value) },
+      { label: 'Files touched', value: formatCompact(row.filesTouched.value) },
+      { label: 'Lines added', value: formatCompact(row.linesAdded.value) },
+      { label: 'Lines removed', value: formatCompact(row.linesRemoved.value) },
     ],
   };
 }
 
-export function AgentDetail({ row, revealOffset = 0 }: AgentDetailProps) {
+export function AgentDetail({
+  row,
+  revealOffset = 0,
+  instantHeading = false,
+}: AgentDetailProps) {
   const frame = useCurrentFrame();
   const stats = buildStats(row);
 
-  // Typing animation for the heading — character by character
+  // Typing animation for the heading — character by character (skippable)
   const headingText = row.agentName;
   const headingChars = Array.from(headingText);
-  // Start typing after a brief delay, ~80ms per char at 30fps ≈ 2.4 frames/char
   const typingStart = revealOffset + 12;
   const charsPerFrame = 0.4; // ~12 chars/sec, deliberate pace
   const localTypingFrame = frame - typingStart;
-  const visibleHeadingChars = localTypingFrame < 0
-    ? 0
-    : Math.min(headingChars.length, Math.floor(localTypingFrame * charsPerFrame));
+  const visibleHeadingChars = instantHeading
+    ? headingChars.length
+    : localTypingFrame < 0
+      ? 0
+      : Math.min(headingChars.length, Math.floor(localTypingFrame * charsPerFrame));
   const headingDone = visibleHeadingChars >= headingChars.length;
-  const cursorBlink = headingDone ? Math.floor(frame / 15) % 2 === 0 : true;
+  const cursorBlink = instantHeading
+    ? false
+    : headingDone
+      ? Math.floor(frame / 15) % 2 === 0
+      : true;
 
   return (
     <div style={{ width: '100%' }}>
@@ -82,10 +93,12 @@ export function AgentDetail({ row, revealOffset = 0 }: AgentDetailProps) {
                   <span className="brand-heading-text">
                     {headingChars.slice(0, visibleHeadingChars).join('')}
                   </span>
-                  <span
-                    className="brand-heading-cursor"
-                    style={{ opacity: cursorBlink ? 1 : 0 }}
-                  />
+                  {!instantHeading && (
+                    <span
+                      className="brand-heading-cursor"
+                      style={{ opacity: cursorBlink ? 1 : 0 }}
+                    />
+                  )}
                 </span>
               </span>
             </span>
