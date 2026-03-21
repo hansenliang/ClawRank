@@ -1,14 +1,18 @@
 import React from 'react';
 import { AbsoluteFill, useCurrentFrame } from 'remotion';
+import { CTA_DURATION_FRAMES, FRAMES_PER_BEAT_INT } from '../beat-sync';
 import '../styles.css';
 
 const PROMPT_LINE = 'Install ClawRank from ClawHub and get me ranked.';
 const CHARS_PER_SECOND = 15;
 const FPS = 30;
 const FRAMES_PER_CHAR = FPS / CHARS_PER_SECOND;
-const CURSOR_BLINK_INTERVAL = 15;
-/** Start typing inside the prompt box after titles read clearly. */
-const TYPE_START = 8;
+const CURSOR_BLINK_INTERVAL = FRAMES_PER_BEAT_INT;
+/** Scaled from older ~28f offset in a longer CTA comp — room to read “ClawRank” first. */
+const TYPE_START = Math.max(
+  12,
+  Math.round((28 / 443) * CTA_DURATION_FRAMES),
+);
 
 export const CTA: React.FC = () => {
   const frame = useCurrentFrame();
@@ -115,29 +119,50 @@ export const CTA: React.FC = () => {
             <span style={{ color: '#6b6963' }}> ~/fleet</span>
             <span style={{ color: '#faf9f5' }}> $</span>
           </div>
-          <div
-            style={{
-              fontSize: 16,
-              fontWeight: 500,
-              color: '#faf9f5',
-              lineHeight: 1.45,
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-            }}
-          >
-            {typed}
-            <span
+          <div style={{ position: 'relative' }}>
+            {/* Invisible full text to reserve final box size */}
+            <div
+              aria-hidden
               style={{
-                display: 'inline-block',
-                width: '0.45em',
-                height: '0.1em',
-                backgroundColor: 'rgba(216, 119, 86, 0.9)',
-                marginLeft: '0.12em',
-                verticalAlign: 'baseline',
-                borderRadius: 1,
-                opacity: cursorVisible ? 1 : 0,
+                fontSize: 16,
+                fontWeight: 500,
+                lineHeight: 1.45,
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                visibility: 'hidden',
               }}
-            />
+            >
+              {PROMPT_LINE}
+            </div>
+            {/* Visible typed text overlaid at the same position */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                fontSize: 16,
+                fontWeight: 500,
+                color: '#faf9f5',
+                lineHeight: 1.45,
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+              }}
+            >
+              {typed}
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '0.45em',
+                  height: '0.1em',
+                  backgroundColor: 'rgba(216, 119, 86, 0.9)',
+                  marginLeft: '0.12em',
+                  verticalAlign: 'baseline',
+                  borderRadius: 1,
+                  opacity: cursorVisible ? 1 : 0,
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
