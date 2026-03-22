@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, useCurrentFrame } from 'remotion';
 import '../styles.css';
+import { UI_SCENE_BACKDROP_STYLE } from '../ui-scene-backdrop';
 
 const FPS = 30;
 const CHARS_PER_SECOND = 20;
@@ -67,7 +68,7 @@ export const MetaNarrative: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: '#0f0f0e',
+        ...UI_SCENE_BACKDROP_STYLE,
         fontFamily:
           "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
         display: 'flex',

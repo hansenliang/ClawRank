@@ -16,6 +16,7 @@
   "check:data": "node scripts/check-data.js",
   "bake": "node scripts/bake-data.js",
   "remotion:bake-data": "tsx scripts/bake-remotion-video-data.ts",
+  "remotion:studio": "pnpm --dir remotion dev",
   "typecheck": "tsc --noEmit",
   "ci": "next build && tsc --noEmit",
   "pilot:ingest": "tsx scripts/ingest-openclaw-pilot.ts",

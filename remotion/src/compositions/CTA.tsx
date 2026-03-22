@@ -2,6 +2,7 @@ import React from 'react';
 import { AbsoluteFill, useCurrentFrame } from 'remotion';
 import { CTA_DURATION_FRAMES, FRAMES_PER_BEAT_INT } from '../beat-sync';
 import '../styles.css';
+import { UI_SCENE_BACKDROP_STYLE } from '../ui-scene-backdrop';
 import { Mascot } from '../components/Mascot';
 
 const PROMPT_LINE = 'Install ClawRank from ClawHub and get me ranked.';
@@ -33,7 +34,7 @@ export const CTA: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: '#0f0f0e',
+        ...UI_SCENE_BACKDROP_STYLE,
         fontFamily:
           "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
         display: 'flex',

@@ -18,7 +18,6 @@ export type MascotProps = {
 const T = '#d87756';
 const D = '#a85535';
 const E = '#0f0f0e';
-const BG = '#0f0f0e';
 
 const GRID = 16;
 /** Matches the web mascot's internal tick rate (~10/s). */
@@ -106,8 +105,7 @@ export const Mascot: React.FC<MascotProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = BG;
-    ctx.fillRect(0, 0, GRID, GRID);
+    ctx.clearRect(0, 0, GRID, GRID);
     const sprite = buildSprite(spriteFrame, animation);
     for (const [x, y, color] of sprite) {
       ctx.fillStyle = color;

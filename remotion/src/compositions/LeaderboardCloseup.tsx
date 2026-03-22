@@ -13,6 +13,7 @@ import {
 } from './LeaderboardTable3D';
 import { ReelTypeCaption } from '../components/ReelTypeCaption';
 import '../styles.css';
+import { UI_SCENE_BACKDROP_STYLE } from '../ui-scene-backdrop';
 
 /** Phase 1 “pass-through” dolly — smooth; depth from hero Z + scale, not big tilt swings. */
 const PHASE_1_PASS_THROUGH = Easing.bezier(0.26, 0.06, 0.2, 1);
@@ -183,7 +184,7 @@ export const LeaderboardCloseup: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: '#0f0f0e',
+        ...UI_SCENE_BACKDROP_STYLE,
         fontFamily:
           "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
         overflow: 'hidden',

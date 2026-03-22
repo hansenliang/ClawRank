@@ -5,6 +5,7 @@ import {
   typewriterCursorVisible,
 } from '../typewriter';
 import '../styles.css';
+import { UI_SCENE_BACKDROP_STYLE } from '../ui-scene-backdrop';
 import { Mascot } from '../components/Mascot';
 
 const PREFIX = "Meet the world's ";
@@ -31,7 +32,7 @@ export const Hook: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: '#0f0f0e',
+        ...UI_SCENE_BACKDROP_STYLE,
         fontFamily:
           "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
         display: 'flex',

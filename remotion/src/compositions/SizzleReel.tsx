@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  AbsoluteFill,
-  Audio,
-  Sequence,
-  staticFile,
-  useCurrentFrame,
-} from 'remotion';
+import { AbsoluteFill, Audio, Sequence, staticFile } from 'remotion';
 import {
   CLOSEUP_MASTER_DURATION_FRAMES,
   CTA_DURATION_FRAMES,
@@ -20,11 +14,16 @@ import { LeaderboardCloseup } from './LeaderboardCloseup';
 import { AgentDetailScene } from './AgentDetailScene';
 import { LeaderboardZoomOut } from './LeaderboardZoomOut';
 import { CTA } from './CTA';
+import { UI_SCENE_BACKDROP_STYLE } from '../ui-scene-backdrop';
 
 /**
  * Soundtrack length from **`beat-sync`** — hard cuts; close-up may cut before the **3s** grid anchor
  * (see **`LEADERBOARD_CLOSEUP_START_FRAMES`** / **`MASTER_HOOK_GRID_FRAMES`**).
  * @see `../beat-sync.ts`
+ *
+ * Scenes are plain **`Sequence`** slices only — no extra `null` gating. That avoids redundant
+ * mount/unmount patterns and matches Remotion’s timeline model (important for stable screenshots
+ * on heavy 3D / GPU-composited shots).
  */
 const HOOK_START = 0;
 const HOOK_DURATION = HOOK_DURATION_FRAMES;
@@ -41,54 +40,25 @@ const ZOOMOUT_DURATION = ZOOM_SCENE_FRAMES;
 const CTA_START = ZOOMOUT_START + ZOOMOUT_DURATION;
 const CTA_DURATION = CTA_DURATION_FRAMES;
 
-/** Hard cut: full opacity for `[from, from + duration)`. */
-function TimedScene({
-  children,
-  from,
-  duration,
-  frame,
-}: {
-  children: React.ReactNode;
-  from: number;
-  duration: number;
-  frame: number;
-}) {
-  if (frame < from || frame >= from + duration) return null;
-
-  return (
-    <AbsoluteFill style={{ opacity: 1 }}>
-      <Sequence from={from} durationInFrames={duration}>
-        {children}
-      </Sequence>
-    </AbsoluteFill>
-  );
-}
-
 export const SizzleReel: React.FC = () => {
-  const frame = useCurrentFrame();
-
   return (
-    <AbsoluteFill style={{ backgroundColor: '#0f0f0e' }}>
+    <AbsoluteFill style={UI_SCENE_BACKDROP_STYLE}>
       <Audio src={staticFile(SIZZLE_AUDIO_PUBLIC_FILE)} />
-      <TimedScene from={HOOK_START} duration={HOOK_DURATION} frame={frame}>
+      <Sequence from={HOOK_START} durationInFrames={HOOK_DURATION}>
         <Hook />
-      </TimedScene>
-
-      <TimedScene from={CLOSEUP_START} duration={CLOSEUP_DURATION} frame={frame}>
+      </Sequence>
+      <Sequence from={CLOSEUP_START} durationInFrames={CLOSEUP_DURATION}>
         <LeaderboardCloseup />
-      </TimedScene>
-
-      <TimedScene from={DETAIL_START} duration={DETAIL_DURATION} frame={frame}>
+      </Sequence>
+      <Sequence from={DETAIL_START} durationInFrames={DETAIL_DURATION}>
         <AgentDetailScene />
-      </TimedScene>
-
-      <TimedScene from={ZOOMOUT_START} duration={ZOOMOUT_DURATION} frame={frame}>
+      </Sequence>
+      <Sequence from={ZOOMOUT_START} durationInFrames={ZOOMOUT_DURATION}>
         <LeaderboardZoomOut />
-      </TimedScene>
-
-      <TimedScene from={CTA_START} duration={CTA_DURATION} frame={frame}>
+      </Sequence>
+      <Sequence from={CTA_START} durationInFrames={CTA_DURATION}>
         <CTA />
-      </TimedScene>
+      </Sequence>
     </AbsoluteFill>
   );
 };

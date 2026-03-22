@@ -19,6 +19,7 @@ Sizzle reel for ClawRank (AI agent leaderboard), **locked to soundtrack length**
 ## Tech Stack
 - **Remotion** 4.0.261 · **React** 19 · **JetBrains Mono** (@fontsource)
 - **Colors**: `#0f0f0e` bg, `#faf9f5` cream, `#d87756` terracotta, `#9b9991` muted
+- **Scene backdrop**: **`src/ui-scene-backdrop.ts`** — **`UI_SCENE_BACKDROP_STYLE`** layers subtle radial glows (terracotta + soft rim) on the charcoal base for UI contrast; used on **`SizzleReel`** root and UI-heavy compositions (**Hook**, close-up, detail, zoom, **CTA**, **MetaNarrative**, **LeaderboardTest**).
 - **`Mascot`** (`src/components/Mascot.tsx`): pixel claw critter aligned with web **`feat/ux-polish`** `app/components/mascot.tsx`; **not** `requestAnimationFrame` — **`useLayoutEffect`** + **`useCurrentFrame`** / **`useVideoConfig().fps`** so sprite ticks ~**10/s** in video time. **`Hook`**: column — centered **above** the typing line (**`idle`**). **`CTA`**: row — **left** of **ClawRank** (**`snap`** = pincher cycle).
 - **Scope**: All video code under **`remotion/`** only — do not modify parent `app/` or root `src/` for video tasks (per repo `AGENTS.md`).
 

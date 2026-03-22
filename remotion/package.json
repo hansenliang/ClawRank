@@ -6,7 +6,10 @@
     "dev": "remotion studio",
     "build": "remotion render src/index.ts SizzleReel out/clawrank-sizzle.mp4",
     "render": "remotion render src/index.ts SizzleReel out/clawrank-sizzle.mp4",
-    "render:4k-hevc": "remotion render src/index.ts SizzleReel out/clawrank-sizzle-3840x2160-hevc.mp4 --codec h265 --crf 0 --scale 3 --concurrency 2 --overwrite"
+    "render:4k-hevc": "remotion render src/index.ts SizzleReel out/clawrank-sizzle-3840x2160-hevc.mp4 --codec h265 --crf 0 --scale 3 --concurrency 1 --image-format png --pixel-format yuv420p --disallow-parallel-encoding --overwrite",
+    "render:4k-hevc:chrome-mac": "REMOTION_BROWSER_EXECUTABLE='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' remotion render src/index.ts SizzleReel out/clawrank-sizzle-3840x2160-hevc.mp4 --codec h265 --crf 0 --scale 3 --concurrency 1 --image-format png --pixel-format yuv420p --disallow-parallel-encoding --overwrite",
+    "render:4k-hevc:chrome-mac:cpu-gl": "REMOTION_GL=swiftshader REMOTION_BROWSER_EXECUTABLE='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' remotion render src/index.ts SizzleReel out/clawrank-sizzle-3840x2160-hevc.mp4 --codec h265 --crf 0 --scale 3 --concurrency 1 --image-format png --pixel-format yuv420p --disallow-parallel-encoding --overwrite",
+    "render:4k-hevc:vt-mac": "REMOTION_BROWSER_EXECUTABLE='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' remotion render src/index.ts SizzleReel out/clawrank-sizzle-3840x2160-hevc-vt.mp4 --codec h265 --hardware-acceleration if-possible --video-bitrate 45M --scale 3 --concurrency 1 --image-format png --pixel-format yuv420p --disallow-parallel-encoding --overwrite"
   },
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.2.8",

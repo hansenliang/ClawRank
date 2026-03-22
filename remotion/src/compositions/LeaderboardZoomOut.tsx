@@ -13,6 +13,7 @@ import { ReelTypeCaption } from '../components/ReelTypeCaption';
 import { formatCompact } from '../format';
 import type { LeaderboardRow } from '../types';
 import '../styles.css';
+import { UI_SCENE_BACKDROP_STYLE } from '../ui-scene-backdrop';
 
 const FPS = 30;
 
@@ -142,7 +143,7 @@ export const LeaderboardZoomOut: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: '#0f0f0e',
+        ...UI_SCENE_BACKDROP_STYLE,
         fontFamily:
           "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
         overflow: 'hidden',

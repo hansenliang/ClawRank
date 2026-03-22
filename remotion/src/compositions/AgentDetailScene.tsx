@@ -1,4 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import {
   AbsoluteFill,
   Easing,
@@ -11,6 +12,7 @@ import { ReelTypeCaption } from '../components/ReelTypeCaption';
 import { DETAIL_SCENE_FRAMES, legacy120ToFrame } from '../beat-sync';
 import { VIDEO_ROWS } from '../video-rows';
 import '../styles.css';
+import { UI_SCENE_BACKDROP_STYLE } from '../ui-scene-backdrop';
 
 /** Demo: detail beat follows rank-3 row (Claudius Maximus) when baked data has ≥3 rows. */
 const TOP_ROW = VIDEO_ROWS.length >= 3 ? VIDEO_ROWS[2] : VIDEO_ROWS[0];
@@ -40,7 +42,11 @@ export const AgentDetailScene: React.FC = () => {
     if (!vp || !scaled) return;
     const visualH = scaled.offsetHeight * WINDOW_UI_SCALE;
     const vh = vp.clientHeight;
-    setPanMaxPx(Math.max(0, visualH - vh));
+    // Remotion screenshots after layout; flush so pan range is committed before capture (avoids
+    // occasional wrong/blank frames when state updates one tick late vs. GPU compositing).
+    flushSync(() => {
+      setPanMaxPx(Math.max(0, visualH - vh));
+    });
   }, [TOP_ROW.agentName, TOP_ROW.detailSlug]);
 
   const masterOpacity = interpolate(frame, [0, legacy120ToFrame(10, DETAIL_SCENE_FRAMES)], [0, 1], {
@@ -57,7 +63,7 @@ export const AgentDetailScene: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: '#0f0f0e',
+        ...UI_SCENE_BACKDROP_STYLE,
         fontFamily:
           "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
         overflow: 'hidden',
@@ -113,7 +119,6 @@ export const AgentDetailScene: React.FC = () => {
               style={{
                 width: '100%',
                 transform: `translateY(${-panPx}px)`,
-                willChange: 'transform',
               }}
             >
               <div
