@@ -32,6 +32,11 @@ function tryBakedLeaderboard(): LeaderboardResponse | null {
 
 const SINGLE_SLUG_RE = /^[a-z0-9][a-z0-9-]{0,128}$/;
 
+const runtimeCheckpoint = {
+ leaderboardByPeriod: new Map<import('@/src/contracts/clawrank-domain').LeaderboardPeriod, LeaderboardResponse>(),
+ detailBySlug: new Map<string, ShareDetail>(),
+};
+
 function isValidSingleSlug(slug: string): boolean {
  return SINGLE_SLUG_RE.test(slug);
 }
@@ -57,6 +62,32 @@ function tryBakedDetail(detailSlug: string): ShareDetail | null {
   }
  } catch { /* ignore */ }
  return null;
+}
+
+function setLeaderboardCheckpoint(period: import('@/src/contracts/clawrank-domain').LeaderboardPeriod, leaderboard: LeaderboardResponse) {
+ runtimeCheckpoint.leaderboardByPeriod.set(period, leaderboard);
+}
+
+function getLeaderboardCheckpoint(period: import('@/src/contracts/clawrank-domain').LeaderboardPeriod): LeaderboardResponse | null {
+ return runtimeCheckpoint.leaderboardByPeriod.get(period) || null;
+}
+
+function setDetailCheckpoint(detail: ShareDetail) {
+ runtimeCheckpoint.detailBySlug.set(detail.detailSlug, detail);
+ const slug = detail.detailSlug.includes('/') ? detail.detailSlug.split('/')[1] : detail.detailSlug;
+ if (isValidSingleSlug(slug)) {
+  runtimeCheckpoint.detailBySlug.set(slug, detail);
+ }
+}
+
+function getDetailCheckpoint(detailSlug: string): ShareDetail | null {
+ if (!isValidSlug(detailSlug)) return null;
+ const direct = runtimeCheckpoint.detailBySlug.get(detailSlug);
+ if (direct) return direct;
+
+ const slug = detailSlug.includes('/') ? detailSlug.split('/')[1] : detailSlug;
+ if (!isValidSingleSlug(slug)) return null;
+ return runtimeCheckpoint.detailBySlug.get(slug) || null;
 }
 
 // ── Type bridge: domain → UI types ─────────────────────────────────────────
@@ -288,40 +319,84 @@ const EMPTY_LEADERBOARD: LeaderboardResponse = {
 };
 
 export async function getLeaderboardData(forceMode?: 'baked' | 'live', period?: import('@/src/contracts/clawrank-domain').LeaderboardPeriod): Promise<LeaderboardResponse> {
+ const resolvedPeriod = period || 'alltime';
+
  // Baked mode: read from pre-generated JSON files
  if (forceMode === 'baked') {
-  return tryBakedLeaderboard() || EMPTY_LEADERBOARD;
+  const baked = tryBakedLeaderboard();
+  if (baked) {
+   setLeaderboardCheckpoint(resolvedPeriod, baked);
+   return baked;
+  }
+  return getLeaderboardCheckpoint(resolvedPeriod) || EMPTY_LEADERBOARD;
  }
 
- // Live mode or default: try DB first, then pilot JSON, then baked
+ // Live mode or default: try DB first
  if (hasDB()) {
-  const result = await dbLeaderboard(period || 'alltime');
-  if (result && result.rows.length) return result;
+  const result = await dbLeaderboard(resolvedPeriod);
+  if (result && result.rows.length) {
+   setLeaderboardCheckpoint(resolvedPeriod, result);
+   return result;
+  }
  }
+
+ // If DB fails (e.g. quota), use the last successful in-memory checkpoint
+ const checkpoint = getLeaderboardCheckpoint(resolvedPeriod);
+ if (checkpoint && checkpoint.rows.length) return checkpoint;
 
  // Try pilot JSON store
  const fromJson = jsonLeaderboard();
- if (fromJson && fromJson.rows.length) return fromJson;
+ if (fromJson && fromJson.rows.length) {
+  setLeaderboardCheckpoint(resolvedPeriod, fromJson);
+  return fromJson;
+ }
 
  // Fall back to baked
- return tryBakedLeaderboard() || EMPTY_LEADERBOARD;
+ const baked = tryBakedLeaderboard();
+ if (baked) {
+  setLeaderboardCheckpoint(resolvedPeriod, baked);
+  return baked;
+ }
+
+ return EMPTY_LEADERBOARD;
 }
 
 export async function getShareDetail(detailSlug: string, forceMode?: 'baked' | 'live'): Promise<ShareDetail | null> {
  if (forceMode === 'baked') {
-  return tryBakedDetail(detailSlug);
+  const baked = tryBakedDetail(detailSlug);
+  if (baked) {
+   setDetailCheckpoint(baked);
+   return baked;
+  }
+  return getDetailCheckpoint(detailSlug);
  }
 
- // Live mode or default: try DB first, then pilot JSON, then baked
+ // Live mode or default: try DB first
  if (hasDB()) {
   const result = await dbDetail(detailSlug);
-  if (result) return result;
+  if (result) {
+   setDetailCheckpoint(result);
+   return result;
+  }
  }
+
+ // If DB fails (e.g. quota), use last successful in-memory checkpoint
+ const checkpoint = getDetailCheckpoint(detailSlug);
+ if (checkpoint) return checkpoint;
 
  // Try pilot JSON store
  const fromJson = jsonDetail(detailSlug);
- if (fromJson) return fromJson;
+ if (fromJson) {
+  setDetailCheckpoint(fromJson);
+  return fromJson;
+ }
 
  // Fall back to baked
- return tryBakedDetail(detailSlug);
+ const baked = tryBakedDetail(detailSlug);
+ if (baked) {
+  setDetailCheckpoint(baked);
+  return baked;
+ }
+
+ return null;
 }
