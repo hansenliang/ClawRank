@@ -1,6 +1,7 @@
 import { renderOgImage } from '@/src/lib/og-image';
 
 export const runtime = 'nodejs';
+export const revalidate = 3600;
 
 const VALID_SLUG = /^[a-z0-9][a-z0-9-]{0,128}$/;
 
@@ -16,5 +17,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ seg
     return new Response('Not found', { status: 404 });
   }
 
-  return renderOgImage(detailSlug, 'live');
+  const response = await renderOgImage(detailSlug, 'live');
+  response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400, stale-if-error=86400');
+  return response;
 }

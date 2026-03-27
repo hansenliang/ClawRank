@@ -13,7 +13,7 @@ import { TypeOnText } from '@/app/components/type-on-text';
 import { formatCompact, formatPeriodLabel, getShareDetail } from '@/src/lib/data';
 import { getAbsoluteUrl, getDetailPath, getOgImagePath, getRequestOrigin } from '@/src/lib/site';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 const SLUG_SEGMENT = /^[a-z0-9][a-z0-9-]{0,128}$/;
 
