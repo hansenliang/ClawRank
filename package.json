@@ -19,6 +19,7 @@
   "ci": "next build && tsc --noEmit",
   "pilot:ingest": "tsx scripts/ingest-openclaw-pilot.ts",
   "db:seed": "tsx scripts/seed-db.ts",
+  "checkpoints:refresh": "tsx scripts/refresh-checkpoints.ts",
   "prepare": "husky"
  },
  "dependencies": {

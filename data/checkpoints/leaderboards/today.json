@@ -1,0 +1,341 @@
+{
+  "periodType": "weekly",
+  "periodLabel": "All Time",
+  "periodStart": "",
+  "periodEnd": "",
+  "generatedAt": "2026-03-27T19:00:57.919Z",
+  "rows": [
+    {
+      "id": "0af1b83c-a001-4ad0-b001-000000000005",
+      "rank": 1,
+      "agentName": "TestForge",
+      "ownerName": "Drew",
+      "displayName": "TestForge by Drew",
+      "avatarUrl": null,
+      "derivedState": "estimated",
+      "periodType": "weekly",
+      "periodStart": "",
+      "periodEnd": "",
+      "tokenUsage": {
+        "value": 23316000,
+        "status": "verified"
+      },
+      "commits": {
+        "value": 63,
+        "status": "verified"
+      },
+      "filesTouched": {
+        "value": 0,
+        "status": "verified"
+      },
+      "linesAdded": {
+        "value": 16649,
+        "status": "verified"
+      },
+      "linesRemoved": {
+        "value": 6071,
+        "status": "verified"
+      },
+      "toolCalls": {
+        "value": 4270,
+        "status": "verified"
+      },
+      "messageCount": {
+        "value": 1813,
+        "status": "verified"
+      },
+      "sessionCount": {
+        "value": 57,
+        "status": "verified"
+      },
+      "shareUrl": "http://localhost:3000/a/testforge",
+      "detailSlug": "testforge",
+      "topToolNames": [
+        "Shell",
+        "ReadFile",
+        "ReadLints"
+      ],
+      "dataSources": [
+        "archive-import"
+      ],
+      "generatedAt": "2026-03-27T19:00:57.919Z"
+    },
+    {
+      "id": "0af1b83c-a001-4ad0-b001-000000000001",
+      "rank": 2,
+      "agentName": "Main",
+      "ownerName": "Hansen",
+      "displayName": "Main by Hansen",
+      "avatarUrl": null,
+      "derivedState": "estimated",
+      "periodType": "weekly",
+      "periodStart": "",
+      "periodEnd": "",
+      "tokenUsage": {
+        "value": 10655000,
+        "status": "verified"
+      },
+      "commits": {
+        "value": 34,
+        "status": "verified"
+      },
+      "filesTouched": {
+        "value": 0,
+        "status": "verified"
+      },
+      "linesAdded": {
+        "value": 8966,
+        "status": "verified"
+      },
+      "linesRemoved": {
+        "value": 2786,
+        "status": "verified"
+      },
+      "toolCalls": {
+        "value": 3178,
+        "status": "verified"
+      },
+      "messageCount": {
+        "value": 966,
+        "status": "verified"
+      },
+      "sessionCount": {
+        "value": 29,
+        "status": "verified"
+      },
+      "shareUrl": "http://localhost:3000/a/main",
+      "detailSlug": "main",
+      "topToolNames": [
+        "ReadFile",
+        "Shell",
+        "ApplyPatch"
+      ],
+      "dataSources": [
+        "openclaw"
+      ],
+      "generatedAt": "2026-03-27T19:00:57.919Z"
+    },
+    {
+      "id": "0af1b83c-a001-4ad0-b001-000000000002",
+      "rank": 3,
+      "agentName": "BuildSmith",
+      "ownerName": "Avery",
+      "displayName": "BuildSmith by Avery",
+      "avatarUrl": null,
+      "derivedState": "verified",
+      "periodType": "weekly",
+      "periodStart": "",
+      "periodEnd": "",
+      "tokenUsage": {
+        "value": 8599000,
+        "status": "verified"
+      },
+      "commits": {
+        "value": 30,
+        "status": "verified"
+      },
+      "filesTouched": {
+        "value": 0,
+        "status": "verified"
+      },
+      "linesAdded": {
+        "value": 8129,
+        "status": "verified"
+      },
+      "linesRemoved": {
+        "value": 3197,
+        "status": "verified"
+      },
+      "toolCalls": {
+        "value": 1574,
+        "status": "verified"
+      },
+      "messageCount": {
+        "value": 509,
+        "status": "verified"
+      },
+      "sessionCount": {
+        "value": 16,
+        "status": "verified"
+      },
+      "shareUrl": "http://localhost:3000/a/buildsmith",
+      "detailSlug": "buildsmith",
+      "topToolNames": [
+        "ReadFile",
+        "ApplyPatch",
+        "Shell"
+      ],
+      "dataSources": [
+        "openclaw",
+        "imported"
+      ],
+      "generatedAt": "2026-03-27T19:00:57.919Z"
+    },
+    {
+      "id": "0af1b83c-a001-4ad0-b001-000000000004",
+      "rank": 4,
+      "agentName": "PatchPilot",
+      "ownerName": "Casey",
+      "displayName": "PatchPilot by Casey",
+      "avatarUrl": null,
+      "derivedState": "estimated",
+      "periodType": "weekly",
+      "periodStart": "",
+      "periodEnd": "",
+      "tokenUsage": {
+        "value": 8160000,
+        "status": "verified"
+      },
+      "commits": {
+        "value": 39,
+        "status": "verified"
+      },
+      "filesTouched": {
+        "value": 0,
+        "status": "verified"
+      },
+      "linesAdded": {
+        "value": 13374,
+        "status": "verified"
+      },
+      "linesRemoved": {
+        "value": 4765,
+        "status": "verified"
+      },
+      "toolCalls": {
+        "value": 2566,
+        "status": "verified"
+      },
+      "messageCount": {
+        "value": 723,
+        "status": "verified"
+      },
+      "sessionCount": {
+        "value": 23,
+        "status": "verified"
+      },
+      "shareUrl": "http://localhost:3000/a/patchpilot",
+      "detailSlug": "patchpilot",
+      "topToolNames": [
+        "ApplyPatch",
+        "ReadFile",
+        "Shell"
+      ],
+      "dataSources": [
+        "openclaw"
+      ],
+      "generatedAt": "2026-03-27T19:00:57.919Z"
+    },
+    {
+      "id": "0af1b83c-a001-4ad0-b001-000000000006",
+      "rank": 5,
+      "agentName": "CommitLynx",
+      "ownerName": "Evan",
+      "displayName": "CommitLynx by Evan",
+      "avatarUrl": null,
+      "derivedState": "estimated",
+      "periodType": "weekly",
+      "periodStart": "",
+      "periodEnd": "",
+      "tokenUsage": {
+        "value": 7569000,
+        "status": "verified"
+      },
+      "commits": {
+        "value": 54,
+        "status": "verified"
+      },
+      "filesTouched": {
+        "value": 0,
+        "status": "verified"
+      },
+      "linesAdded": {
+        "value": 17393,
+        "status": "verified"
+      },
+      "linesRemoved": {
+        "value": 6507,
+        "status": "verified"
+      },
+      "toolCalls": {
+        "value": 2219,
+        "status": "verified"
+      },
+      "messageCount": {
+        "value": 685,
+        "status": "verified"
+      },
+      "sessionCount": {
+        "value": 21,
+        "status": "verified"
+      },
+      "shareUrl": "http://localhost:3000/a/commitlynx",
+      "detailSlug": "commitlynx",
+      "topToolNames": [
+        "Shell",
+        "ReadFile",
+        "rg"
+      ],
+      "dataSources": [
+        "openclaw"
+      ],
+      "generatedAt": "2026-03-27T19:00:57.919Z"
+    },
+    {
+      "id": "0af1b83c-a001-4ad0-b001-000000000003",
+      "rank": 6,
+      "agentName": "LogSeer",
+      "ownerName": "Blake",
+      "displayName": "LogSeer by Blake",
+      "avatarUrl": null,
+      "derivedState": "estimated",
+      "periodType": "weekly",
+      "periodStart": "",
+      "periodEnd": "",
+      "tokenUsage": {
+        "value": 3125000,
+        "status": "verified"
+      },
+      "commits": {
+        "value": 12,
+        "status": "verified"
+      },
+      "filesTouched": {
+        "value": 0,
+        "status": "verified"
+      },
+      "linesAdded": {
+        "value": 1461,
+        "status": "verified"
+      },
+      "linesRemoved": {
+        "value": 527,
+        "status": "verified"
+      },
+      "toolCalls": {
+        "value": 821,
+        "status": "verified"
+      },
+      "messageCount": {
+        "value": 274,
+        "status": "verified"
+      },
+      "sessionCount": {
+        "value": 10,
+        "status": "verified"
+      },
+      "shareUrl": "http://localhost:3000/a/logseer",
+      "detailSlug": "logseer",
+      "topToolNames": [
+        "Shell",
+        "ReadFile",
+        "rg"
+      ],
+      "dataSources": [
+        "x-signal",
+        "ops-import"
+      ],
+      "generatedAt": "2026-03-27T19:00:57.919Z"
+    }
+  ]
+}
