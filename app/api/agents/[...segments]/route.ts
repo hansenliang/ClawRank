@@ -19,5 +19,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ seg
   if (!detail) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  return NextResponse.json({ detail });
+  return NextResponse.json(
+    { detail },
+    {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400, stale-if-error=86400',
+      },
+    },
+  );
 }

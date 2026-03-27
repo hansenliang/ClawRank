@@ -19,15 +19,23 @@ import { SITE_URL } from './site';
 // ── Baked JSON fallback (unchanged from original) ──────────────────────────
 
 const BAKED_DIR = path.join(process.cwd(), 'data');
+const CHECKPOINT_DIR = path.join(BAKED_DIR, 'checkpoints');
+
+function readJsonFile<T>(fp: string): T | null {
+ try {
+  if (!fs.existsSync(fp)) return null;
+  return JSON.parse(fs.readFileSync(fp, 'utf-8')) as T;
+ } catch {
+  return null;
+ }
+}
 
 function tryBakedLeaderboard(): LeaderboardResponse | null {
- try {
-  const fp = path.join(BAKED_DIR, 'leaderboard.json');
-  if (fs.existsSync(fp)) {
-   return JSON.parse(fs.readFileSync(fp, 'utf-8'));
-  }
- } catch { /* ignore */ }
- return null;
+ return readJsonFile<LeaderboardResponse>(path.join(BAKED_DIR, 'leaderboard.json'));
+}
+
+function tryCheckpointLeaderboard(period: import('@/src/contracts/clawrank-domain').LeaderboardPeriod): LeaderboardResponse | null {
+ return readJsonFile<LeaderboardResponse>(path.join(CHECKPOINT_DIR, 'leaderboards', `${period}.json`));
 }
 
 const SINGLE_SLUG_RE = /^[a-z0-9][a-z0-9-]{0,128}$/;
@@ -45,18 +53,40 @@ function isValidSlug(slug: string): boolean {
  return SINGLE_SLUG_RE.test(slug);
 }
 
+function normalizeCheckpointKey(detailSlug: string): string {
+ return detailSlug.replace('/', '__');
+}
+
+function hydrateDetailPayload(payload: unknown): ShareDetail | null {
+ if (!payload || typeof payload !== 'object') return null;
+ const asObject = payload as { detail?: ShareDetail };
+ return asObject.detail || (payload as ShareDetail);
+}
+
+function tryCheckpointDetail(detailSlug: string): ShareDetail | null {
+ if (!isValidSlug(detailSlug)) return null;
+
+ const slug = detailSlug.includes('/') ? detailSlug.split('/')[1] : detailSlug;
+ const candidates = [
+  path.join(CHECKPOINT_DIR, 'agents', `${normalizeCheckpointKey(detailSlug)}.json`),
+  path.join(CHECKPOINT_DIR, 'agents', `${slug}.json`),
+ ];
+
+ for (const fp of candidates) {
+  const payload = readJsonFile<unknown>(fp);
+  const detail = hydrateDetailPayload(payload);
+  if (detail) return detail;
+ }
+
+ return null;
+}
+
 function tryBakedDetail(detailSlug: string): ShareDetail | null {
  // Baked files are stored by single slug only; extract slug part if given username/slug
  const slug = detailSlug.includes('/') ? detailSlug.split('/')[1] : detailSlug;
  if (!isValidSingleSlug(slug)) return null;
- try {
-  const fp = path.join(BAKED_DIR, 'agents', `${slug}.json`);
-  if (fs.existsSync(fp)) {
-   const payload = JSON.parse(fs.readFileSync(fp, 'utf-8'));
-   return payload?.detail || null;
-  }
- } catch { /* ignore */ }
- return null;
+ const payload = readJsonFile<unknown>(path.join(BAKED_DIR, 'agents', `${slug}.json`));
+ return hydrateDetailPayload(payload);
 }
 
 // ── Type bridge: domain → UI types ─────────────────────────────────────────
@@ -288,16 +318,22 @@ const EMPTY_LEADERBOARD: LeaderboardResponse = {
 };
 
 export async function getLeaderboardData(forceMode?: 'baked' | 'live', period?: import('@/src/contracts/clawrank-domain').LeaderboardPeriod): Promise<LeaderboardResponse> {
- // Baked mode: read from pre-generated JSON files
+ const resolvedPeriod = period || 'alltime';
+
+ // Baked mode: use durable checkpoint first, then baked fallback
  if (forceMode === 'baked') {
-  return tryBakedLeaderboard() || EMPTY_LEADERBOARD;
+  return tryCheckpointLeaderboard(resolvedPeriod) || tryBakedLeaderboard() || EMPTY_LEADERBOARD;
  }
 
- // Live mode or default: try DB first, then pilot JSON, then baked
+ // Live mode or default: try DB first
  if (hasDB()) {
-  const result = await dbLeaderboard(period || 'alltime');
+  const result = await dbLeaderboard(resolvedPeriod);
   if (result && result.rows.length) return result;
  }
+
+ // Durable checkpoint fallback (safe on free Vercel cold starts)
+ const checkpoint = tryCheckpointLeaderboard(resolvedPeriod);
+ if (checkpoint && checkpoint.rows.length) return checkpoint;
 
  // Try pilot JSON store
  const fromJson = jsonLeaderboard();
@@ -309,14 +345,18 @@ export async function getLeaderboardData(forceMode?: 'baked' | 'live', period?: 
 
 export async function getShareDetail(detailSlug: string, forceMode?: 'baked' | 'live'): Promise<ShareDetail | null> {
  if (forceMode === 'baked') {
-  return tryBakedDetail(detailSlug);
+  return tryCheckpointDetail(detailSlug) || tryBakedDetail(detailSlug);
  }
 
- // Live mode or default: try DB first, then pilot JSON, then baked
+ // Live mode or default: try DB first
  if (hasDB()) {
   const result = await dbDetail(detailSlug);
   if (result) return result;
  }
+
+ // Durable checkpoint fallback (safe on free Vercel cold starts)
+ const checkpoint = tryCheckpointDetail(detailSlug);
+ if (checkpoint) return checkpoint;
 
  // Try pilot JSON store
  const fromJson = jsonDetail(detailSlug);
