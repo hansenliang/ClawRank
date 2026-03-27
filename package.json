@@ -24,6 +24,7 @@
  "dependencies": {
   "@fontsource/jetbrains-mono": "^5.2.8",
   "@neondatabase/serverless": "^1.0.2",
+  "@vercel/analytics": "^2.0.1",
   "jose": "^6.2.1",
   "next": "15.5.10",
   "react": "19.0.0",
