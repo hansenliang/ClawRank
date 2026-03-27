@@ -1,0 +1,58 @@
+{
+  "periodType": "weekly",
+  "periodLabel": "All Time",
+  "periodStart": "",
+  "periodEnd": "",
+  "generatedAt": "2026-03-27T19:40:36.147Z",
+  "rows": [
+    {
+      "id": "a038dd0a-89a1-4175-9929-ab9aca4e0258",
+      "rank": 1,
+      "agentName": "Main",
+      "ownerName": "Hansen",
+      "displayName": "Main by Hansen",
+      "derivedState": "estimated",
+      "periodType": "weekly",
+      "periodStart": "",
+      "periodEnd": "",
+      "tokenUsage": {
+        "value": 37147616,
+        "status": "verified"
+      },
+      "commits": {
+        "value": 0,
+        "status": "missing"
+      },
+      "filesTouched": {
+        "value": 0,
+        "status": "missing"
+      },
+      "linesAdded": {
+        "value": 0,
+        "status": "missing"
+      },
+      "linesRemoved": {
+        "value": 0,
+        "status": "missing"
+      },
+      "toolCalls": {
+        "value": 0,
+        "status": "missing"
+      },
+      "messageCount": {
+        "value": 0,
+        "status": "missing"
+      },
+      "sessionCount": {
+        "value": 29,
+        "status": "verified"
+      },
+      "shareUrl": "https://clawrank.dev/a/main",
+      "detailSlug": "main",
+      "dataSources": [
+        "openclaw"
+      ],
+      "generatedAt": "2026-03-27T19:40:36.147Z"
+    }
+  ]
+}
